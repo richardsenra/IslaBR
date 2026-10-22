@@ -1,0 +1,30 @@
+[
+  {
+    "id": "repelente",
+    "resultado": { "item": "repelente", "qtd": 1 },
+    "ingredientes": [
+      { "item": "casca_caranguejo", "qtd": 2 },
+      { "item": "gosma", "qtd": 1 },
+      { "item": "erva_rara", "qtd": 1 }
+    ],
+    "aprendida_em": "m08"
+  },
+  {
+    "id": "pocao_pequena",
+    "resultado": { "item": "pocao_pequena", "qtd": 1 },
+    "ingredientes": [
+      { "item": "ferrao", "qtd": 1 },
+      { "item": "erva", "qtd": 1 }
+    ],
+    "aprendida_em": "m08"
+  },
+  {
+    "id": "pocao_grande",
+    "resultado": { "item": "pocao_grande", "qtd": 1 },
+    "ingredientes": [
+      { "item": "gel_brilhante", "qtd": 2 },
+      { "item": "erva", "qtd": 2 }
+    ],
+    "aprendida_em": "c08"
+  }
+]

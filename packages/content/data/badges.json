@@ -1,0 +1,42 @@
+[
+  {
+    "id": "b01",
+    "feito": "Entrar na gruta da praia",
+    "condicao": { "tipo": "reach", "ponto": "gruta_praia" }
+  },
+  {
+    "id": "b02",
+    "feito": "Chegar ao topo do farol",
+    "condicao": { "tipo": "reach", "ponto": "topo_farol" }
+  },
+  {
+    "id": "b03",
+    "feito": "Atravessar o pântano sem pisar na água",
+    "condicao": { "tipo": "proeza", "proeza": "pantano_sem_agua" }
+  },
+  {
+    "id": "b04",
+    "feito": "Achar a ilhota escondida",
+    "condicao": { "tipo": "reach", "ponto": "ilhota_pantano" }
+  },
+  {
+    "id": "b05",
+    "feito": "Concluir os pulos da plataforma alta",
+    "condicao": { "tipo": "bau", "bau": "c07" }
+  },
+  {
+    "id": "b06",
+    "feito": "Chegar ao mirante das falésias",
+    "condicao": { "tipo": "reach", "ponto": "mirante_falesias" }
+  },
+  {
+    "id": "b07",
+    "feito": "Encontrar as 3 marcas de ventosa",
+    "condicao": { "tipo": "missao", "missao": "m09" }
+  },
+  {
+    "id": "b08",
+    "feito": "Derrubar o chefe sem tomar dano, nem meio coração",
+    "condicao": { "tipo": "chefe_sem_dano", "chefe": "boss1" }
+  }
+]

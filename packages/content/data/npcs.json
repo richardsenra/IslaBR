@@ -1,0 +1,50 @@
+[
+  {
+    "id": "npc_nara",
+    "nome": "Capitã Nara",
+    "papel": "Tutorial e guia da história",
+    "zonas": ["z1"],
+    "missoes": ["m01", "m02", "m14"],
+    "dialogo_ocioso": "nara_ocioso"
+  },
+  {
+    "id": "npc_bento",
+    "nome": "Seu Bento",
+    "papel": "Fazendeiro e lojista",
+    "zonas": ["z2"],
+    "missoes": ["m03", "m04"],
+    "dialogo_ocioso": "bento_ocioso"
+  },
+  {
+    "id": "npc_iracema",
+    "nome": "Dona Iracema",
+    "papel": "Curandeira",
+    "zonas": ["z2", "z5"],
+    "missoes": ["m05", "m06", "m07"],
+    "dialogo_ocioso": "iracema_ocioso"
+  },
+  {
+    "id": "npc_calango",
+    "nome": "Zé Calango",
+    "papel": "Mago atrapalhado, cuida da bancada de fabricação",
+    "zonas": ["z4"],
+    "missoes": ["m07", "m08"],
+    "dialogo_ocioso": "calango_ocioso"
+  },
+  {
+    "id": "npc_tito",
+    "nome": "Tito",
+    "papel": "Pescador que viu o tentáculo",
+    "zonas": ["z3"],
+    "missoes": ["m09", "m10", "m11"],
+    "dialogo_ocioso": "tito_ocioso"
+  },
+  {
+    "id": "npc_anselmo",
+    "nome": "Dr. Anselmo",
+    "papel": "Cientista de fósseis",
+    "zonas": ["z6"],
+    "missoes": ["m12", "m13"],
+    "dialogo_ocioso": "anselmo_ocioso"
+  }
+]

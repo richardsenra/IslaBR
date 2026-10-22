@@ -1,0 +1,117 @@
+[
+  {
+    "id": "e01",
+    "nome": "Caranguejo Comum",
+    "tipo": "comum",
+    "zonas": ["z3"],
+    "hp": 2,
+    "dano": 0.5,
+    "comportamento": "Anda de lado e belisca de perto",
+    "drops": [
+      { "tipo": "moedas", "chance": 0.6, "min": 1, "max": 3 },
+      { "tipo": "item", "item": "casca_caranguejo", "chance": 0.4, "qtd": 1 },
+      { "tipo": "item", "item": "coracao_pequeno", "chance": 0.1, "qtd": 1 }
+    ]
+  },
+  {
+    "id": "e02",
+    "nome": "Caranguejo Espinhoso",
+    "tipo": "comum",
+    "zonas": ["z3", "z4"],
+    "hp": 3,
+    "dano": 0.5,
+    "comportamento": "Espinhos refletem golpe de frente; atacar pelas costas",
+    "drops": [
+      { "tipo": "moedas", "chance": 0.6, "min": 1, "max": 3 },
+      { "tipo": "item", "item": "casca_espinhosa", "chance": 0.25, "qtd": 1 },
+      { "tipo": "item", "item": "casca_caranguejo", "chance": 0.4, "qtd": 1 },
+      { "tipo": "item", "item": "coracao_pequeno", "chance": 0.1, "qtd": 1 }
+    ]
+  },
+  {
+    "id": "e03",
+    "nome": "Mosquito do Pântano",
+    "tipo": "comum",
+    "zonas": ["z4"],
+    "hp": 1,
+    "dano": 0.5,
+    "comportamento": "Voa em círculos e mergulha",
+    "drops": [
+      { "tipo": "moedas", "chance": 0.6, "min": 1, "max": 3 },
+      { "tipo": "item", "item": "ferrao", "chance": 0.35, "qtd": 1 },
+      { "tipo": "item", "item": "coracao_pequeno", "chance": 0.1, "qtd": 1 }
+    ]
+  },
+  {
+    "id": "e04",
+    "nome": "Sapo Gosmento",
+    "tipo": "comum",
+    "zonas": ["z4"],
+    "hp": 4,
+    "dano": 1,
+    "comportamento": "Pula e cospe gosma que deixa o jogador lento",
+    "drops": [
+      { "tipo": "moedas", "chance": 0.6, "min": 1, "max": 3 },
+      { "tipo": "item", "item": "gosma", "chance": 0.3, "qtd": 1 },
+      { "tipo": "item", "item": "coracao_pequeno", "chance": 0.1, "qtd": 1 }
+    ]
+  },
+  {
+    "id": "e05",
+    "nome": "Água-viva da Caverna",
+    "tipo": "comum",
+    "zonas": ["z6"],
+    "hp": 3,
+    "dano": 1,
+    "comportamento": "Flutua e solta choque em área",
+    "drops": [
+      { "tipo": "moedas", "chance": 0.6, "min": 1, "max": 3 },
+      { "tipo": "item", "item": "gel_brilhante", "chance": 0.3, "qtd": 1 },
+      { "tipo": "item", "item": "coracao_pequeno", "chance": 0.1, "qtd": 1 }
+    ]
+  },
+  {
+    "id": "mb1",
+    "nome": "Caranguejo-Rei",
+    "tipo": "mini_chefe",
+    "zonas": ["z3"],
+    "hp": 12,
+    "dano": 1,
+    "comportamento": "Duas fases: investida e chuva de bolhas",
+    "drops": [{ "tipo": "moedas", "chance": 1, "min": 50, "max": 50 }]
+  },
+  {
+    "id": "mb2",
+    "nome": "Sapo-Ancestral",
+    "tipo": "mini_chefe",
+    "zonas": ["z4"],
+    "hp": 14,
+    "dano": 1,
+    "comportamento": "Pulos em área e invoca mosquitos",
+    "drops": [{ "tipo": "item", "item": "chave_ilhota", "chance": 1, "qtd": 1 }]
+  },
+  {
+    "id": "boss1",
+    "nome": "Tentáculo-Guardião",
+    "tipo": "chefe",
+    "zonas": ["z6"],
+    "hp": 55,
+    "dano": 1,
+    "comportamento": "Três fases na sala mais funda da caverna; a luta dura de 3 a 5 minutos",
+    "drops": [],
+    "fases": [
+      {
+        "hp": 20,
+        "descricao": "Tentáculos soltos: 4 tentáculos batem no chão em padrões telegrafados. Cortar um abre janela de dano no núcleo"
+      },
+      {
+        "hp": 20,
+        "descricao": "Maré sobe: a água enche a sala e o chefe lança tinta que limita a visão; pular entre plataformas"
+      },
+      {
+        "hp": 15,
+        "descricao": "Fim da corda: mais rápido, combina as fases anteriores. Atacar o olho central encerra a luta"
+      }
+    ]
+  }
+]

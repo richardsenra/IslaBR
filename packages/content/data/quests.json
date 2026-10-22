@@ -1,0 +1,412 @@
+[
+  {
+    "id": "m01",
+    "titulo": "Bem-vindo à Ilha",
+    "npc": "npc_nara",
+    "requer": [],
+    "partes": [
+      {
+        "objetivo": "talk",
+        "npc": "npc_bento",
+        "texto": "Fale com o Seu Bento, na Vila Aconchego",
+        "dica": "A vila fica subindo a trilha de pedra que sai do cais."
+      },
+      {
+        "objetivo": "talk",
+        "npc": "npc_iracema",
+        "texto": "Fale com a Dona Iracema, na vila",
+        "dica": "A casa dela é a que tem ervas secando penduradas na varanda."
+      },
+      {
+        "objetivo": "talk",
+        "npc": "npc_nara",
+        "texto": "Volte para a Capitã Nara, no porto",
+        "dica": "A Nara ficou perto do navio, no fim do cais."
+      }
+    ],
+    "dialogo_entrada": "nara_m01_intro",
+    "dialogo_conclusao": "nara_m01_fim",
+    "recompensa": { "moedas": 10, "itens": ["graveto_reforcado"] },
+    "libera_ao_aceitar": ["z2"],
+    "libera": []
+  },
+  {
+    "id": "m02",
+    "titulo": "Caixas no Cais",
+    "npc": "npc_nara",
+    "requer": ["m01"],
+    "partes": [
+      {
+        "objetivo": "use",
+        "objeto": "caixa_quebravel",
+        "qtd": 5,
+        "texto": "Quebre 5 caixas no cais",
+        "dica": "As caixas estão empilhadas entre o navio e o farol. Bata nelas com o graveto."
+      },
+      {
+        "objetivo": "talk",
+        "npc": "npc_nara",
+        "texto": "Conte para a Nara que o cais está limpo",
+        "dica": "Ela continua no fim do cais, de olho no navio."
+      }
+    ],
+    "dialogo_entrada": "nara_m02_intro",
+    "dialogo_conclusao": "nara_m02_fim",
+    "recompensa": { "moedas": 15 },
+    "libera_ao_aceitar": [],
+    "libera": ["c01"]
+  },
+  {
+    "id": "m03",
+    "titulo": "Lista de Compras",
+    "npc": "npc_bento",
+    "requer": ["m02"],
+    "partes": [
+      {
+        "objetivo": "collect",
+        "item": "fruta",
+        "qtd": 6,
+        "texto": "Colha 6 frutas na horta",
+        "dica": "A horta fica atrás da casa do Seu Bento, do lado do cercado."
+      },
+      {
+        "objetivo": "talk",
+        "npc": "npc_bento",
+        "texto": "Entregue as frutas ao Seu Bento",
+        "dica": "Ele está na frente da loja, conferindo a balança."
+      }
+    ],
+    "dialogo_entrada": "bento_m03_intro",
+    "dialogo_conclusao": "bento_m03_fim",
+    "recompensa": { "itens": ["pocao_pequena", "pocao_pequena"] },
+    "libera_ao_aceitar": [],
+    "libera": ["loja"]
+  },
+  {
+    "id": "m04",
+    "titulo": "Praga de Caranguejos",
+    "npc": "npc_bento",
+    "requer": ["m03"],
+    "partes": [
+      {
+        "objetivo": "kill",
+        "inimigo": "e01",
+        "qtd": 8,
+        "texto": "Derrote 8 caranguejos na praia",
+        "dica": "É da praia que eles sobem para a horta. A trilha desce do fim da vila."
+      },
+      {
+        "objetivo": "talk",
+        "npc": "npc_bento",
+        "texto": "Dê a notícia ao Seu Bento",
+        "dica": "Ele não saiu da frente da loja."
+      }
+    ],
+    "dialogo_entrada": "bento_m04_intro",
+    "dialogo_conclusao": "bento_m04_fim",
+    "recompensa": { "moedas": 25 },
+    "libera_ao_aceitar": ["z3"],
+    "libera": []
+  },
+  {
+    "id": "m05",
+    "titulo": "Remédio da Iracema",
+    "npc": "npc_iracema",
+    "requer": ["m03"],
+    "partes": [
+      {
+        "objetivo": "collect",
+        "item": "erva",
+        "qtd": 3,
+        "texto": "Colha 3 ervas no pântano",
+        "dica": "As ervas crescem perto da água parada."
+      },
+      {
+        "objetivo": "kill",
+        "inimigo": "e03",
+        "qtd": 5,
+        "texto": "Espante 5 mosquitos do pântano",
+        "dica": "Os mosquitos voam em círculos sobre o lodo."
+      },
+      {
+        "objetivo": "talk",
+        "npc": "npc_iracema",
+        "texto": "Leve o preparo para a Dona Iracema",
+        "dica": "Ela espera na varanda, com o caldeirão no fogo."
+      }
+    ],
+    "dialogo_entrada": "iracema_m05_intro",
+    "dialogo_conclusao": "iracema_m05_fim",
+    "recompensa": { "moedas": 30, "itens": ["pocao_heroica"] },
+    "libera_ao_aceitar": ["z4"],
+    "libera": []
+  },
+  {
+    "id": "m06",
+    "titulo": "A Chave Perdida",
+    "npc": "npc_iracema",
+    "requer": ["m05"],
+    "partes": [
+      {
+        "objetivo": "collect",
+        "item": "chave_iracema",
+        "qtd": 1,
+        "texto": "Ache a chave da Dona Iracema nas falésias",
+        "dica": "Ela parou para descansar numa pedra alta, antes do mirante."
+      },
+      {
+        "objetivo": "use",
+        "objeto": "porta_casa_iracema",
+        "qtd": 1,
+        "texto": "Abra a casa dela nas falésias",
+        "dica": "É a casinha de telhado azul, no alto da subida."
+      },
+      {
+        "objetivo": "talk",
+        "npc": "npc_iracema",
+        "texto": "Conte para a Dona Iracema",
+        "dica": "Ela já subiu atrás de você e espera na porta."
+      }
+    ],
+    "dialogo_entrada": "iracema_m06_intro",
+    "dialogo_conclusao": "iracema_m06_fim",
+    "recompensa": { "coracoes": 1 },
+    "libera_ao_aceitar": ["z5"],
+    "libera": ["c08"]
+  },
+  {
+    "id": "m07",
+    "titulo": "Onde Está o Mago?",
+    "npc": "npc_iracema",
+    "requer": ["m05"],
+    "partes": [
+      {
+        "objetivo": "use",
+        "objeto": "lanterna_pantano",
+        "qtd": 3,
+        "texto": "Acenda as 3 lanternas do pântano",
+        "dica": "As lanternas estão nos postes de madeira. Comece pela mais perto da trilha."
+      },
+      {
+        "objetivo": "talk",
+        "npc": "npc_calango",
+        "texto": "Encontre o Zé Calango",
+        "dica": "Com as lanternas acesas dá para ver a fumaça do caldeirão dele entre as árvores."
+      }
+    ],
+    "dialogo_entrada": "iracema_m07_intro",
+    "dialogo_conclusao": "calango_m07_fim",
+    "recompensa": { "moedas": 20 },
+    "libera_ao_aceitar": [],
+    "libera": ["crafting"]
+  },
+  {
+    "id": "m08",
+    "titulo": "Repelente Caseiro",
+    "npc": "npc_calango",
+    "requer": ["m07"],
+    "partes": [
+      {
+        "objetivo": "collect",
+        "item": "casca_caranguejo",
+        "qtd": 2,
+        "texto": "Junte 2 cascas de caranguejo",
+        "dica": "Caranguejo derrotado solta casca. A praia está cheia deles."
+      },
+      {
+        "objetivo": "collect",
+        "item": "gosma",
+        "qtd": 1,
+        "texto": "Junte 1 gosma de sapo",
+        "dica": "Os sapos gosmentos ficam nas poças fundas do pântano."
+      },
+      {
+        "objetivo": "collect",
+        "item": "erva_rara",
+        "qtd": 1,
+        "texto": "Ache a erva da lua cheia",
+        "dica": "Está guardada dentro de um tronco oco, aqui no pântano."
+      },
+      {
+        "objetivo": "use",
+        "objeto": "bancada_calango",
+        "qtd": 1,
+        "texto": "Fabrique o repelente na bancada",
+        "dica": "A bancada é a mesa torta ao lado do caldeirão do Zé Calango."
+      },
+      {
+        "objetivo": "talk",
+        "npc": "npc_calango",
+        "texto": "Mostre o repelente ao Zé Calango",
+        "dica": "Ele está do outro lado da bancada, cheirando o vidro."
+      }
+    ],
+    "dialogo_entrada": "calango_m08_intro",
+    "dialogo_conclusao": "calango_m08_fim",
+    "recompensa": { "itens": ["receita_pocao_pequena"] },
+    "libera_ao_aceitar": [],
+    "libera": ["ilhota"]
+  },
+  {
+    "id": "m09",
+    "titulo": "Marcas na Areia",
+    "npc": "npc_tito",
+    "requer": ["m04", "m06", "m08"],
+    "partes": [
+      {
+        "objetivo": "reach",
+        "pontos": ["marca_praia", "marca_pantano", "marca_falesia"],
+        "em_ordem": false,
+        "texto": "Ache as 3 marcas de ventosa",
+        "dica": "Uma na praia, uma no pântano e uma nas falésias. São redondas, do tamanho de um prato."
+      },
+      {
+        "objetivo": "talk",
+        "npc": "npc_tito",
+        "texto": "Conte ao Tito o que você viu",
+        "dica": "O Tito pesca sentado na pedra grande da praia."
+      }
+    ],
+    "dialogo_entrada": "tito_m09_intro",
+    "dialogo_conclusao": "tito_m09_fim",
+    "recompensa": { "moedas": 35, "itens": ["mapa_rasgado"] },
+    "libera_ao_aceitar": [],
+    "libera": ["m10"]
+  },
+  {
+    "id": "m10",
+    "titulo": "O Mapa Rasgado",
+    "npc": "npc_tito",
+    "requer": ["m09"],
+    "partes": [
+      {
+        "objetivo": "collect",
+        "item": "pedaco_mapa",
+        "qtd": 3,
+        "texto": "Junte os 3 pedaços do mapa",
+        "dica": "Um na gruta da praia, um na ilhota do pântano e um na primeira sala da caverna. Sem a chave da ilhota, procure o Sapo-Ancestral."
+      },
+      {
+        "objetivo": "talk",
+        "npc": "npc_tito",
+        "texto": "Monte o mapa com o Tito",
+        "dica": "Ele continua na pedra da praia, com a linha na água."
+      }
+    ],
+    "dialogo_entrada": "tito_m10_intro",
+    "dialogo_conclusao": "tito_m10_fim",
+    "recompensa": { "joias": 1 },
+    "libera_ao_aceitar": ["z6"],
+    "libera": ["m11"]
+  },
+  {
+    "id": "m11",
+    "titulo": "A Maré Baixa",
+    "npc": "npc_tito",
+    "requer": ["m10"],
+    "partes": [
+      {
+        "objetivo": "use",
+        "objeto": "comporta",
+        "qtd": 3,
+        "texto": "Abra as 3 comportas da caverna",
+        "dica": "O mapa montado mostra onde elas ficam. Comece pela que está na sala seca."
+      },
+      {
+        "objetivo": "talk",
+        "npc": "npc_tito",
+        "texto": "Avise o Tito que a água baixou",
+        "dica": "Ele esperou na entrada da caverna, com medo de entrar."
+      }
+    ],
+    "dialogo_entrada": "tito_m11_intro",
+    "dialogo_conclusao": "tito_m11_fim",
+    "recompensa": { "moedas": 40 },
+    "libera_ao_aceitar": [],
+    "libera": ["salas_internas"]
+  },
+  {
+    "id": "m12",
+    "titulo": "A Procura pelo Tentáculo",
+    "npc": "npc_anselmo",
+    "requer": ["m11"],
+    "partes": [
+      {
+        "objetivo": "reach",
+        "pontos": ["tentaculo_1", "tentaculo_2", "tentaculo_3", "tentaculo_4"],
+        "em_ordem": true,
+        "texto": "Corra ao longo do tentáculo gigante",
+        "dica": "Siga as marcas de tinta no chão, sempre para dentro da caverna."
+      },
+      {
+        "objetivo": "use",
+        "objeto": "caracois_parasitas",
+        "qtd": 1,
+        "texto": "Olhe de perto o que há de estranho na ponta",
+        "dica": "Tem bicharada miúda agarrada ali, perto da ventosa maior."
+      },
+      {
+        "objetivo": "talk",
+        "npc": "npc_anselmo",
+        "texto": "Conte ao Dr. Anselmo",
+        "dica": "Ele acampou na entrada da caverna, cercado de caixas de fóssil."
+      }
+    ],
+    "dialogo_entrada": "anselmo_m12_intro",
+    "dialogo_conclusao": "anselmo_m12_fim",
+    "recompensa": { "xp": 120, "itens": ["chave_sala_chefe"] },
+    "libera_ao_aceitar": [],
+    "libera": ["sala_chefe"]
+  },
+  {
+    "id": "m13",
+    "titulo": "O Guardião da Caverna",
+    "npc": "npc_anselmo",
+    "requer": ["m12"],
+    "partes": [
+      {
+        "objetivo": "defeat_boss",
+        "chefe": "boss1",
+        "texto": "Vença o Tentáculo-Guardião",
+        "dica": "Corte um tentáculo para abrir janela no núcleo. Quando a maré subir, pule entre as plataformas."
+      },
+      {
+        "objetivo": "talk",
+        "npc": "npc_anselmo",
+        "texto": "Volte e conte ao Dr. Anselmo",
+        "dica": "Ele não saiu do acampamento na entrada da caverna."
+      }
+    ],
+    "dialogo_entrada": "anselmo_m13_intro",
+    "dialogo_conclusao": "anselmo_m13_fim",
+    "recompensa": { "joias": 3, "xp": 200, "itens": ["amuleto_mare"] },
+    "libera_ao_aceitar": [],
+    "libera": []
+  },
+  {
+    "id": "m14",
+    "titulo": "De Volta ao Porto",
+    "npc": "npc_nara",
+    "requer": ["m13"],
+    "partes": [
+      {
+        "objetivo": "collect",
+        "item": "escama_guardiao",
+        "qtd": 1,
+        "texto": "Pegue a Escama do Guardião no baú da sala do chefe",
+        "dica": "O baú só aparece depois da luta, no fundo da sala."
+      },
+      {
+        "objetivo": "talk",
+        "npc": "npc_nara",
+        "texto": "Entregue a escama para a Capitã Nara",
+        "dica": "Ela está no navio, no porto, já com o mapa aberto na mesa."
+      }
+    ],
+    "dialogo_entrada": "nara_m14_intro",
+    "dialogo_conclusao": "nara_m14_fim",
+    "recompensa": { "itens": ["mapa_proxima_ilha"] },
+    "libera_ao_aceitar": [],
+    "libera": ["navio_proxima_ilha"]
+  }
+]

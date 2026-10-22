@@ -1,0 +1,44 @@
+[
+  {
+    "id": "z1",
+    "nome": "Porto",
+    "funcao": "Hub e tutorial",
+    "nivel": { "min": 1, "max": 1 },
+    "liberada_por": null
+  },
+  {
+    "id": "z2",
+    "nome": "Vila Aconchego",
+    "funcao": "Loja e missões sociais",
+    "nivel": { "min": 1, "max": 2 },
+    "liberada_por": "m01"
+  },
+  {
+    "id": "z3",
+    "nome": "Praia dos Caranguejos",
+    "funcao": "Combate básico",
+    "nivel": { "min": 2, "max": 3 },
+    "liberada_por": "m04"
+  },
+  {
+    "id": "z4",
+    "nome": "Pântano Lodoso",
+    "funcao": "Coleta e crafting",
+    "nivel": { "min": 3, "max": 4 },
+    "liberada_por": "m05"
+  },
+  {
+    "id": "z5",
+    "nome": "Falésias do Vento",
+    "funcao": "Plataforma e vistas",
+    "nivel": { "min": 4, "max": 4 },
+    "liberada_por": "m06"
+  },
+  {
+    "id": "z6",
+    "nome": "Caverna do Tentáculo",
+    "funcao": "Dungeon e chefe",
+    "nivel": { "min": 4, "max": 5 },
+    "liberada_por": "m10"
+  }
+]

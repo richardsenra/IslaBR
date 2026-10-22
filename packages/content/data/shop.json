@@ -1,0 +1,13 @@
+{
+  "npc": "npc_bento",
+  "liberada_por": "m03",
+  "itens": [
+    { "item": "pocao_pequena", "custo": { "moedas": 15 } },
+    { "item": "pocao_grande", "custo": { "moedas": 40 } },
+    { "item": "pocao_heroica", "custo": { "joias": 1 } },
+    {
+      "item": "armadura_nv1",
+      "custo": { "moedas": 60, "itens": [{ "item": "casca_espinhosa", "qtd": 3 }] }
+    }
+  ]
+}

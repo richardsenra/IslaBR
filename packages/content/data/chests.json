@@ -1,0 +1,92 @@
+[
+  {
+    "id": "c01",
+    "zona": "z1",
+    "local": "Porto, atrás do farol",
+    "tipo": "free",
+    "requer": ["m02"],
+    "como_abrir": "Aperte F; o baú aparece quando a m02 termina",
+    "conteudo": { "moedas": 20 }
+  },
+  {
+    "id": "c02",
+    "zona": "z2",
+    "local": "Vila, telhado da loja",
+    "tipo": "hidden",
+    "requer": [],
+    "como_abrir": "Subir pelas caixas encostadas na parede da loja",
+    "conteudo": { "itens": ["pocao_pequena", "pocao_pequena"] }
+  },
+  {
+    "id": "c03",
+    "zona": "z3",
+    "local": "Praia, gruta pequena",
+    "tipo": "hidden",
+    "requer": [],
+    "como_abrir": "Atravessar a passagem baixa rolando com a esquiva",
+    "conteudo": { "moedas": 30, "itens": ["pedaco_mapa"], "insignias": ["b01"] }
+  },
+  {
+    "id": "c04",
+    "zona": "z4",
+    "local": "Pântano, tronco oco",
+    "tipo": "free",
+    "requer": [],
+    "como_abrir": "Aperte F",
+    "conteudo": { "itens": ["erva_rara"] }
+  },
+  {
+    "id": "c05",
+    "zona": "z4",
+    "local": "Pântano, ilhota",
+    "tipo": "locked",
+    "requer": ["chave_ilhota", "repelente"],
+    "como_abrir": "Chave do Sapo-Ancestral para o baú e repelente para atravessar os mosquitos",
+    "conteudo": { "itens": ["arma_nv2", "pedaco_mapa"] }
+  },
+  {
+    "id": "c06",
+    "zona": "z5",
+    "local": "Falésias, cume",
+    "tipo": "locked",
+    "requer": ["chave_iracema"],
+    "como_abrir": "A mesma chave da m06 abre a casa da Dona Iracema e este baú",
+    "conteudo": { "itens": ["pocao_heroica"] }
+  },
+  {
+    "id": "c07",
+    "zona": "z5",
+    "local": "Falésias, plataforma alta",
+    "tipo": "hidden",
+    "requer": [],
+    "como_abrir": "Encadear os pulos cronometrados até a plataforma alta",
+    "conteudo": { "joias": 3, "insignias": ["b05"] }
+  },
+  {
+    "id": "c08",
+    "zona": "z5",
+    "local": "Casa da Dona Iracema",
+    "tipo": "quest",
+    "requer": ["m06"],
+    "como_abrir": "Recompensa de abrir a casa na m06",
+    "conteudo": { "itens": ["receita_pocao_grande"] }
+  },
+  {
+    "id": "c09",
+    "zona": "z6",
+    "local": "Caverna, sala 1",
+    "tipo": "free",
+    "requer": [],
+    "como_abrir": "Aperte F; a sala 1 é seca e abre ao aceitar a m10",
+    "conteudo": { "moedas": 25, "itens": ["pedaco_mapa"] }
+  },
+  {
+    "id": "c10",
+    "zona": "z6",
+    "local": "Caverna, sala do chefe",
+    "tipo": "quest",
+    "requer": ["boss1"],
+    "como_abrir": "Aparece depois de vencer o Tentáculo-Guardião",
+    "conteudo": { "joias": 2, "itens": ["escama_guardiao"] }
+  }
+]

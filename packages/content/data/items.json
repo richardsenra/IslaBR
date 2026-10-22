@@ -1,0 +1,271 @@
+[
+  {
+    "id": "graveto_reforcado",
+    "nome": "Graveto Reforçado",
+    "tipo": "arma",
+    "descricao": "Um galho seco com corda de barco enrolada no cabo. Bate melhor do que parece.",
+    "empilhavel": false,
+    "consumivel": false,
+    "vendavel": false,
+    "descartavel": false,
+    "efeito": { "dano": 1 }
+  },
+  {
+    "id": "arma_nv2",
+    "nome": "Lança de Maré",
+    "tipo": "arma",
+    "descricao": "Ponta de coral amarrada num cabo de madeira clara. Bate o dobro do graveto.",
+    "empilhavel": false,
+    "consumivel": false,
+    "vendavel": false,
+    "descartavel": false,
+    "efeito": { "dano": 2 }
+  },
+  {
+    "id": "armadura_nv1",
+    "nome": "Peitoral de Casca",
+    "tipo": "armadura",
+    "descricao": "Cascas espinhosas costuradas numa veste de pescador. Apara meio coração de dano.",
+    "empilhavel": false,
+    "consumivel": false,
+    "vendavel": false,
+    "descartavel": false,
+    "efeito": { "reduz_dano": 0.5 }
+  },
+  {
+    "id": "amuleto_mare",
+    "nome": "Amuleto da Maré",
+    "tipo": "equipamento",
+    "descricao": "Prêmio de quem encarou o Guardião. Esquenta de leve quando a maré muda.",
+    "empilhavel": false,
+    "consumivel": false,
+    "vendavel": false,
+    "descartavel": false
+  },
+  {
+    "id": "pocao_pequena",
+    "nome": "Poção Pequena",
+    "tipo": "consumivel",
+    "descricao": "Vidro de xarope de erva. Devolve 2 corações.",
+    "empilhavel": true,
+    "consumivel": true,
+    "vendavel": true,
+    "descartavel": true,
+    "efeito": { "cura_coracoes": 2 }
+  },
+  {
+    "id": "pocao_grande",
+    "nome": "Poção Grande",
+    "tipo": "consumivel",
+    "descricao": "Garrafa cheia até a tampa. Devolve todos os corações.",
+    "empilhavel": true,
+    "consumivel": true,
+    "vendavel": true,
+    "descartavel": true,
+    "efeito": { "cura_tudo": true }
+  },
+  {
+    "id": "pocao_heroica",
+    "nome": "Poção Heróica",
+    "tipo": "consumivel",
+    "descricao": "Espuma dourada. Dá 2 corações temporários por um minuto.",
+    "empilhavel": true,
+    "consumivel": true,
+    "vendavel": false,
+    "descartavel": true,
+    "efeito": { "coracoes_temporarios": 2, "duracao_s": 60 }
+  },
+  {
+    "id": "coracao_pequeno",
+    "nome": "Coração Pequeno",
+    "tipo": "consumivel",
+    "descricao": "Pedacinho de vida que os bichos deixam cair. Devolve meio coração.",
+    "empilhavel": true,
+    "consumivel": true,
+    "vendavel": false,
+    "descartavel": true,
+    "efeito": { "cura_coracoes": 0.5 }
+  },
+  {
+    "id": "erva",
+    "nome": "Erva do Lodo",
+    "tipo": "ingrediente",
+    "descricao": "Folha larga que cresce na beira da água parada.",
+    "empilhavel": true,
+    "consumivel": true,
+    "vendavel": true,
+    "descartavel": true
+  },
+  {
+    "id": "erva_rara",
+    "nome": "Erva da Lua Cheia",
+    "tipo": "ingrediente",
+    "descricao": "Só existe uma na ilha, e estava guardada num tronco oco.",
+    "empilhavel": false,
+    "consumivel": true,
+    "vendavel": false,
+    "descartavel": false
+  },
+  {
+    "id": "fruta",
+    "nome": "Fruta da Horta",
+    "tipo": "ingrediente",
+    "descricao": "Vermelha, redonda e do tamanho da mão. O Seu Bento tem orgulho delas.",
+    "empilhavel": true,
+    "consumivel": true,
+    "vendavel": true,
+    "descartavel": true
+  },
+  {
+    "id": "casca_caranguejo",
+    "nome": "Casca de Caranguejo",
+    "tipo": "ingrediente",
+    "descricao": "Pedaço de carapaça. Cheira a maré baixa.",
+    "empilhavel": true,
+    "consumivel": true,
+    "vendavel": true,
+    "descartavel": true
+  },
+  {
+    "id": "casca_espinhosa",
+    "nome": "Casca Espinhosa",
+    "tipo": "ingrediente",
+    "descricao": "Carapaça cheia de pontas. Dá para costurar numa veste.",
+    "empilhavel": true,
+    "consumivel": true,
+    "vendavel": true,
+    "descartavel": true
+  },
+  {
+    "id": "ferrao",
+    "nome": "Ferrão de Mosquito",
+    "tipo": "ingrediente",
+    "descricao": "Agulha fina. Serve para furar rolha de poção.",
+    "empilhavel": true,
+    "consumivel": true,
+    "vendavel": true,
+    "descartavel": true
+  },
+  {
+    "id": "gosma",
+    "nome": "Gosma de Sapo",
+    "tipo": "ingrediente",
+    "descricao": "Pegajosa e morna. Melhor não perguntar de onde vem.",
+    "empilhavel": true,
+    "consumivel": true,
+    "vendavel": true,
+    "descartavel": true
+  },
+  {
+    "id": "gel_brilhante",
+    "nome": "Gel Brilhante",
+    "tipo": "ingrediente",
+    "descricao": "Brilha azul no escuro da caverna.",
+    "empilhavel": true,
+    "consumivel": true,
+    "vendavel": true,
+    "descartavel": true
+  },
+  {
+    "id": "repelente",
+    "nome": "Repelente Caseiro",
+    "tipo": "missao",
+    "descricao": "Fede o bastante para abrir caminho na nuvem de mosquitos da ilhota.",
+    "empilhavel": false,
+    "consumivel": false,
+    "vendavel": false,
+    "descartavel": false
+  },
+  {
+    "id": "chave_iracema",
+    "nome": "Chave da Dona Iracema",
+    "tipo": "chave",
+    "descricao": "Chave de ferro com fita vermelha. Abre a casa dela e o baú do cume.",
+    "empilhavel": false,
+    "consumivel": false,
+    "vendavel": false,
+    "descartavel": false
+  },
+  {
+    "id": "chave_ilhota",
+    "nome": "Chave da Ilhota",
+    "tipo": "chave",
+    "descricao": "Dente grande do Sapo-Ancestral, afiado como chave.",
+    "empilhavel": false,
+    "consumivel": false,
+    "vendavel": false,
+    "descartavel": false
+  },
+  {
+    "id": "chave_sala_chefe",
+    "nome": "Chave da Sala do Chefe",
+    "tipo": "chave",
+    "descricao": "Lasca de concha que encaixa na porta do fundo da caverna.",
+    "empilhavel": false,
+    "consumivel": false,
+    "vendavel": false,
+    "descartavel": false
+  },
+  {
+    "id": "pedaco_mapa",
+    "nome": "Pedaço de Mapa",
+    "tipo": "missao",
+    "descricao": "Um dos três retalhos do mapa rasgado do Tito.",
+    "empilhavel": true,
+    "consumivel": false,
+    "vendavel": false,
+    "descartavel": false
+  },
+  {
+    "id": "mapa_rasgado",
+    "nome": "Mapa Rasgado",
+    "tipo": "missao",
+    "descricao": "Falta metade dele, e justo a metade que interessa.",
+    "empilhavel": false,
+    "consumivel": false,
+    "vendavel": false,
+    "descartavel": false
+  },
+  {
+    "id": "escama_guardiao",
+    "nome": "Escama do Guardião",
+    "tipo": "missao",
+    "descricao": "Prova de que a luta aconteceu. Pesa mais do que parece.",
+    "empilhavel": false,
+    "consumivel": false,
+    "vendavel": false,
+    "descartavel": false
+  },
+  {
+    "id": "mapa_proxima_ilha",
+    "nome": "Mapa da Próxima Ilha",
+    "tipo": "missao",
+    "descricao": "A Capitã Nara desenhou de memória. Tem um X e uma mancha de café.",
+    "empilhavel": false,
+    "consumivel": false,
+    "vendavel": false,
+    "descartavel": false
+  },
+  {
+    "id": "receita_pocao_pequena",
+    "nome": "Receita: Poção Pequena",
+    "tipo": "receita",
+    "descricao": "Rabisco do Zé Calango explicando a mistura.",
+    "empilhavel": false,
+    "consumivel": false,
+    "vendavel": false,
+    "descartavel": false,
+    "efeito": { "ensina_receita": "pocao_pequena" }
+  },
+  {
+    "id": "receita_pocao_grande",
+    "nome": "Receita: Poção Grande",
+    "tipo": "receita",
+    "descricao": "Folha guardada no baú da casa da Dona Iracema.",
+    "empilhavel": false,
+    "consumivel": false,
+    "vendavel": false,
+    "descartavel": false,
+    "efeito": { "ensina_receita": "pocao_grande" }
+  }
+]
