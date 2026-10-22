@@ -215,3 +215,109 @@ export function playerColor(index: number): string {
   const palette = PLAYER_COLORS;
   return palette[((index % palette.length) + palette.length) % palette.length] ?? '#ff8a3d';
 }
+
+/**
+ * Alvos de interação do M2 (tecla F, raio de 2 m — SPEC §6).
+ *
+ * Posições provisórias, como o resto da arena: no M4 os NPCs e os baús ficam
+ * no greybox das zonas. Aqui eles existem só para a m01 e a m02 serem jogáveis
+ * de ponta a ponta.
+ */
+export type SpotKind = 'npc' | 'objeto' | 'bau';
+
+export interface InteractSpot {
+  /** Id único do alvo no mundo; o cliente manda este id em `interact`. */
+  readonly id: string;
+  readonly tipo: SpotKind;
+  /**
+   * O que o alvo representa no conteúdo: id de NPC, de objeto de missão ou de
+   * baú. Vários alvos podem apontar para o mesmo objeto (as 5 caixas do cais).
+   */
+  readonly alvo: string;
+  readonly x: number;
+  readonly y: number;
+  readonly z: number;
+  readonly rotulo: string;
+  readonly cor: string;
+}
+
+/** Distância máxima para interagir, em metros (SPEC §6). */
+export const INTERACT_RADIUS = 2;
+
+export const ARENA_SPOTS: readonly InteractSpot[] = [
+  {
+    id: 'spot_nara',
+    tipo: 'npc',
+    alvo: 'npc_nara',
+    x: 0,
+    y: 0,
+    z: 3,
+    rotulo: 'Capitã Nara',
+    cor: '#ef476f',
+  },
+  {
+    id: 'spot_bento',
+    tipo: 'npc',
+    alvo: 'npc_bento',
+    x: -5,
+    y: 0,
+    z: 10,
+    rotulo: 'Seu Bento',
+    cor: '#ffd23f',
+  },
+  {
+    id: 'spot_iracema',
+    tipo: 'npc',
+    alvo: 'npc_iracema',
+    x: 5,
+    y: 0,
+    z: 10,
+    rotulo: 'Dona Iracema',
+    cor: '#43c6ac',
+  },
+  // As 5 caixas da m02. Sem colisão nesta fase: quebrar é por jogador, e os
+  // colisores são os mesmos para todo mundo. A colisão volta no M3.
+  ...[0, 1, 2, 3, 4].map((index) => ({
+    id: `spot_caixa_${index + 1}`,
+    tipo: 'objeto' as const,
+    alvo: 'caixa_quebravel',
+    x: -3 + index * 1.5,
+    y: 0,
+    z: -4,
+    rotulo: 'Caixa do cais',
+    cor: '#d98b45',
+  })),
+  {
+    id: 'spot_c01',
+    tipo: 'bau',
+    alvo: 'c01',
+    x: 6,
+    y: 0,
+    z: -6,
+    rotulo: 'Baú atrás do farol',
+    cor: '#ffd23f',
+  },
+];
+
+export function spotById(id: string): InteractSpot | undefined {
+  return ARENA_SPOTS.find((spot) => spot.id === id);
+}
+
+/** O alvo mais perto do jogador dentro do raio, ou `undefined`. */
+export function nearestSpot(
+  x: number,
+  y: number,
+  z: number,
+  raio = INTERACT_RADIUS,
+): InteractSpot | undefined {
+  let best: InteractSpot | undefined;
+  let bestDistance = raio;
+  for (const spot of ARENA_SPOTS) {
+    const distance = Math.hypot(spot.x - x, spot.y - y, spot.z - z);
+    if (distance <= bestDistance) {
+      best = spot;
+      bestDistance = distance;
+    }
+  }
+  return best;
+}

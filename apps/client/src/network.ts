@@ -5,8 +5,12 @@ import {
   ROOM,
   isCharacterState,
   type CharacterState,
+  type DialoguePayload,
+  type InventoryUpdatePayload,
+  type LootPayload,
   type MoveCorrectionPayload,
   type MovePayload,
+  type QuestUpdatePayload,
 } from '@islabr/shared';
 
 /**
@@ -49,12 +53,18 @@ export interface IslandHandlers {
   /** Chamado a cada pacote de estado. `arrivedAt` é o relógio local. */
   onPatch(players: readonly NetPlayer[], arrivedAt: number): void;
   onCorrection(correction: MoveCorrectionPayload): void;
+  onDialogue(dialogue: DialoguePayload): void;
+  onQuestUpdate(update: QuestUpdatePayload): void;
+  onInventory(inventory: InventoryUpdatePayload): void;
+  onLoot(loot: LootPayload): void;
   onDisconnect(): void;
 }
 
 export interface IslandConnection {
   readonly sessionId: string;
   sendMove(payload: MovePayload): void;
+  /** Tecla F: só manda o id do alvo; quem decide o resto é o servidor. */
+  interact(alvo: string): void;
   leave(): void;
 }
 
@@ -110,15 +120,47 @@ export async function joinIsland(handlers: IslandHandlers): Promise<IslandConnec
     });
   });
 
+  room.onMessage(MSG.dialogue, (dialogue: DialoguePayload) => {
+    afterLag(() => {
+      handlers.onDialogue(dialogue);
+    });
+  });
+
+  room.onMessage(MSG.questUpdate, (update: QuestUpdatePayload) => {
+    afterLag(() => {
+      handlers.onQuestUpdate(update);
+    });
+  });
+
+  room.onMessage(MSG.inventoryUpdate, (inventory: InventoryUpdatePayload) => {
+    afterLag(() => {
+      handlers.onInventory(inventory);
+    });
+  });
+
+  room.onMessage(MSG.loot, (loot: LootPayload) => {
+    afterLag(() => {
+      handlers.onLoot(loot);
+    });
+  });
+
   room.onLeave(() => {
     handlers.onDisconnect();
   });
+
+  // Só agora, com tudo escutando, pedir a carteira e o objetivo atual.
+  room.send(MSG.ready, {});
 
   return {
     sessionId: room.sessionId,
     sendMove: (payload) => {
       afterLag(() => {
         room.send(MSG.move, payload);
+      });
+    },
+    interact: (alvo) => {
+      afterLag(() => {
+        room.send(MSG.interact, { alvo });
       });
     },
     leave: () => {

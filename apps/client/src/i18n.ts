@@ -5,7 +5,7 @@ const ptBR = {
   playerCount: (n: number) => (n === 1 ? '1 jogador' : `${n} jogadores`),
   offline: 'Sozinho (sem servidor)',
   controls:
-    'WASD andar · Espaço pular · Shift esquivar (passa por vãos baixos) · Mouse gira a câmera · Roda aproxima',
+    'WASD andar · Espaço pular · Shift esquivar · F falar e abrir · Mouse gira a câmera · Roda aproxima',
   lag: (ms: number) => `latência simulada: ${ms} ms`,
   debug: (info: {
     fps: number;

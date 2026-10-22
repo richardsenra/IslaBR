@@ -6,16 +6,20 @@ import {
   PredictedPlayer,
   SnapshotBuffer,
   moveDirectionFromCamera,
+  nearestSpot,
   playerColor,
   spawnPhysics,
+  type InteractSpot,
 } from '@islabr/shared';
 import { Avatar } from './avatar.js';
 import { ThirdPersonCamera } from './camera.js';
+import { DialogueBox } from './dialogue.js';
 import { Hud } from './hud.js';
 import { ui } from './i18n.js';
 import { InputReader } from './input.js';
 import { joinIsland, simulatedLagMs, type IslandConnection, type NetPlayer } from './network.js';
 import { createStage } from './scene.js';
+import { Spots } from './spots.js';
 import { createArena } from './world.js';
 
 function byId<T extends HTMLElement>(id: string): T {
@@ -25,10 +29,29 @@ function byId<T extends HTMLElement>(id: string): T {
 }
 
 const canvas = byId<HTMLCanvasElement>('game');
-const hud = new Hud(byId('players'), byId('debug'), byId('help'), simulatedLagMs());
+const hud = new Hud(
+  {
+    players: byId('players'),
+    debug: byId('debug'),
+    help: byId('help'),
+    carteira: byId('carteira'),
+    objetivo: byId('objetivo'),
+    loot: byId('loot'),
+  },
+  simulatedLagMs(),
+);
+const dialogo = new DialogueBox(
+  byId('dialogo'),
+  byId('dialogo-npc'),
+  byId('dialogo-texto'),
+  byId('dialogo-rodape'),
+);
 
 const { scene, camera, renderer } = createStage(canvas);
 scene.add(createArena());
+
+const spots = new Spots();
+scene.add(spots.group);
 
 const input = new InputReader(canvas);
 const follow = new ThirdPersonCamera(camera, ARENA_SPAWN.yaw);
@@ -48,6 +71,8 @@ interface RemoteAvatar {
 const remotes = new Map<string, RemoteAvatar>();
 let connection: IslandConnection | null = null;
 let myColorIndex: number | null = null;
+/** Alvo que o ícone flutuante está marcando agora. */
+let alvo: InteractSpot | undefined;
 
 function onPatch(players: readonly NetPlayer[], arrivedAt: number): void {
   const present = new Set<string>();
@@ -98,6 +123,20 @@ joinIsland({
   onCorrection: (correction) => {
     local.applyCorrection(correction);
   },
+  onDialogue: (payload) => {
+    dialogo.abrir(payload);
+  },
+  onQuestUpdate: (update) => {
+    hud.setObjetivo(update);
+  },
+  onInventory: (inventory) => {
+    hud.setCarteira(inventory);
+  },
+  onLoot: (loot) => {
+    hud.mostrarLoot(loot);
+    // O que foi recolhido some do mundo para este jogador.
+    if (alvo?.tipo === 'bau') spots.esconder(alvo.id);
+  },
   onDisconnect: () => {
     hud.setStatus(ui.disconnected);
     connection = null;
@@ -138,6 +177,7 @@ renderer.setAnimationLoop((now) => {
   const direction = moveDirectionFromCamera(axes.forward, axes.strafe, follow.yaw);
   let jump = input.consumeJump();
   let dodge = input.consumeDodge();
+  const interagir = input.consumeInteract();
 
   // Passo fixo: a simulação do cliente é igual à que o servidor valida.
   accumulator = Math.min(accumulator + dt, MAX_FRAME_SECONDS);
@@ -154,6 +194,22 @@ renderer.setAnimationLoop((now) => {
     dodge = false;
   }
 
+  const player = local.current;
+
+  // Alvo da tecla F: o mais perto dentro do raio, que ainda esteja no mundo.
+  const perto = nearestSpot(player.x, player.y, player.z);
+  alvo = perto && spots.estaVisivel(perto.id) ? perto : undefined;
+
+  if (interagir) {
+    // Com fala aberta, F passa a caixa; senão, interage com o alvo.
+    if (dialogo.aberta) {
+      dialogo.avancar();
+    } else if (alvo && connection) {
+      connection.interact(alvo.id);
+      if (alvo.tipo === 'objeto') spots.esconder(alvo.id);
+    }
+  }
+
   if (connection) {
     sendTimer += dt * 1000;
     if (sendTimer >= MOVE_SEND_MS) {
@@ -163,10 +219,10 @@ renderer.setAnimationLoop((now) => {
     }
   }
 
-  const player = local.current;
   localAvatar.place(player.x, player.y, player.z, player.yaw);
   localAvatar.animate(player.state, dt);
   follow.update(player.x, player.y, player.z, ARENA_COLLIDERS, dt);
+  spots.update(dt, player, alvo);
 
   for (const remote of remotes.values()) {
     const pose = remote.buffer.sample(now);

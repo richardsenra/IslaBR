@@ -48,3 +48,62 @@ body {
   font-weight: 400;
   text-align: center;
 }
+
+#carteira {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  font-size: 18px;
+  letter-spacing: 2px;
+}
+
+#objetivo {
+  position: fixed;
+  top: 54px;
+  left: 12px;
+  max-width: 320px;
+  background: rgb(0 0 0 / 55%);
+  border-left: 4px solid #ffd23f;
+}
+
+#loot {
+  position: fixed;
+  top: 100px;
+  left: 12px;
+  background: rgb(26 90 42 / 85%);
+}
+
+#dialogo {
+  position: fixed;
+  left: 50%;
+  bottom: 64px;
+  width: min(720px, calc(100% - 48px));
+  transform: translateX(-50%);
+  padding: 16px 20px;
+  border-radius: 14px;
+  background: rgb(0 0 0 / 78%);
+  color: #fff;
+  font-size: 17px;
+  line-height: 1.45;
+}
+
+#dialogo[hidden] {
+  display: none;
+}
+
+#dialogo-npc {
+  font-weight: 700;
+  color: #ffd23f;
+  margin-bottom: 6px;
+}
+
+#dialogo-texto {
+  margin: 0;
+}
+
+#dialogo-rodape {
+  margin-top: 10px;
+  text-align: right;
+  font-size: 13px;
+  opacity: 0.7;
+}

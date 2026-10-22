@@ -61,6 +61,11 @@ export class InputReader {
     return this.consume('ShiftLeft') || this.consume('ShiftRight');
   }
 
+  /** F interage com o alvo perto e avança a fala aberta (SPEC §6). */
+  consumeInteract(): boolean {
+    return this.consume('KeyF') || this.consume('Enter');
+  }
+
   private consume(code: string): boolean {
     return this.tapped.delete(code);
   }

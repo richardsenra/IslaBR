@@ -48,6 +48,14 @@ export const MSG = {
   chat: 'chat',
   /** S→C: o servidor recusou a posição informada e manda a última válida. */
   moveCorrection: 'move_correction',
+  /** S→C: fala que o cliente deve abrir; ver DialoguePayload. */
+  dialogue: 'dialogue',
+  /**
+   * C→S: "terminei de registrar os ouvintes, me diga como eu estou". Sem isto
+   * o servidor responderia no `onJoin`, antes de o cliente estar escutando, e
+   * a carteira e o objetivo só apareceriam na próxima mudança.
+   */
+  ready: 'ready',
   damage: 'damage',
   questUpdate: 'quest_update',
   inventoryUpdate: 'inventory_update',
@@ -102,4 +110,56 @@ export function parseMovePayload(raw: unknown): MovePayload | null {
     yaw: data['yaw'] as number,
     state,
   };
+}
+
+/** C→S: id do alvo perto do jogador (NPC, baú ou objeto) — SPEC §4. */
+export interface InteractPayload {
+  readonly alvo: string;
+}
+
+export function parseInteractPayload(raw: unknown): InteractPayload | null {
+  if (typeof raw !== 'object' || raw === null) return null;
+  const alvo = (raw as Record<string, unknown>)['alvo'];
+  if (typeof alvo !== 'string' || alvo.length === 0 || alvo.length > 64) return null;
+  return { alvo };
+}
+
+/**
+ * S→C: fala a mostrar. A tabela da SPEC §4 não tem mensagem de diálogo, mas o
+ * servidor é quem decide qual fala vale agora (entrada, conclusão ou ociosa),
+ * então ele manda o id e o cliente lê o texto de `content`.
+ */
+export interface DialoguePayload {
+  readonly dialogo: string;
+  readonly npc: string;
+  /** Missão aceita ou concluída nesta conversa, se houver. */
+  readonly missao?: string;
+  readonly motivo: 'entrada' | 'conclusao' | 'ocioso';
+}
+
+/** S→C: progresso de missão para o HUD (SPEC §4). */
+export interface QuestUpdatePayload {
+  readonly missao: string;
+  readonly titulo: string;
+  readonly texto: string;
+  readonly feito: number;
+  readonly total: number;
+  readonly concluida: boolean;
+}
+
+/** S→C: carteira e inventário do jogador (SPEC §4). */
+export interface InventoryUpdatePayload {
+  readonly moedas: number;
+  readonly joias: number;
+  readonly coracoes: number;
+  readonly coracoesMax: number;
+  readonly itens: Readonly<Record<string, number>>;
+}
+
+/** S→C: o que acabou de entrar no inventário (SPEC §4). */
+export interface LootPayload {
+  readonly de: string;
+  readonly moedas: number;
+  readonly joias: number;
+  readonly itens: readonly string[];
 }

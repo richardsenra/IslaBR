@@ -18,6 +18,7 @@
     "@colyseus/core": "0.18.21",
     "@colyseus/schema": "5.0.42",
     "@colyseus/ws-transport": "0.18.4",
+    "@islabr/content": "workspace:*",
     "@islabr/shared": "workspace:*"
   }
 }
