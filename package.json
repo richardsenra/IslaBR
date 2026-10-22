@@ -8,6 +8,8 @@
   },
   "scripts": {
     "dev": "pnpm --parallel --filter @islabr/client --filter @islabr/server dev",
+    "dev:client": "pnpm --filter @islabr/client dev",
+    "dev:server": "pnpm --filter @islabr/server dev",
     "build": "pnpm -r build",
     "test": "pnpm -r --if-present test",
     "typecheck": "pnpm -r --if-present typecheck",
