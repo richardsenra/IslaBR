@@ -21,6 +21,30 @@ docker compose up -d     # Postgres e servidor
 pnpm dev:client          # só o cliente
 ```
 
+### Postgres sem Docker
+
+Em máquina sem Docker, dá para rodar um Postgres 17 na pasta do usuário, sem
+instalador e sem privilégio de administrador:
+
+```sh
+npm install --prefix ~/pgsql @embedded-postgres/windows-x64@17.10.0-beta.17
+BIN=~/pgsql/node_modules/@embedded-postgres/windows-x64/native/bin
+"$BIN/initdb" -D ~/pgsql/data -U islabr --pwfile=<arquivo com a senha> \
+  --encoding=UTF8 --locale=C --auth-host=scram-sha-256
+"$BIN/pg_ctl" -D ~/pgsql/data -l ~/pgsql/log/postgres.log -o "-p 5432" start
+```
+
+Use usuário, senha e banco `islabr` para a conexão ficar igual à do compose:
+
+```
+DATABASE_URL=postgres://islabr:islabr@localhost:5432/islabr
+```
+
+O banco `islabr` precisa ser criado uma vez (`create database islabr`); esses
+binários não trazem `psql`, então o jeito mais simples é por um script com o
+driver `pg`. Postgres local e Postgres do Docker disputam a porta 5432: suba um
+de cada vez.
+
 Abra duas abas em http://localhost:5173: o canto superior direito mostra "2 jogadores".
 
 ## Controles

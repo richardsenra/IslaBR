@@ -86,7 +86,11 @@ importers:
         specifier: 4.1.13
         version: 4.1.13
 
-  packages/shared: {}
+  packages/shared:
+    devDependencies:
+      '@islabr/content':
+        specifier: workspace:*
+        version: link:../content
 
 packages:
 

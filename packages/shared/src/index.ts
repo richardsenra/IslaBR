@@ -5,4 +5,5 @@ export * from './interpolation.js';
 export * from './movement.js';
 export * from './net.js';
 export * from './prediction.js';
+export * from './quests.js';
 export * from './validation.js';
