@@ -1,0 +1,2 @@
+# Mesmo fim de linha em qualquer máquina: o Prettier (e o lint no CI) exigem LF.
+* text=auto eol=lf
