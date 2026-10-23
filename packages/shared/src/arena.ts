@@ -357,12 +357,22 @@ export const ARENA_ENEMIES: readonly EnemySpawn[] = [
   { id: 'e01_2', tipo: 'e01', x: 21, z: 7 },
   { id: 'e01_3', tipo: 'e01', x: 21, z: 15 },
   { id: 'e01_4', tipo: 'e01', x: 14, z: 17 },
-  { id: 'e01_5', tipo: 'e01', x: 21, z: 22 },
+  { id: 'e01_5', tipo: 'e01', x: 19, z: 22 },
   { id: 'e01_6', tipo: 'e01', x: 6, z: 20 },
   { id: 'e01_7', tipo: 'e01', x: -2, z: 22 },
   { id: 'e01_8', tipo: 'e01', x: -14, z: 22 },
   { id: 'e02_1', tipo: 'e02', x: -16, z: 4 },
   { id: 'e02_2', tipo: 'e02', x: -18, z: -8 },
+  // Metade norte: mosquitos, sapos e águas-vivas. Em cada grupo ficam a mais
+  // de 8 m uns dos outros, e todos longe do ponto onde o jogador nasce.
+  { id: 'e03_1', tipo: 'e03', x: -16, z: -14 },
+  { id: 'e03_2', tipo: 'e03', x: -9, z: -20 },
+  { id: 'e03_3', tipo: 'e03', x: 3, z: -20 },
+  { id: 'e03_4', tipo: 'e03', x: 12, z: -19 },
+  { id: 'e04_1', tipo: 'e04', x: 17, z: -12 },
+  { id: 'e04_2', tipo: 'e04', x: 21, z: -3 },
+  { id: 'e05_1', tipo: 'e05', x: -20, z: -18 },
+  { id: 'e05_2', tipo: 'e05', x: 8, z: -17 },
 ];
 
 /** Quanto tempo um inimigo derrotado leva para voltar. */

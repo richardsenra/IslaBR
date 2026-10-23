@@ -184,3 +184,144 @@ describe('saque e missão', () => {
     expect(sessao.contarMorte('e01')).toEqual([]);
   });
 });
+
+/** Um jogador ferido, com poções no bolso. */
+function ferido(coracoes: number, itens: Readonly<Record<string, number>>): PlayerSession {
+  return jogador({ ...STARTING_PROGRESS, coracoes, itens });
+}
+
+describe('usar item (SPEC §4: use_item)', () => {
+  it('a poção pequena devolve 2 corações e é gasta', () => {
+    const sessao = ferido(0.5, { pocao_pequena: 2 });
+    expect(sessao.usarItem('pocao_pequena')).toEqual({ usado: true });
+    expect(sessao.progress.coracoes).toBe(2.5);
+    expect(sessao.progress.itens['pocao_pequena']).toBe(1);
+    expect(sessao.sujo).toBe(true);
+  });
+
+  it('a cura nunca passa do máximo', () => {
+    const sessao = ferido(2, { pocao_pequena: 1 });
+    sessao.usarItem('pocao_pequena');
+    expect(sessao.progress.coracoes).toBe(3);
+  });
+
+  it('a poção grande devolve todos os corações', () => {
+    const sessao = ferido(0.5, { pocao_grande: 1 });
+    expect(sessao.usarItem('pocao_grande')).toEqual({ usado: true });
+    expect(sessao.progress.coracoes).toBe(3);
+  });
+
+  it('com a vida cheia a poção de cura é recusada, não desperdiçada', () => {
+    const sessao = ferido(3, { pocao_pequena: 1, pocao_grande: 1 });
+    expect(sessao.usarItem('pocao_pequena')).toEqual({ usado: false, recusa: 'vida-cheia' });
+    expect(sessao.usarItem('pocao_grande')).toEqual({ usado: false, recusa: 'vida-cheia' });
+    expect(sessao.progress.itens['pocao_pequena']).toBe(1);
+    expect(sessao.progress.itens['pocao_grande']).toBe(1);
+  });
+
+  it('item que o jogador não tem não funciona', () => {
+    const sessao = ferido(1, {});
+    expect(sessao.usarItem('pocao_pequena')).toEqual({ usado: false, recusa: 'nao-tem' });
+  });
+
+  it('item que não é consumível não funciona, nem arma, nem chave', () => {
+    const sessao = ferido(1, { graveto_reforcado: 1, chave_iracema: 1, erva: 1 });
+    for (const item of ['graveto_reforcado', 'chave_iracema', 'erva']) {
+      expect(sessao.usarItem(item)).toEqual({ usado: false, recusa: 'nao-usavel' });
+    }
+    expect(sessao.progress.itens['graveto_reforcado']).toBe(1);
+  });
+
+  it('id inventado é recusado sem derrubar nada', () => {
+    const sessao = ferido(1, {});
+    expect(sessao.usarItem('item_que_nao_existe')).toEqual({ usado: false, recusa: 'nao-tem' });
+    expect(sessao.usarItem('')).toEqual({ usado: false, recusa: 'nao-tem' });
+  });
+
+  it('quem está caído não usa poção', () => {
+    const sessao = ferido(3, { pocao_grande: 1 });
+    sessao.levarDano(3, 0);
+    expect(sessao.usarItem('pocao_grande')).toEqual({ usado: false, recusa: 'caido' });
+  });
+
+  it('gastar a última poção deixa zero, sem ficar negativo', () => {
+    const sessao = ferido(1, { pocao_pequena: 1 });
+    sessao.usarItem('pocao_pequena');
+    expect(sessao.progress.itens['pocao_pequena']).toBe(0);
+    expect(sessao.usarItem('pocao_pequena')).toEqual({ usado: false, recusa: 'nao-tem' });
+  });
+});
+
+describe('Poção Heróica: corações emprestados (SPEC §7.7, proposta)', () => {
+  it('dá 2 corações além do máximo, mesmo com a vida cheia', () => {
+    const sessao = ferido(3, { pocao_heroica: 1 });
+    expect(sessao.usarItem('pocao_heroica')).toEqual({ usado: true });
+    expect(sessao.progress.coracoes).toBe(5);
+    expect(sessao.progress.coracoesMax).toBe(3);
+  });
+
+  it('acabado o tempo, o que passa do máximo some', () => {
+    const sessao = ferido(3, { pocao_heroica: 1 });
+    sessao.usarItem('pocao_heroica');
+
+    sessao.passar(59);
+    expect(sessao.progress.coracoes).toBe(5);
+    sessao.passar(2);
+    expect(sessao.progress.coracoes).toBe(3);
+  });
+
+  it('o fim do efeito não tira vida de quem já tinha perdido os emprestados', () => {
+    const sessao = ferido(3, { pocao_heroica: 1 });
+    sessao.usarItem('pocao_heroica');
+    sessao.levarDano(3, 0); // gasta os 2 emprestados e mais 1 dos seus
+    sessao.passar(1); // passa a carência
+    expect(sessao.progress.coracoes).toBe(2);
+
+    sessao.passar(61);
+    expect(sessao.progress.coracoes).toBe(2);
+  });
+
+  it('a cura comum não tira os corações emprestados', () => {
+    const sessao = ferido(3, { pocao_heroica: 1, pocao_pequena: 1 });
+    sessao.usarItem('pocao_heroica');
+    // Com a vida acima do máximo, a poção de cura é recusada (vida cheia).
+    expect(sessao.usarItem('pocao_pequena')).toEqual({ usado: false, recusa: 'vida-cheia' });
+    expect(sessao.progress.coracoes).toBe(5);
+  });
+
+  it('o que vai para o banco nunca tem coração emprestado', () => {
+    const sessao = ferido(3, { pocao_heroica: 1 });
+    sessao.usarItem('pocao_heroica');
+    expect(sessao.progress.coracoes).toBe(5);
+    expect(sessao.paraSalvar().coracoes).toBe(3);
+  });
+});
+
+describe('coração pequeno: cura na hora, não vai para o inventário', () => {
+  it('cura meio coração ao ser pego', () => {
+    const sessao = ferido(2, {});
+    sessao.receber({ moedas: 0, itens: ['coracao_pequeno'] });
+    expect(sessao.progress.coracoes).toBe(2.5);
+    expect(sessao.progress.itens['coracao_pequeno']).toBeUndefined();
+  });
+
+  it('com a vida cheia, não cura nada e também não ocupa o inventário', () => {
+    const sessao = ferido(3, {});
+    sessao.receber({ moedas: 0, itens: ['coracao_pequeno'] });
+    expect(sessao.progress.coracoes).toBe(3);
+    expect(sessao.progress.itens['coracao_pequeno']).toBeUndefined();
+  });
+
+  it('vários corações pequenos de uma vez curam todos, até o máximo', () => {
+    const sessao = ferido(2, {});
+    sessao.receber({ moedas: 0, itens: ['coracao_pequeno', 'coracao_pequeno', 'coracao_pequeno'] });
+    expect(sessao.progress.coracoes).toBe(3);
+  });
+
+  it('outros itens do mesmo saque continuam indo para o inventário', () => {
+    const sessao = ferido(2, {});
+    sessao.receber({ moedas: 2, itens: ['coracao_pequeno', 'casca_caranguejo'] });
+    expect(sessao.progress.itens['casca_caranguejo']).toBe(1);
+    expect(sessao.progress.moedas).toBe(2);
+  });
+});

@@ -7,10 +7,33 @@
     "hp": 2,
     "dano": 0.5,
     "comportamento": "Anda de lado e belisca de perto",
+    "ia": {
+      "tipo": "perseguidor",
+      "velocidade": 2.6,
+      "aggro": 7,
+      "alcance": 1.5,
+      "recarga": 1.5,
+      "reflete_de_frente": false
+    },
     "drops": [
-      { "tipo": "moedas", "chance": 0.6, "min": 1, "max": 3 },
-      { "tipo": "item", "item": "casca_caranguejo", "chance": 0.4, "qtd": 1 },
-      { "tipo": "item", "item": "coracao_pequeno", "chance": 0.1, "qtd": 1 }
+      {
+        "tipo": "moedas",
+        "chance": 0.6,
+        "min": 1,
+        "max": 3
+      },
+      {
+        "tipo": "item",
+        "item": "casca_caranguejo",
+        "chance": 0.4,
+        "qtd": 1
+      },
+      {
+        "tipo": "item",
+        "item": "coracao_pequeno",
+        "chance": 0.1,
+        "qtd": 1
+      }
     ]
   },
   {
@@ -21,11 +44,39 @@
     "hp": 3,
     "dano": 0.5,
     "comportamento": "Espinhos refletem golpe de frente; atacar pelas costas",
+    "ia": {
+      "tipo": "perseguidor",
+      "velocidade": 2.2,
+      "aggro": 7,
+      "alcance": 1.6,
+      "recarga": 1.5,
+      "reflete_de_frente": true
+    },
     "drops": [
-      { "tipo": "moedas", "chance": 0.6, "min": 1, "max": 3 },
-      { "tipo": "item", "item": "casca_espinhosa", "chance": 0.25, "qtd": 1 },
-      { "tipo": "item", "item": "casca_caranguejo", "chance": 0.4, "qtd": 1 },
-      { "tipo": "item", "item": "coracao_pequeno", "chance": 0.1, "qtd": 1 }
+      {
+        "tipo": "moedas",
+        "chance": 0.6,
+        "min": 1,
+        "max": 3
+      },
+      {
+        "tipo": "item",
+        "item": "casca_espinhosa",
+        "chance": 0.25,
+        "qtd": 1
+      },
+      {
+        "tipo": "item",
+        "item": "casca_caranguejo",
+        "chance": 0.4,
+        "qtd": 1
+      },
+      {
+        "tipo": "item",
+        "item": "coracao_pequeno",
+        "chance": 0.1,
+        "qtd": 1
+      }
     ]
   },
   {
@@ -36,10 +87,36 @@
     "hp": 1,
     "dano": 0.5,
     "comportamento": "Voa em círculos e mergulha",
+    "ia": {
+      "tipo": "voador",
+      "velocidade": 3.2,
+      "aggro": 9,
+      "alcance": 1.1,
+      "recarga": 2.6,
+      "altura": 1.9,
+      "raio_orbita": 2.8,
+      "velocidade_mergulho": 7.5,
+      "aviso": 0.4
+    },
     "drops": [
-      { "tipo": "moedas", "chance": 0.6, "min": 1, "max": 3 },
-      { "tipo": "item", "item": "ferrao", "chance": 0.35, "qtd": 1 },
-      { "tipo": "item", "item": "coracao_pequeno", "chance": 0.1, "qtd": 1 }
+      {
+        "tipo": "moedas",
+        "chance": 0.6,
+        "min": 1,
+        "max": 3
+      },
+      {
+        "tipo": "item",
+        "item": "ferrao",
+        "chance": 0.35,
+        "qtd": 1
+      },
+      {
+        "tipo": "item",
+        "item": "coracao_pequeno",
+        "chance": 0.1,
+        "qtd": 1
+      }
     ]
   },
   {
@@ -50,10 +127,37 @@
     "hp": 4,
     "dano": 1,
     "comportamento": "Pula e cospe gosma que deixa o jogador lento",
+    "ia": {
+      "tipo": "saltador",
+      "velocidade": 3.4,
+      "aggro": 9,
+      "alcance": 1.7,
+      "recarga": 2.2,
+      "duracao_pulo": 0.55,
+      "alcance_cuspe": 6.5,
+      "recarga_cuspe": 4.5,
+      "aviso_cuspe": 0.7,
+      "lento_segundos": 3
+    },
     "drops": [
-      { "tipo": "moedas", "chance": 0.6, "min": 1, "max": 3 },
-      { "tipo": "item", "item": "gosma", "chance": 0.3, "qtd": 1 },
-      { "tipo": "item", "item": "coracao_pequeno", "chance": 0.1, "qtd": 1 }
+      {
+        "tipo": "moedas",
+        "chance": 0.6,
+        "min": 1,
+        "max": 3
+      },
+      {
+        "tipo": "item",
+        "item": "gosma",
+        "chance": 0.3,
+        "qtd": 1
+      },
+      {
+        "tipo": "item",
+        "item": "coracao_pequeno",
+        "chance": 0.1,
+        "qtd": 1
+      }
     ]
   },
   {
@@ -64,10 +168,34 @@
     "hp": 3,
     "dano": 1,
     "comportamento": "Flutua e solta choque em área",
+    "ia": {
+      "tipo": "flutuante",
+      "velocidade": 1.4,
+      "aggro": 8,
+      "alcance": 2.6,
+      "recarga": 3.2,
+      "altura": 0.9,
+      "carga": 0.9
+    },
     "drops": [
-      { "tipo": "moedas", "chance": 0.6, "min": 1, "max": 3 },
-      { "tipo": "item", "item": "gel_brilhante", "chance": 0.3, "qtd": 1 },
-      { "tipo": "item", "item": "coracao_pequeno", "chance": 0.1, "qtd": 1 }
+      {
+        "tipo": "moedas",
+        "chance": 0.6,
+        "min": 1,
+        "max": 3
+      },
+      {
+        "tipo": "item",
+        "item": "gel_brilhante",
+        "chance": 0.3,
+        "qtd": 1
+      },
+      {
+        "tipo": "item",
+        "item": "coracao_pequeno",
+        "chance": 0.1,
+        "qtd": 1
+      }
     ]
   },
   {
@@ -78,7 +206,14 @@
     "hp": 12,
     "dano": 1,
     "comportamento": "Duas fases: investida e chuva de bolhas",
-    "drops": [{ "tipo": "moedas", "chance": 1, "min": 50, "max": 50 }]
+    "drops": [
+      {
+        "tipo": "moedas",
+        "chance": 1,
+        "min": 50,
+        "max": 50
+      }
+    ]
   },
   {
     "id": "mb2",
@@ -88,7 +223,14 @@
     "hp": 14,
     "dano": 1,
     "comportamento": "Pulos em área e invoca mosquitos",
-    "drops": [{ "tipo": "item", "item": "chave_ilhota", "chance": 1, "qtd": 1 }]
+    "drops": [
+      {
+        "tipo": "item",
+        "item": "chave_ilhota",
+        "chance": 1,
+        "qtd": 1
+      }
+    ]
   },
   {
     "id": "boss1",

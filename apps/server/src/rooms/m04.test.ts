@@ -6,12 +6,11 @@ import { createGameServer } from '../app.js';
 import type { IslandRoom } from './IslandRoom.js';
 import {
   ate,
+  chegarNaM04,
   completarM01,
   escutar,
   falar,
-  irAte,
   respirar,
-  type Caixa,
   type Sequencia,
 } from './testHelpers.js';
 
@@ -99,35 +98,6 @@ describe('combate e m04', () => {
       await respirar(330);
     }
     throw new Error(`não deu para derrubar ${enemyId}`);
-  }
-
-  /** Chega na m04 aceita: m01, m02 e m03 em sequência, como no jogo. */
-  async function chegarNaM04(
-    sala: IslandRoom,
-    client: SDKRoom,
-    caixa: Caixa,
-    seq: Sequencia,
-  ): Promise<void> {
-    await completarM01(sala, client, caixa, seq);
-
-    await falar(sala, client, caixa, 'spot_nara', seq); // aceita a m02
-    for (let i = 1; i <= 5; i += 1) {
-      const antes = caixa.missoes.length;
-      await irAte(sala, client, `spot_caixa_${i}`, seq);
-      await ate(() => caixa.missoes.length > antes, `a caixa ${i}`);
-    }
-    await falar(sala, client, caixa, 'spot_nara', seq); // conclui a m02
-
-    // m03: 6 frutas na horta e voltar ao Seu Bento.
-    await falar(sala, client, caixa, 'spot_bento', seq);
-    for (let i = 1; i <= 6; i += 1) {
-      const antes = caixa.missoes.length;
-      await irAte(sala, client, `spot_fruta_${i}`, seq);
-      await ate(() => caixa.missoes.length > antes, `a fruta ${i}`);
-    }
-    await falar(sala, client, caixa, 'spot_bento', seq); // conclui a m03
-    await falar(sala, client, caixa, 'spot_bento', seq); // aceita a m04
-    await ate(() => caixa.missoes.at(-1)?.missao === 'm04', 'a m04 começar');
   }
 
   it('oito caranguejos derrotados concluem a m04 (aceite do M3)', async () => {

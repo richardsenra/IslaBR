@@ -6,7 +6,7 @@
  * do Colyseus, que todo mundo enxerga.
  */
 
-import { content, getChest, getDialogue, getNpc } from '@islabr/content';
+import { content, getChest, getDialogue, getNpc, itemsById } from '@islabr/content';
 import {
   CHARGED_MIN_GAP_MS,
   DODGE_COOLDOWN,
@@ -34,6 +34,7 @@ import {
   type QuestProgress,
   type QuestUpdatePayload,
   type AttackKind,
+  type NoticeCode,
   type Saque,
 } from '@islabr/shared';
 import { danoRecebido } from './combate.js';
@@ -71,6 +72,8 @@ export class PlayerSession {
   private invulneravelAte = 0;
   private renascerEm = 0;
   private esquivaLiberadaEm = 0;
+  /** Segundos que faltam para os corações temporários da Poção Heróica sumirem. */
+  private temporariosRestantes = 0;
   /** Coletáveis já colhidos nesta sessão; renascem na próxima. */
   private readonly coletados = new Set<string>();
   private ultimoGolpe: AttackKind | null = null;
@@ -126,6 +129,16 @@ export class PlayerSession {
   /** Passa o tempo: invulnerabilidade e volta à vida. */
   passar(dt: number): void {
     this.invulneravelAte = Math.max(0, this.invulneravelAte - dt);
+
+    // Os corações da Poção Heróica são emprestados: passado o tempo, o que
+    // passar do máximo some, e nunca derruba o jogador por isso.
+    if (this.temporariosRestantes > 0) {
+      this.temporariosRestantes = Math.max(0, this.temporariosRestantes - dt);
+      if (this.temporariosRestantes === 0 && this.progress.coracoes > this.progress.coracoesMax) {
+        this.progress = { ...this.progress, coracoes: this.progress.coracoesMax };
+        this.sujo = true;
+      }
+    }
     if (this.vivo || this.renascerEm <= 0) return;
     this.renascerEm -= dt;
     if (this.renascerEm > 0) return;
@@ -180,11 +193,77 @@ export class PlayerSession {
       this.sujo = true;
     }
     for (const item of saque.itens) {
+      const def = itemsById.get(item);
+      // O coração pequeno não vai para o inventário: cura assim que é pego.
+      if (def?.usa_ao_pegar && def.efeito?.cura_coracoes) {
+        this.curar(def.efeito.cura_coracoes);
+        continue;
+      }
       this.progress = addItem(this.progress, item, 1);
       this.sujo = true;
       atualizacoes.push(...this.evento({ tipo: 'collect', item, qtd: 1 }));
     }
     return atualizacoes;
+  }
+
+  /** Cura até o máximo. Não tira os corações temporários de quem os tem. */
+  private curar(quanto: number): void {
+    const { coracoes, coracoesMax } = this.progress;
+    const depois = Math.max(coracoes, Math.min(coracoesMax, coracoes + quanto));
+    if (depois === coracoes) return;
+    this.progress = { ...this.progress, coracoes: depois };
+    this.sujo = true;
+  }
+
+  /**
+   * Usa um item do inventário (SPEC §4: `use_item`). O servidor confere que o
+   * jogador tem o item, que ele é usável e que o efeito faz sentido, e só então
+   * gasta. Poção de cura com a vida cheia é recusada em vez de desperdiçada.
+   */
+  usarItem(id: string): { usado: true } | { usado: false; recusa: NoticeCode } {
+    if (itemCount(this.progress, id) <= 0) return { usado: false, recusa: 'nao-tem' };
+
+    const def = itemsById.get(id);
+    const efeito = def?.efeito;
+    if (!def || def.tipo !== 'consumivel' || !efeito) return { usado: false, recusa: 'nao-usavel' };
+    if (!this.vivo) return { usado: false, recusa: 'caido' };
+
+    const temporarios = efeito.coracoes_temporarios ?? 0;
+    // "Esse item cura?" é pergunta do item; "quanto cura agora?" depende da vida.
+    const itemCura = efeito.cura_tudo === true || (efeito.cura_coracoes ?? 0) > 0;
+    if (!itemCura && temporarios <= 0) return { usado: false, recusa: 'nao-usavel' };
+
+    // Poção de cura com a vida cheia não faz nada: recusa em vez de gastar.
+    if (temporarios <= 0 && this.progress.coracoes >= this.progress.coracoesMax) {
+      return { usado: false, recusa: 'vida-cheia' };
+    }
+
+    const cura = efeito.cura_tudo
+      ? this.progress.coracoesMax - Math.min(this.progress.coracoes, this.progress.coracoesMax)
+      : (efeito.cura_coracoes ?? 0);
+
+    if (cura > 0) this.curar(cura);
+    if (temporarios > 0) {
+      const teto = this.progress.coracoesMax + temporarios;
+      this.progress = {
+        ...this.progress,
+        coracoes: Math.min(this.progress.coracoes + temporarios, teto),
+      };
+      this.temporariosRestantes = efeito.duracao_s ?? 60;
+    }
+
+    this.progress = {
+      ...this.progress,
+      itens: { ...this.progress.itens, [id]: itemCount(this.progress, id) - 1 },
+    };
+    this.sujo = true;
+    return { usado: true };
+  }
+
+  /** O que vai para o banco: corações temporários não são do jogador. */
+  paraSalvar(): PlayerProgress {
+    const { coracoes, coracoesMax } = this.progress;
+    return coracoes > coracoesMax ? { ...this.progress, coracoes: coracoesMax } : this.progress;
   }
 
   get inventario(): InventoryUpdatePayload {

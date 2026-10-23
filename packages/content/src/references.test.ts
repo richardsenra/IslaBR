@@ -103,3 +103,50 @@ describe('checkReferences pega erro de verdade', () => {
     expect(problemsOf(broken)).toContain('shop.json/itens: pocao_grande está de graça');
   });
 });
+
+describe('IA dos inimigos', () => {
+  it('inimigo comum sem ia fica parado no mundo', () => {
+    const broken: Content = {
+      ...content,
+      enemies: content.enemies.map((enemy) => {
+        if (enemy.id !== 'e03') return enemy;
+        const { ia: _ia, ...semIa } = enemy;
+        void _ia;
+        return semIa;
+      }),
+    };
+    expect(problemsOf(broken)).toContain('enemies.json/e03: inimigo comum sem ia');
+  });
+
+  it('os cinco comuns cobrem os quatro arquétipos da spec', () => {
+    const tipos = content.enemies
+      .filter((enemy) => enemy.tipo === 'comum')
+      .map((enemy) => enemy.ia?.tipo);
+    expect(new Set(tipos)).toEqual(new Set(['perseguidor', 'voador', 'saltador', 'flutuante']));
+  });
+
+  it('só o espinhoso devolve o golpe de frente (SPEC §7.6)', () => {
+    const refletem = content.enemies
+      .filter((enemy) => enemy.ia?.tipo === 'perseguidor' && enemy.ia.reflete_de_frente)
+      .map((enemy) => enemy.id);
+    expect(refletem).toEqual(['e02']);
+  });
+});
+
+describe('item usado ao pegar', () => {
+  it('o coração pequeno cura na hora e não vai para o inventário', () => {
+    const coracao = content.items.find((item) => item.id === 'coracao_pequeno');
+    expect(coracao?.usa_ao_pegar).toBe(true);
+    expect(coracao?.efeito?.cura_coracoes).toBe(0.5);
+  });
+
+  it('usa_ao_pegar sem efeito de cura é recusado', () => {
+    const broken: Content = {
+      ...content,
+      items: content.items.map((item) =>
+        item.id === 'erva' ? { ...item, usa_ao_pegar: true } : item,
+      ),
+    };
+    expect(problemsOf(broken)).toContain('items.json/erva: usa_ao_pegar sem cura_coracoes');
+  });
+});

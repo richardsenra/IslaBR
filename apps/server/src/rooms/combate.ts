@@ -64,8 +64,9 @@ export function resolverAtaque(
     if (!inimigo) continue;
 
     const def = getEnemy(inimigo.tipo);
-    // O espinhoso devolve o golpe de frente (SPEC §7.6).
-    const reflete = inimigo.tipo === 'e02';
+    // O espinhoso devolve o golpe de frente (SPEC §7.6); quem reflete é dado do
+    // inimigo no JSON, não um id escrito aqui.
+    const reflete = def.ia?.tipo === 'perseguidor' && def.ia.reflete_de_frente;
     const resultado = resolverGolpe({
       arma: atacante.arma,
       golpe,

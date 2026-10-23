@@ -8,7 +8,9 @@
     "consumivel": false,
     "vendavel": false,
     "descartavel": false,
-    "efeito": { "dano": 1 }
+    "efeito": {
+      "dano": 1
+    }
   },
   {
     "id": "arma_nv2",
@@ -19,7 +21,9 @@
     "consumivel": false,
     "vendavel": false,
     "descartavel": false,
-    "efeito": { "dano": 2 }
+    "efeito": {
+      "dano": 2
+    }
   },
   {
     "id": "armadura_nv1",
@@ -30,7 +34,9 @@
     "consumivel": false,
     "vendavel": false,
     "descartavel": false,
-    "efeito": { "reduz_dano": 0.5 }
+    "efeito": {
+      "reduz_dano": 0.5
+    }
   },
   {
     "id": "amuleto_mare",
@@ -51,7 +57,9 @@
     "consumivel": true,
     "vendavel": true,
     "descartavel": true,
-    "efeito": { "cura_coracoes": 2 }
+    "efeito": {
+      "cura_coracoes": 2
+    }
   },
   {
     "id": "pocao_grande",
@@ -62,7 +70,9 @@
     "consumivel": true,
     "vendavel": true,
     "descartavel": true,
-    "efeito": { "cura_tudo": true }
+    "efeito": {
+      "cura_tudo": true
+    }
   },
   {
     "id": "pocao_heroica",
@@ -73,7 +83,10 @@
     "consumivel": true,
     "vendavel": false,
     "descartavel": true,
-    "efeito": { "coracoes_temporarios": 2, "duracao_s": 60 }
+    "efeito": {
+      "coracoes_temporarios": 2,
+      "duracao_s": 60
+    }
   },
   {
     "id": "coracao_pequeno",
@@ -84,7 +97,10 @@
     "consumivel": true,
     "vendavel": false,
     "descartavel": true,
-    "efeito": { "cura_coracoes": 0.5 }
+    "usa_ao_pegar": true,
+    "efeito": {
+      "cura_coracoes": 0.5
+    }
   },
   {
     "id": "erva",
@@ -255,7 +271,9 @@
     "consumivel": false,
     "vendavel": false,
     "descartavel": false,
-    "efeito": { "ensina_receita": "pocao_pequena" }
+    "efeito": {
+      "ensina_receita": "pocao_pequena"
+    }
   },
   {
     "id": "receita_pocao_grande",
@@ -266,6 +284,8 @@
     "consumivel": false,
     "vendavel": false,
     "descartavel": false,
-    "efeito": { "ensina_receita": "pocao_grande" }
+    "efeito": {
+      "ensina_receita": "pocao_grande"
+    }
   }
 ]

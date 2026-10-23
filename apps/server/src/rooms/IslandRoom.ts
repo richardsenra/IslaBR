@@ -12,10 +12,12 @@ import {
   parseAttackPayload,
   parseInteractPayload,
   parseMovePayload,
+  parseUseItemPayload,
   spotById,
   type MoveCorrectionPayload,
   type Saque,
   type Sorteio,
+  type StatusPayload,
 } from '@islabr/shared';
 import { getEnemy } from '@islabr/content';
 import { EnemyState } from './EnemyState.js';
@@ -25,7 +27,7 @@ import {
   passoDaIA,
   type AlvoDoInimigo,
   type EnemyRuntime,
-  type Mordida,
+  type Acao,
 } from './enemyAI.js';
 import { IslandState, PlayerState } from './IslandState.js';
 import { PlayerSession } from './playerSession.js';
@@ -73,6 +75,9 @@ export class IslandRoom extends Room<{ state: IslandState }> {
     this.onMessage(MSG.attack, (client, raw: unknown) => {
       this.onAttack(client, raw);
     });
+    this.onMessage(MSG.useItem, (client, raw: unknown) => {
+      this.onUseItem(client, raw);
+    });
     this.onMessage(MSG.ready, (client) => {
       this.enviarSituacao(client);
     });
@@ -119,11 +124,14 @@ export class IslandRoom extends Room<{ state: IslandState }> {
       });
     }
 
-    for (const inimigo of this.inimigos.values()) {
-      if (inimigo.estado === 'morto') continue;
-      const mordida = passoDaIA(inimigo, alvos, dt);
-      this.espelhar(inimigo);
-      if (mordida) this.morder(mordida);
+    // Sala vazia: ninguém para perceber, então a IA espera (o renascimento não).
+    if (alvos.length > 0) {
+      for (const inimigo of this.inimigos.values()) {
+        if (inimigo.estado === 'morto') continue;
+        const acao = passoDaIA(inimigo, alvos, dt);
+        this.espelhar(inimigo);
+        if (acao) this.agirContraJogadores(acao);
+      }
     }
 
     this.cuidarDoRenascimento(dt);
@@ -224,7 +232,7 @@ export class IslandRoom extends Room<{ state: IslandState }> {
     if (!session.sujo || !session.playerId) return;
     session.sujo = false;
     try {
-      await obterStore().salvar(session.playerId, session.progress, session.book);
+      await obterStore().salvar(session.playerId, session.paraSalvar(), session.book);
     } catch (erro) {
       // Perder a gravação não pode derrubar a partida de quem está jogando.
       session.sujo = true;
@@ -357,6 +365,26 @@ export class IslandRoom extends Room<{ state: IslandState }> {
     if (resultado.refletido > 0) this.machucar(client, session, resultado.refletido, 'espinho');
   }
 
+  /** Usar um item do inventário: quem decide se pode e o que faz é o servidor. */
+  private onUseItem(client: Client, raw: unknown): void {
+    const session = this.sessions.get(client.sessionId);
+    const estado = this.state.players.get(client.sessionId);
+    if (!session || !estado) return;
+
+    const payload = parseUseItemPayload(raw);
+    if (!payload) return;
+
+    const resultado = session.usarItem(payload.item);
+    if (!resultado.usado) {
+      client.send(MSG.notice, { codigo: resultado.recusa });
+      return;
+    }
+
+    estado.coracoes = session.progress.coracoes;
+    client.send(MSG.inventoryUpdate, session.inventario);
+    void this.salvar(session);
+  }
+
   /** Paga o saque e conta a morte para as missões. */
   private premiar(client: Client, session: PlayerSession, tipo: string, saque: Saque | null): void {
     const atualizacoes = session.contarMorte(tipo);
@@ -375,12 +403,41 @@ export class IslandRoom extends Room<{ state: IslandState }> {
     void this.salvar(session);
   }
 
-  /** Mordida de inimigo em jogador. */
-  private morder(mordida: Mordida): void {
-    const session = this.sessions.get(mordida.alvo);
-    const client = this.clients.find((candidato) => candidato.sessionId === mordida.alvo);
-    if (!session || !client) return;
-    this.machucar(client, session, mordida.dano, mordida.inimigo);
+  /** O que um inimigo fez e que chega nos jogadores: mordida, gosma ou choque. */
+  private agirContraJogadores(acao: Acao): void {
+    const clientePor = (sessionId: string): Client | undefined =>
+      this.clients.find((candidato) => candidato.sessionId === sessionId);
+
+    switch (acao.tipo) {
+      case 'mordida': {
+        const session = this.sessions.get(acao.alvo);
+        const client = clientePor(acao.alvo);
+        if (session && client) this.machucar(client, session, acao.dano, acao.inimigo);
+        return;
+      }
+      case 'choque': {
+        // Choque em área: quem estava perto na hora da descarga leva.
+        for (const sessionId of acao.alvos) {
+          const session = this.sessions.get(sessionId);
+          const client = clientePor(sessionId);
+          if (session && client) this.machucar(client, session, acao.dano, acao.inimigo);
+        }
+        return;
+      }
+      case 'gosma': {
+        // A gosma não machuca: deixa lento. A velocidade é do cliente, mas
+        // só diminui, então não há o que conferir no servidor.
+        const client = clientePor(acao.alvo);
+        if (!client) return;
+        const status: StatusPayload = {
+          tipo: 'lento',
+          segundos: acao.segundos,
+          origem: acao.inimigo,
+        };
+        client.send(MSG.status, status);
+        return;
+      }
+    }
   }
 
   private machucar(client: Client, session: PlayerSession, dano: number, origem: string): void {

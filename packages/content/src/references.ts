@@ -205,6 +205,12 @@ export function checkReferences(content: Content): ContentProblem[] {
     } else if (enemy.fases) {
       add(onde, 'só o chefe tem fases');
     }
+
+    // Sem IA o inimigo comum ficaria parado e inofensivo no mundo.
+    if (enemy.tipo === 'comum' && !enemy.ia) add(onde, 'inimigo comum sem ia');
+    if (enemy.ia?.tipo === 'perseguidor' && enemy.ia.reflete_de_frente && enemy.tipo !== 'comum') {
+      add(onde, 'só inimigo comum reflete golpe');
+    }
   }
 
   // Itens
@@ -212,6 +218,12 @@ export function checkReferences(content: Content): ContentProblem[] {
     const recipe = item.efeito?.ensina_receita;
     if (recipe !== undefined && !recipes.has(recipe)) {
       add(`items.json/${item.id}`, `receita inexistente: ${recipe}`);
+    }
+    // Item que age ao ser pego precisa saber o que fazer, e não pode ser guardado.
+    if (item.usa_ao_pegar) {
+      if (!item.efeito?.cura_coracoes)
+        add(`items.json/${item.id}`, 'usa_ao_pegar sem cura_coracoes');
+      if (item.vendavel) add(`items.json/${item.id}`, 'item usado ao pegar não pode ser vendido');
     }
   }
 

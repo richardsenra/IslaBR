@@ -43,6 +43,10 @@ export const MSG = {
   interact: 'interact',
   dialogueChoice: 'dialogue_choice',
   useItem: 'use_item',
+  /** S→C: efeito de estado no jogador (lento pela gosma). */
+  status: 'status',
+  /** S→C: o servidor recusou uma ação e diz por quê (poção com a vida cheia). */
+  notice: 'notice',
   buy: 'buy',
   craft: 'craft',
   chat: 'chat',
@@ -196,4 +200,30 @@ export interface DamagePayload {
   readonly morreu: boolean;
   /** O alvo é o próprio jogador que recebe a mensagem. */
   readonly euLevei: boolean;
+}
+
+/** C→S: usar um item do inventário (SPEC §4). */
+export interface UseItemPayload {
+  readonly item: string;
+}
+
+export function parseUseItemPayload(raw: unknown): UseItemPayload | null {
+  if (typeof raw !== 'object' || raw === null) return null;
+  const item = (raw as Record<string, unknown>)['item'];
+  if (typeof item !== 'string' || item.length === 0 || item.length > 64) return null;
+  return { item };
+}
+
+/** S→C: um efeito de estado que o servidor aplicou no jogador. */
+export interface StatusPayload {
+  readonly tipo: 'lento';
+  readonly segundos: number;
+  readonly origem: string;
+}
+
+export type NoticeCode = 'nao-tem' | 'nao-usavel' | 'vida-cheia' | 'caido';
+
+/** S→C: motivo de uma ação recusada, para o cliente mostrar em português. */
+export interface NoticePayload {
+  readonly codigo: NoticeCode;
 }

@@ -31,9 +31,6 @@ export const ATTACK_RADIUS = 0.9;
 /** Dano do golpe carregado, em múltiplos do golpe normal (proposta). */
 export const CHARGED_MULTIPLIER = 2;
 
-/** Tempo que o inimigo espera entre dois ataques. */
-export const ENEMY_ATTACK_COOLDOWN = 1.5;
-
 export type AttackKind = AttackState;
 
 /** Quanto cada arma tira por golpe (SPEC §6 e §7.7). */

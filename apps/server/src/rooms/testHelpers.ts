@@ -72,20 +72,36 @@ export async function irAte(
   const spot = spotById(spotId);
   if (!spot) throw new Error(`alvo desconhecido: ${spotId}`);
 
-  for (let passo = 0; passo < 40; passo += 1) {
+  await andarPara(room, client, spot.x, spot.z, seq, spotId);
+  client.send(MSG.interact, { alvo: spotId });
+}
+
+/**
+ * Anda até um ponto do chão, em passos curtos aceitos pelo servidor. Vale para
+ * qualquer lugar, não só para alvos de interação.
+ */
+export async function andarPara(
+  room: IslandRoom,
+  client: SDKRoom,
+  x: number,
+  z: number,
+  seq: Sequencia,
+  rotulo = `(${x}, ${z})`,
+): Promise<void> {
+  for (let passo = 0; passo < 60; passo += 1) {
     const atual = room.state.players.get(client.sessionId);
     if (!atual) throw new Error('jogador sumiu da sala');
-    const dx = spot.x - atual.x;
-    const dz = spot.z - atual.z;
+    const dx = x - atual.x;
+    const dz = z - atual.z;
     const falta = Math.hypot(dx, dz);
-    if (falta < 0.05) break;
+    if (falta < 0.05) return;
 
     const avanco = Math.min(falta, 2.5);
     seq.n += 1;
     const move: MovePayload = {
       seq: seq.n,
       x: atual.x + (dx / falta) * avanco,
-      y: spot.y,
+      y: 0,
       z: atual.z + (dz / falta) * avanco,
       vx: 0,
       vy: 0,
@@ -96,11 +112,9 @@ export async function irAte(
     client.send(MSG.move, move);
     await ate(
       () => (room.state.players.get(client.sessionId)?.seq ?? -1) >= seq.n,
-      `o servidor aceitar o passo ${seq.n} rumo a ${spotId}`,
+      `o servidor aceitar o passo ${seq.n} rumo a ${rotulo}`,
     );
   }
-
-  client.send(MSG.interact, { alvo: spotId });
 }
 
 /** Aperta F e espera a próxima fala. */
@@ -130,4 +144,36 @@ export async function completarM01(
   await falar(room, client, caixa, 'spot_bento', seq);
   await falar(room, client, caixa, 'spot_iracema', seq);
   await falar(room, client, caixa, 'spot_nara', seq);
+}
+
+/**
+ * Chega na m04 aceita: m01, m02 e m03 em sequência, como no jogo. No caminho o
+ * jogador ganha o graveto e as duas poções pequenas da m03.
+ */
+export async function chegarNaM04(
+  room: IslandRoom,
+  client: SDKRoom,
+  caixa: Caixa,
+  seq: Sequencia,
+): Promise<void> {
+  await completarM01(room, client, caixa, seq);
+
+  await falar(room, client, caixa, 'spot_nara', seq); // aceita a m02
+  for (let i = 1; i <= 5; i += 1) {
+    const antes = caixa.missoes.length;
+    await irAte(room, client, `spot_caixa_${i}`, seq);
+    await ate(() => caixa.missoes.length > antes, `a caixa ${i}`);
+  }
+  await falar(room, client, caixa, 'spot_nara', seq); // conclui a m02
+
+  // m03: 6 frutas na horta e voltar ao Seu Bento.
+  await falar(room, client, caixa, 'spot_bento', seq);
+  for (let i = 1; i <= 6; i += 1) {
+    const antes = caixa.missoes.length;
+    await irAte(room, client, `spot_fruta_${i}`, seq);
+    await ate(() => caixa.missoes.length > antes, `a fruta ${i}`);
+  }
+  await falar(room, client, caixa, 'spot_bento', seq); // conclui a m03
+  await falar(room, client, caixa, 'spot_bento', seq); // aceita a m04
+  await ate(() => caixa.missoes.at(-1)?.missao === 'm04', 'a m04 começar');
 }

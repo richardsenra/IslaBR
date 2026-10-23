@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { getEnemy } from '@islabr/content';
-import { ENEMY_ATTACK_COOLDOWN, sorteioComSemente } from '@islabr/shared';
+import { sorteioComSemente } from '@islabr/shared';
 import { danoRecebido, resolverAtaque, type Atacante } from './combate.js';
 import { criarInimigo, levarGolpe, passoDaIA, type EnemyRuntime } from './enemyAI.js';
 
@@ -131,7 +131,10 @@ describe('IA do inimigo', () => {
       proxima = passoDaIA(bicho, jogador(0, 1), 0.05);
     }
     expect(proxima).not.toBeNull();
-    expect(esperou).toBeGreaterThanOrEqual(ENEMY_ATTACK_COOLDOWN - 0.05);
+    // A recarga vem do JSON do inimigo, não de uma constante do código.
+    const ia = getEnemy('e01').ia;
+    expect(ia?.recarga).toBeGreaterThan(0);
+    expect(esperou).toBeGreaterThanOrEqual((ia?.recarga ?? 99) - 0.05);
   });
 
   it('não persegue jogador caído', () => {

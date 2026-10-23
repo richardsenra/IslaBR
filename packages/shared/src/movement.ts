@@ -71,6 +71,12 @@ export interface MoveInput {
   readonly moveZ: number;
   readonly jump: boolean;
   readonly dodge: boolean;
+  /**
+   * Fração da velocidade de corrida, de 0 a 1. Menor que 1 quando o jogador está
+   * lento (gosma do sapo). Só afeta o andar: a esquiva não é freada, e o servidor
+   * não precisa conferir porque só reduz a velocidade que ele já aceita.
+   */
+  readonly speedScale?: number;
 }
 
 export function spawnPhysics(x = 0, y = 0, z = 0, yaw = 0): PlayerPhysics {
@@ -178,8 +184,9 @@ export function stepPlayer(
     vx = 0;
     vz = 0;
   } else {
-    vx = dirX * MOVE_SPEED;
-    vz = dirZ * MOVE_SPEED;
+    const escala = Math.min(Math.max(input.speedScale ?? 1, 0), 1);
+    vx = dirX * MOVE_SPEED * escala;
+    vz = dirZ * MOVE_SPEED * escala;
   }
 
   let { x, y, z } = prev;
