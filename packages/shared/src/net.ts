@@ -43,6 +43,10 @@ export const MSG = {
   interact: 'interact',
   dialogueChoice: 'dialogue_choice',
   useItem: 'use_item',
+  /** S→C: efeito de estado no jogador (lento pela gosma). */
+  status: 'status',
+  /** S→C: o servidor recusou uma ação e diz por quê (poção com a vida cheia). */
+  notice: 'notice',
   buy: 'buy',
   craft: 'craft',
   chat: 'chat',
@@ -162,4 +166,64 @@ export interface LootPayload {
   readonly moedas: number;
   readonly joias: number;
   readonly itens: readonly string[];
+}
+
+/** C→S: golpe (1–3 ou carregado) e direção (SPEC §4). */
+export interface AttackPayload {
+  readonly golpe: 'attack1' | 'attack2' | 'attack3' | 'charged';
+  readonly yaw: number;
+}
+
+export function parseAttackPayload(raw: unknown): AttackPayload | null {
+  if (typeof raw !== 'object' || raw === null) return null;
+  const data = raw as Record<string, unknown>;
+  const golpe = data['golpe'];
+  const yaw = data['yaw'];
+  if (typeof yaw !== 'number' || !Number.isFinite(yaw)) return null;
+  if (golpe !== 'attack1' && golpe !== 'attack2' && golpe !== 'attack3' && golpe !== 'charged') {
+    return null;
+  }
+  return { golpe, yaw };
+}
+
+/** S→C: alvo, valor e origem do dano (SPEC §4). */
+export interface DamagePayload {
+  /** `sessionId` de um jogador ou id de um inimigo na sala. */
+  readonly alvo: string;
+  readonly valor: number;
+  readonly origem: string;
+  /** Posição do acerto, para o número flutuante. */
+  readonly x: number;
+  readonly y: number;
+  readonly z: number;
+  /** O alvo caiu com este golpe. */
+  readonly morreu: boolean;
+  /** O alvo é o próprio jogador que recebe a mensagem. */
+  readonly euLevei: boolean;
+}
+
+/** C→S: usar um item do inventário (SPEC §4). */
+export interface UseItemPayload {
+  readonly item: string;
+}
+
+export function parseUseItemPayload(raw: unknown): UseItemPayload | null {
+  if (typeof raw !== 'object' || raw === null) return null;
+  const item = (raw as Record<string, unknown>)['item'];
+  if (typeof item !== 'string' || item.length === 0 || item.length > 64) return null;
+  return { item };
+}
+
+/** S→C: um efeito de estado que o servidor aplicou no jogador. */
+export interface StatusPayload {
+  readonly tipo: 'lento';
+  readonly segundos: number;
+  readonly origem: string;
+}
+
+export type NoticeCode = 'nao-tem' | 'nao-usavel' | 'vida-cheia' | 'caido';
+
+/** S→C: motivo de uma ação recusada, para o cliente mostrar em português. */
+export interface NoticePayload {
+  readonly codigo: NoticeCode;
 }

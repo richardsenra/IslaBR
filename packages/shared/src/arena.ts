@@ -223,7 +223,7 @@ export function playerColor(index: number): string {
  * no greybox das zonas. Aqui eles existem só para a m01 e a m02 serem jogáveis
  * de ponta a ponta.
  */
-export type SpotKind = 'npc' | 'objeto' | 'bau';
+export type SpotKind = 'npc' | 'objeto' | 'bau' | 'coletavel';
 
 export interface InteractSpot {
   /** Id único do alvo no mundo; o cliente manda este id em `interact`. */
@@ -287,6 +287,17 @@ export const ARENA_SPOTS: readonly InteractSpot[] = [
     rotulo: 'Caixa do cais',
     cor: '#d98b45',
   })),
+  // Horta do Seu Bento: as 6 frutas da m03.
+  ...[0, 1, 2, 3, 4, 5].map((index) => ({
+    id: `spot_fruta_${index + 1}`,
+    tipo: 'coletavel' as const,
+    alvo: 'fruta',
+    x: -9 + (index % 3) * 1.6,
+    y: 0,
+    z: 13 + Math.floor(index / 3) * 1.6,
+    rotulo: 'Fruta da horta',
+    cor: '#ef476f',
+  })),
   {
     id: 'spot_c01',
     tipo: 'bau',
@@ -321,3 +332,48 @@ export function nearestSpot(
   }
   return best;
 }
+
+/**
+ * Inimigos da arena de testes (M3). São 8 caranguejos comuns, que é o que a
+ * m04 pede, mais dois espinhosos para exercitar o golpe que volta de frente
+ * (SPEC §7.6).
+ *
+ * Ficam espalhados, a mais de 7 m uns dos outros, que é o raio em que um
+ * bicho percebe o jogador. Aglomerados, os 8 atacariam juntos e o jogador cairia
+ * antes de aprender o combo: o combate é para ser um de cada vez, com espaço
+ * para esquivar. Também ficam longe dos NPCs, das frutas e do baú, para ninguém
+ * ser mordido enquanto conversa.
+ */
+export interface EnemySpawn {
+  readonly id: string;
+  /** Id do inimigo no conteúdo: e01, e02… */
+  readonly tipo: string;
+  readonly x: number;
+  readonly z: number;
+}
+
+export const ARENA_ENEMIES: readonly EnemySpawn[] = [
+  { id: 'e01_1', tipo: 'e01', x: 14, z: 9 },
+  { id: 'e01_2', tipo: 'e01', x: 21, z: 7 },
+  { id: 'e01_3', tipo: 'e01', x: 21, z: 15 },
+  { id: 'e01_4', tipo: 'e01', x: 14, z: 17 },
+  { id: 'e01_5', tipo: 'e01', x: 19, z: 22 },
+  { id: 'e01_6', tipo: 'e01', x: 6, z: 20 },
+  { id: 'e01_7', tipo: 'e01', x: -2, z: 22 },
+  { id: 'e01_8', tipo: 'e01', x: -14, z: 22 },
+  { id: 'e02_1', tipo: 'e02', x: -16, z: 4 },
+  { id: 'e02_2', tipo: 'e02', x: -18, z: -8 },
+  // Metade norte: mosquitos, sapos e águas-vivas. Em cada grupo ficam a mais
+  // de 8 m uns dos outros, e todos longe do ponto onde o jogador nasce.
+  { id: 'e03_1', tipo: 'e03', x: -16, z: -14 },
+  { id: 'e03_2', tipo: 'e03', x: -9, z: -20 },
+  { id: 'e03_3', tipo: 'e03', x: 3, z: -20 },
+  { id: 'e03_4', tipo: 'e03', x: 12, z: -19 },
+  { id: 'e04_1', tipo: 'e04', x: 17, z: -12 },
+  { id: 'e04_2', tipo: 'e04', x: 21, z: -3 },
+  { id: 'e05_1', tipo: 'e05', x: -20, z: -18 },
+  { id: 'e05_2', tipo: 'e05', x: 8, z: -17 },
+];
+
+/** Quanto tempo um inimigo derrotado leva para voltar. */
+export const ENEMY_RESPAWN_SECONDS = 8;

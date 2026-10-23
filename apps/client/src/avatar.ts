@@ -35,6 +35,9 @@ export class Avatar {
 
   private readonly modelo: ModeloAnimado | null;
   private readonly primitivo: BonecoPrimitivo | null;
+  /** Materiais só deste boneco, para poder fadá-lo sem fadar os outros. */
+  private readonly materiais: THREE.Material[] = [];
+  private opacidade = 1;
 
   constructor(options: AvatarOptions) {
     this.modelo = options.modelo ? criarModelo(options.modelo) : null;
@@ -42,9 +45,36 @@ export class Avatar {
       this.modelo.raiz.rotation.y = MODEL_YAW_OFFSET;
       this.root.add(this.modelo.raiz);
       this.primitivo = null;
+
+      // O clone do esqueleto compartilha o material com o modelo original; sem
+      // copiar, deixar um boneco transparente deixaria todos.
+      this.modelo.raiz.traverse((objeto) => {
+        if (!(objeto instanceof THREE.Mesh)) return;
+        const copia = Array.isArray(objeto.material)
+          ? objeto.material.map((material: THREE.Material) => material.clone())
+          : (objeto.material as THREE.Material).clone();
+        objeto.material = copia;
+        this.materiais.push(...(Array.isArray(copia) ? copia : [copia]));
+      });
     } else {
       this.primitivo = new BonecoPrimitivo(options.cor);
       this.root.add(this.primitivo.raiz);
+    }
+  }
+
+  /**
+   * Deixa o boneco mais ou menos transparente (1 = opaco). Serve para enxergar
+   * o inimigo que a câmera, atrás do jogador, teria escondido. O boneco de
+   * primitivas, que é só reserva, não fada.
+   */
+  setOpacidade(valor: number): void {
+    const alvo = Math.min(Math.max(valor, 0.1), 1);
+    // Evita mexer nos materiais a cada quadro quando nada mudou.
+    if (Math.abs(alvo - this.opacidade) < 0.01) return;
+    this.opacidade = alvo;
+    for (const material of this.materiais) {
+      material.transparent = alvo < 1;
+      material.opacity = alvo;
     }
   }
 
@@ -59,9 +89,13 @@ export class Avatar {
     this.root.rotation.y = yaw;
   }
 
-  animate(state: CharacterState, dt: number): void {
+  /**
+   * Com `reiniciar`, o estado toca do começo mesmo que já seja o atual: é o que
+   * faz dois golpes iguais seguidos darem duas animações.
+   */
+  animate(state: CharacterState, dt: number, reiniciar = false): void {
     if (this.modelo) {
-      this.modelo.tocar(state, STATE_BLEND_SECONDS);
+      this.modelo.tocar(state, STATE_BLEND_SECONDS, reiniciar);
       this.modelo.avancar(dt);
       return;
     }

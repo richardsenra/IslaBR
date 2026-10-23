@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { PLAYER_HEIGHT, type CharacterState } from '@islabr/shared';
+import { DODGE_DURATION, PLAYER_HEIGHT, duracaoDoGolpe, type CharacterState } from '@islabr/shared';
 
 /**
  * Modelos glTF dos personagens (KayKit, CC0 — ver public/models/LICENSE.md).
@@ -43,11 +43,12 @@ const ANIM_LIBRARIES = [
   'Rig_Medium_General',
   'Rig_Medium_MovementBasic',
   'Rig_Medium_MovementAdvanced',
+  'Rig_Medium_CombatMelee',
 ];
 
 /**
- * Clipe do KayKit para cada estado da máquina (SPEC §6). Os de ataque estão em
- * `Rig_Medium_CombatMelee`, que só entra no M3; até lá eles caem no reserva.
+ * Clipe do KayKit para cada estado da máquina (SPEC §6). O primeiro da lista
+ * que existir é o usado; os seguintes são reserva.
  */
 const CLIP_BY_STATE: Readonly<Record<CharacterState, readonly string[]>> = {
   idle: ['Idle_A', 'Idle_B'],
@@ -58,9 +59,22 @@ const CLIP_BY_STATE: Readonly<Record<CharacterState, readonly string[]>> = {
   hurt: ['Hit_A', 'Hit_B'],
   dead: ['Death_A', 'Death_B'],
   attack1: ['Melee_1H_Attack_Chop', 'Idle_A'],
-  attack2: ['Melee_1H_Attack_Slice_Horizontal', 'Idle_A'],
-  attack3: ['Melee_1H_Attack_Slice_Diagonal', 'Idle_A'],
+  attack2: ['Melee_1H_Attack_Slice_Diagonal', 'Idle_A'],
+  attack3: ['Melee_1H_Attack_Slice_Horizontal', 'Idle_A'],
   charged: ['Melee_2H_Attack_Spinning', 'Idle_A'],
+};
+
+/**
+ * Quanto cada estado deve durar na tela, em segundos. Os clipes de ataque do
+ * KayKit têm de 0,7 a 1,4 s e o golpe do jogo tem 0,35 s: a animação é
+ * acelerada para caber, senão o golpe acertaria antes de o braço descer.
+ */
+const DURACAO_DO_ESTADO: Readonly<Partial<Record<CharacterState, number>>> = {
+  attack1: duracaoDoGolpe('attack1'),
+  attack2: duracaoDoGolpe('attack2'),
+  attack3: duracaoDoGolpe('attack3'),
+  charged: duracaoDoGolpe('charged'),
+  dodge: DODGE_DURATION,
 };
 
 /** Estados que tocam uma vez e seguram a última pose. */
@@ -122,8 +136,11 @@ export function temModelo(nome: string): boolean {
 
 export interface ModeloAnimado {
   readonly raiz: THREE.Object3D;
-  /** Troca o clipe com mistura de 0,1–0,2 s (SPEC §6). */
-  tocar(estado: CharacterState, mistura: number): void;
+  /**
+   * Troca o clipe com mistura de 0,1–0,2 s (SPEC §6). Com `reiniciar`, o mesmo
+   * estado toca do começo: dois golpes iguais seguidos precisam de dois swings.
+   */
+  tocar(estado: CharacterState, mistura: number, reiniciar?: boolean): void;
   avancar(dt: number): void;
   descartar(): void;
 }
@@ -149,6 +166,10 @@ export function criarModelo(nome: string): ModeloAnimado | null {
         acao.setLoop(THREE.LoopOnce, 1);
         acao.clampWhenFinished = true;
       }
+      const duracao = DURACAO_DO_ESTADO[estado];
+      if (duracao !== undefined && clip.duration > 0) {
+        acao.setEffectiveTimeScale(clip.duration / duracao);
+      }
       acoes.set(estado, acao);
       return acao;
     }
@@ -157,8 +178,8 @@ export function criarModelo(nome: string): ModeloAnimado | null {
 
   return {
     raiz,
-    tocar(estado, mistura) {
-      if (estado === estadoAtual) return;
+    tocar(estado, mistura, reiniciar = false) {
+      if (estado === estadoAtual && !reiniciar) return;
       const proxima = acaoDe(estado);
       if (!proxima) return;
       estadoAtual = estado;

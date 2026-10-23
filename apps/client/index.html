@@ -12,6 +12,8 @@
   </head>
   <body>
     <canvas id="game"></canvas>
+    <div id="numeros"></div>
+    <div id="vermelho"></div>
 
     <div id="carteira" class="badge"></div>
     <div id="objetivo" class="badge"></div>
@@ -22,12 +24,22 @@
     </div>
 
     <div id="loot" class="badge"></div>
+    <div id="aviso" class="badge" hidden></div>
+    <div id="carga" hidden><div id="carga-barra"></div></div>
 
     <div id="dialogo" hidden>
       <div id="dialogo-npc"></div>
       <p id="dialogo-texto"></p>
       <div id="dialogo-rodape"></div>
     </div>
+
+    <div id="inventario" hidden>
+      <div id="inventario-titulo">Inventário <span>I fecha · clique ou 1–9 usa</span></div>
+      <div id="inventario-grade"></div>
+      <div id="inventario-detalhe"></div>
+    </div>
+    <div id="notice" class="badge" hidden></div>
+    <div id="gosma"></div>
 
     <div id="help" class="badge"></div>
     <script type="module" src="/src/main.ts"></script>

@@ -70,9 +70,14 @@ câmera (Esc devolve o cursor).
 | W A S D | andar, na direção para onde a câmera olha |
 | Espaço | pular |
 | Shift | esquivar; rolando, o personagem passa por vãos baixos |
-| F | falar com quem está perto, abrir baú, quebrar caixa e passar a fala |
-| Mouse | girar a câmera |
+| Clique ou J | atacar; três toques seguidos fazem o combo, e segurar 0,6 s dá o golpe carregado (o golpe sai ao soltar) |
+| F | falar com quem está perto, abrir baú, colher, quebrar caixa e passar a fala |
+| I | abrir e fechar o inventário (com ele aberto, clique num item ou aperte 1–9 para usar) |
+| Mouse ou Q/E | girar a câmera (o golpe sai para onde ela olha) |
 | Roda | aproximar e afastar |
+
+O primeiro clique só captura o mouse; os seguintes atacam. Sem o mouse capturado,
+a tecla J ataca do mesmo jeito.
 
 O canto superior direito mostra quantas pessoas estão na mesma instância. Abra
 uma segunda aba para ver seu segundo personagem andando ao lado do primeiro.
@@ -83,6 +88,38 @@ uma segunda aba para ver seu segundo personagem andando ao lado do primeiro.
 quem acabou de entrar) e siga o que ela pedir: apresentar-se ao **Seu Bento** e
 à **Dona Iracema**, voltar, e depois quebrar as cinco caixas do cais. O objetivo
 atual fica no canto superior esquerdo, embaixo dos corações e das moedas.
+
+**Combate.** Termine a m01 para ganhar o **Graveto Reforçado**: sem arma na mão o
+golpe não machuca. Os **caranguejos** ficam espalhados pelo leste e pelo sul da
+arena; chegue perto e eles te perseguem e mordem (meio coração). Dois golpes
+derrubam um caranguejo comum, e o carregado derruba em um. Esquivar (Shift) dá
+um instante de invulnerabilidade. Os **espinhosos** (marrom-escuros, no oeste)
+devolvem o golpe se você bate de frente: dê a volta e ataque pelas costas. Quem
+cai levanta alguns segundos depois, com os corações cheios.
+
+Às vezes o inimigo some atrás do boneco, porque a câmera fica atrás dele; nessas
+horas o boneco fica semitransparente e a barra de vida mostra onde o bicho está.
+
+**Os cinco bichos.** Cada um tem um jeito de atacar, e todos avisam antes:
+
+| Bicho | Onde | Como lutar |
+| --- | --- | --- |
+| Caranguejo | leste e sul | persegue e belisca; dois golpes derrubam |
+| Caranguejo espinhoso | oeste | devolve o golpe de frente; ataque pelas costas |
+| Mosquito | norte | circula no alto, onde a espada não alcança; treme e mergulha, e é na descida que dá para acertar |
+| Sapo gosmento | norte | pula em você e, de longe, infla e cospe gosma que te deixa lento por 3 s (a tela esverdeia) |
+| Água-viva | norte | boia devagar, brilha e solta um choque em área: saia do círculo antes |
+
+O que cai dos bichos (moedas, cascas, ferrões, gosma, géis) é sorteado no
+servidor. O coração pequeno não vai para o inventário: cura meio coração na hora.
+Para a m04, derrote 8 caranguejos depois de colher as 6 frutas da horta da m03,
+no canto oeste da vila.
+
+**Inventário.** A tecla I abre uma grade de 20 casas com os itens empilhados.
+Consumíveis se usam clicando ou apertando o número da casa: a poção pequena
+devolve 2 corações, a grande devolve todos, e a heróica dá 2 corações extras por
+um minuto. O servidor recusa poção de cura com a vida cheia, para ninguém gastar
+à toa.
 
 **A arena de testes.** Ela é provisória e serve para exercitar o movimento:
 
@@ -103,8 +140,8 @@ O navegador guarda um token de convidado, então recarregar a página devolve
 moedas, itens e a missão onde você parou. Sem banco, o jogo roda igual, mas o
 progresso só dura enquanto o servidor estiver de pé.
 
-Ainda **não** existem: combate, inimigos, loja, fabricação e as outras zonas da
-ilha.
+Ainda **não** existem: loja, fabricação, os mini-chefes, o chefe e as outras zonas
+da ilha.
 
 ## Se algo der errado
 

@@ -296,3 +296,33 @@ describe('moveDirectionFromCamera', () => {
     expect(Math.hypot(player.vx, player.vz)).toBeCloseTo(MOVE_SPEED, 6);
   });
 });
+
+describe('lentidão (gosma do sapo)', () => {
+  it('speedScale reduz a velocidade de corrida', () => {
+    const normal = run(grounded(), 30, { moveZ: 1 });
+    const lento = run(grounded(), 30, { moveZ: 1, speedScale: 0.5 });
+    expect(Math.hypot(lento.vx, lento.vz)).toBeCloseTo(MOVE_SPEED * 0.5, 6);
+    expect(Math.hypot(normal.vx, normal.vz)).toBeCloseTo(MOVE_SPEED, 6);
+  });
+
+  it('sem speedScale, anda na velocidade cheia', () => {
+    const player = run(grounded(), 30, { moveZ: 1 });
+    expect(Math.hypot(player.vx, player.vz)).toBeCloseTo(MOVE_SPEED, 6);
+  });
+
+  it('a escala é limitada a [0, 1]: nenhum cliente corre mais que o normal', () => {
+    const rapido = run(grounded(), 30, { moveZ: 1, speedScale: 5 });
+    expect(Math.hypot(rapido.vx, rapido.vz)).toBeCloseTo(MOVE_SPEED, 6);
+    const parado = run(grounded(), 30, { moveZ: 1, speedScale: -1 });
+    expect(Math.hypot(parado.vx, parado.vz)).toBe(0);
+  });
+
+  it('a esquiva não é freada pela gosma', () => {
+    const dodging = stepPlayer(
+      grounded(),
+      input({ dodge: true, moveZ: 1, speedScale: 0.2 }),
+      FLOOR,
+    );
+    expect(Math.hypot(dodging.vx, dodging.vz)).toBeCloseTo(DODGE_SPEED, 6);
+  });
+});

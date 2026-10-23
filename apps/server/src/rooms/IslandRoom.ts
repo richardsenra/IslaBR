@@ -1,17 +1,34 @@
 import { Room, type Client } from '@colyseus/core';
 import {
   ARENA_COLLIDERS,
+  ARENA_ENEMIES,
   ARENA_SPAWN,
+  ENEMY_RESPAWN_SECONDS,
   INTERACT_RADIUS,
   ISLAND_MAX_PLAYERS,
   MSG,
   SERVER_TICK_MS,
   checkMove,
+  parseAttackPayload,
   parseInteractPayload,
   parseMovePayload,
+  parseUseItemPayload,
   spotById,
   type MoveCorrectionPayload,
+  type Saque,
+  type Sorteio,
+  type StatusPayload,
 } from '@islabr/shared';
+import { getEnemy } from '@islabr/content';
+import { EnemyState } from './EnemyState.js';
+import { resolverAtaque } from './combate.js';
+import {
+  criarInimigo,
+  passoDaIA,
+  type AlvoDoInimigo,
+  type EnemyRuntime,
+  type Acao,
+} from './enemyAI.js';
 import { IslandState, PlayerState } from './IslandState.js';
 import { PlayerSession } from './playerSession.js';
 import { obterStore, type JogadorSalvo } from '../store/index.js';
@@ -35,6 +52,14 @@ export class IslandRoom extends Room<{ state: IslandState }> {
   private readonly sessions = new Map<string, PlayerSession>();
   private nextColorIndex = 0;
 
+  /** Inimigos vivos da instância; o estado replicado é o espelho deste. */
+  private readonly inimigos = new Map<string, EnemyRuntime>();
+  /** Inimigos derrotados esperando a hora de voltar. */
+  private readonly renascendo = new Map<string, number>();
+
+  /** Sorteio dos drops. Trocado nos testes por um de semente fixa. */
+  protected sorteio: Sorteio = Math.random;
+
   /** Sobrescrito nos testes para não depender do relógio real. */
   protected now(): number {
     return Date.now();
@@ -47,9 +72,104 @@ export class IslandRoom extends Room<{ state: IslandState }> {
     this.onMessage(MSG.interact, (client, raw: unknown) => {
       this.onInteract(client, raw);
     });
+    this.onMessage(MSG.attack, (client, raw: unknown) => {
+      this.onAttack(client, raw);
+    });
+    this.onMessage(MSG.useItem, (client, raw: unknown) => {
+      this.onUseItem(client, raw);
+    });
     this.onMessage(MSG.ready, (client) => {
       this.enviarSituacao(client);
     });
+
+    this.povoarInimigos();
+    // Tick de 20 Hz (SPEC §4).
+    this.setSimulationInterval((deltaMs) => {
+      this.tick(deltaMs / 1000);
+    }, SERVER_TICK_MS);
+  }
+
+  private povoarInimigos(): void {
+    for (const spawn of ARENA_ENEMIES) {
+      const inimigo = criarInimigo(spawn.id, spawn.tipo, spawn.x, spawn.z);
+      this.inimigos.set(spawn.id, inimigo);
+      this.state.inimigos.set(
+        spawn.id,
+        new EnemyState({
+          tipo: inimigo.tipo,
+          x: inimigo.x,
+          y: inimigo.y,
+          z: inimigo.z,
+          yaw: inimigo.yaw,
+          hp: inimigo.hp,
+          hpMax: inimigo.hp,
+          estado: inimigo.estado,
+        }),
+      );
+    }
+  }
+
+  /** Um passo da simulação: IA, mordidas e quem volta a viver. */
+  private tick(dt: number): void {
+    const alvos: AlvoDoInimigo[] = [];
+    for (const [sessionId, session] of this.sessions) {
+      const estado = this.state.players.get(sessionId);
+      if (!estado) continue;
+      alvos.push({
+        sessionId,
+        x: session.aceito.x,
+        y: session.aceito.y,
+        z: session.aceito.z,
+        atacavel: session.vivo,
+      });
+    }
+
+    // Sala vazia: ninguém para perceber, então a IA espera (o renascimento não).
+    if (alvos.length > 0) {
+      for (const inimigo of this.inimigos.values()) {
+        if (inimigo.estado === 'morto') continue;
+        const acao = passoDaIA(inimigo, alvos, dt);
+        this.espelhar(inimigo);
+        if (acao) this.agirContraJogadores(acao);
+      }
+    }
+
+    this.cuidarDoRenascimento(dt);
+
+    for (const [sessionId, session] of this.sessions) {
+      session.passar(dt);
+      const estado = this.state.players.get(sessionId);
+      if (estado) estado.coracoes = session.progress.coracoes;
+    }
+  }
+
+  private cuidarDoRenascimento(dt: number): void {
+    for (const [id, restante] of this.renascendo) {
+      const falta = restante - dt;
+      if (falta > 0) {
+        this.renascendo.set(id, falta);
+        continue;
+      }
+      this.renascendo.delete(id);
+      const inimigo = this.inimigos.get(id);
+      const spawn = ARENA_ENEMIES.find((candidato) => candidato.id === id);
+      if (!inimigo || !spawn) continue;
+      const novo = criarInimigo(spawn.id, spawn.tipo, spawn.x, spawn.z);
+      this.inimigos.set(id, novo);
+      this.espelhar(novo);
+    }
+  }
+
+  /** Copia o inimigo para o estado que a sala replica. */
+  private espelhar(inimigo: EnemyRuntime): void {
+    const estado = this.state.inimigos.get(inimigo.id);
+    if (!estado) return;
+    estado.x = inimigo.x;
+    estado.y = inimigo.y;
+    estado.z = inimigo.z;
+    estado.yaw = inimigo.yaw;
+    estado.hp = inimigo.hp;
+    estado.estado = inimigo.estado;
   }
 
   /** Carteira e objetivo atual, quando o cliente avisa que está escutando. */
@@ -112,7 +232,7 @@ export class IslandRoom extends Room<{ state: IslandState }> {
     if (!session.sujo || !session.playerId) return;
     session.sujo = false;
     try {
-      await obterStore().salvar(session.playerId, session.progress, session.book);
+      await obterStore().salvar(session.playerId, session.paraSalvar(), session.book);
     } catch (erro) {
       // Perder a gravação não pode derrubar a partida de quem está jogando.
       session.sujo = true;
@@ -146,6 +266,9 @@ export class IslandRoom extends Room<{ state: IslandState }> {
     player.y = claim.y;
     player.z = claim.z;
     player.yaw = claim.yaw;
+    // Entrar em esquiva dá a invulnerabilidade curta; a recarga é do servidor.
+    if (claim.state === 'dodge' && player.state !== 'dodge') session.tentarEsquivar(now);
+
     player.state = claim.state;
     player.seq = claim.seq;
 
@@ -194,6 +317,147 @@ export class IslandRoom extends Room<{ state: IslandState }> {
 
     // Missão e baú mudam pouco e valem muito: grava assim que muda.
     void this.salvar(session);
+  }
+
+  /** Golpe do jogador: o servidor decide quem foi acertado e o que caiu. */
+  private onAttack(client: Client, raw: unknown): void {
+    const session = this.sessions.get(client.sessionId);
+    const estado = this.state.players.get(client.sessionId);
+    if (!session || !estado || !session.vivo) return;
+
+    const payload = parseAttackPayload(raw);
+    if (!payload) return;
+    if (!session.podeAtacar(this.now(), payload.golpe)) return;
+    session.registrarGolpe(payload.golpe, this.now());
+
+    const resultado = resolverAtaque(
+      {
+        x: session.aceito.x,
+        y: session.aceito.y,
+        z: session.aceito.z,
+        yaw: payload.yaw,
+        arma: session.arma,
+      },
+      payload.golpe,
+      [...this.inimigos.values()],
+      this.sorteio,
+    );
+
+    for (const acerto of resultado.acertos) {
+      this.espelhar(acerto.inimigo);
+      this.broadcast(MSG.damage, {
+        alvo: acerto.inimigo.id,
+        valor: acerto.dano,
+        origem: client.sessionId,
+        x: acerto.inimigo.x,
+        y: acerto.inimigo.y + 1,
+        z: acerto.inimigo.z,
+        morreu: acerto.morreu,
+        euLevei: false,
+      });
+
+      if (!acerto.morreu) continue;
+      this.renascendo.set(acerto.inimigo.id, ENEMY_RESPAWN_SECONDS);
+      this.premiar(client, session, acerto.inimigo.tipo, acerto.saque);
+    }
+
+    // O espinhoso devolve o golpe de frente (SPEC §7.6).
+    if (resultado.refletido > 0) this.machucar(client, session, resultado.refletido, 'espinho');
+  }
+
+  /** Usar um item do inventário: quem decide se pode e o que faz é o servidor. */
+  private onUseItem(client: Client, raw: unknown): void {
+    const session = this.sessions.get(client.sessionId);
+    const estado = this.state.players.get(client.sessionId);
+    if (!session || !estado) return;
+
+    const payload = parseUseItemPayload(raw);
+    if (!payload) return;
+
+    const resultado = session.usarItem(payload.item);
+    if (!resultado.usado) {
+      client.send(MSG.notice, { codigo: resultado.recusa });
+      return;
+    }
+
+    estado.coracoes = session.progress.coracoes;
+    client.send(MSG.inventoryUpdate, session.inventario);
+    void this.salvar(session);
+  }
+
+  /** Paga o saque e conta a morte para as missões. */
+  private premiar(client: Client, session: PlayerSession, tipo: string, saque: Saque | null): void {
+    const atualizacoes = session.contarMorte(tipo);
+    for (const update of atualizacoes) client.send(MSG.questUpdate, update);
+
+    if (saque && (saque.moedas > 0 || saque.itens.length > 0)) {
+      session.receber(saque);
+      client.send(MSG.loot, {
+        de: getEnemy(tipo).nome,
+        moedas: saque.moedas,
+        joias: 0,
+        itens: saque.itens,
+      });
+    }
+    client.send(MSG.inventoryUpdate, session.inventario);
+    void this.salvar(session);
+  }
+
+  /** O que um inimigo fez e que chega nos jogadores: mordida, gosma ou choque. */
+  private agirContraJogadores(acao: Acao): void {
+    const clientePor = (sessionId: string): Client | undefined =>
+      this.clients.find((candidato) => candidato.sessionId === sessionId);
+
+    switch (acao.tipo) {
+      case 'mordida': {
+        const session = this.sessions.get(acao.alvo);
+        const client = clientePor(acao.alvo);
+        if (session && client) this.machucar(client, session, acao.dano, acao.inimigo);
+        return;
+      }
+      case 'choque': {
+        // Choque em área: quem estava perto na hora da descarga leva.
+        for (const sessionId of acao.alvos) {
+          const session = this.sessions.get(sessionId);
+          const client = clientePor(sessionId);
+          if (session && client) this.machucar(client, session, acao.dano, acao.inimigo);
+        }
+        return;
+      }
+      case 'gosma': {
+        // A gosma não machuca: deixa lento. A velocidade é do cliente, mas
+        // só diminui, então não há o que conferir no servidor.
+        const client = clientePor(acao.alvo);
+        if (!client) return;
+        const status: StatusPayload = {
+          tipo: 'lento',
+          segundos: acao.segundos,
+          origem: acao.inimigo,
+        };
+        client.send(MSG.status, status);
+        return;
+      }
+    }
+  }
+
+  private machucar(client: Client, session: PlayerSession, dano: number, origem: string): void {
+    const sofrido = session.levarDano(dano, this.now());
+    if (sofrido <= 0) return;
+
+    const estado = this.state.players.get(client.sessionId);
+    if (estado) estado.coracoes = session.progress.coracoes;
+
+    this.broadcast(MSG.damage, {
+      alvo: client.sessionId,
+      valor: sofrido,
+      origem,
+      x: session.aceito.x,
+      y: session.aceito.y + 1.5,
+      z: session.aceito.z,
+      morreu: !session.vivo,
+      euLevei: false,
+    });
+    client.send(MSG.inventoryUpdate, session.inventario);
   }
 }
 

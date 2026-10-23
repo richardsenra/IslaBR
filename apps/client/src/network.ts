@@ -4,13 +4,17 @@ import {
   MSG,
   ROOM,
   isCharacterState,
+  type AttackPayload,
   type CharacterState,
+  type DamagePayload,
   type DialoguePayload,
   type InventoryUpdatePayload,
   type LootPayload,
   type MoveCorrectionPayload,
   type MovePayload,
+  type NoticePayload,
   type QuestUpdatePayload,
+  type StatusPayload,
 } from '@islabr/shared';
 
 /**
@@ -29,6 +33,18 @@ interface PlayerView {
   readonly colorIndex: number;
 }
 
+/** Inimigo replicado pelo servidor (apps/server/src/rooms/EnemyState.ts). */
+interface EnemyView {
+  readonly tipo: string;
+  readonly x: number;
+  readonly y: number;
+  readonly z: number;
+  readonly yaw: number;
+  readonly hp: number;
+  readonly hpMax: number;
+  readonly estado: string;
+}
+
 interface MapView<T> {
   readonly size: number;
   forEach(callback: (value: T, key: string) => void): void;
@@ -36,6 +52,7 @@ interface MapView<T> {
 
 interface IslandStateView {
   readonly players: MapView<PlayerView>;
+  readonly inimigos: MapView<EnemyView>;
 }
 
 export interface NetPlayer {
@@ -49,14 +66,29 @@ export interface NetPlayer {
   readonly colorIndex: number;
 }
 
+export interface NetEnemy {
+  readonly id: string;
+  readonly tipo: string;
+  readonly x: number;
+  readonly y: number;
+  readonly z: number;
+  readonly yaw: number;
+  readonly hp: number;
+  readonly hpMax: number;
+  readonly estado: string;
+}
+
 export interface IslandHandlers {
   /** Chamado a cada pacote de estado. `arrivedAt` é o relógio local. */
-  onPatch(players: readonly NetPlayer[], arrivedAt: number): void;
+  onPatch(players: readonly NetPlayer[], enemies: readonly NetEnemy[], arrivedAt: number): void;
+  onDamage(damage: DamagePayload): void;
   onCorrection(correction: MoveCorrectionPayload): void;
   onDialogue(dialogue: DialoguePayload): void;
   onQuestUpdate(update: QuestUpdatePayload): void;
   onInventory(inventory: InventoryUpdatePayload): void;
   onLoot(loot: LootPayload): void;
+  onStatus(status: StatusPayload): void;
+  onNotice(notice: NoticePayload): void;
   onDisconnect(): void;
 }
 
@@ -65,6 +97,10 @@ export interface IslandConnection {
   sendMove(payload: MovePayload): void;
   /** Tecla F: só manda o id do alvo; quem decide o resto é o servidor. */
   interact(alvo: string): void;
+  /** Golpe: só a direção; dano, alcance e cadência são do servidor. */
+  attack(payload: AttackPayload): void;
+  /** Usar item do inventário; o servidor confere e responde. */
+  useItem(item: string): void;
   leave(): void;
 }
 
@@ -132,8 +168,22 @@ export async function joinIsland(handlers: IslandHandlers): Promise<IslandConnec
         colorIndex: player.colorIndex,
       });
     });
+    const enemies: NetEnemy[] = [];
+    state.inimigos.forEach((inimigo, id) => {
+      enemies.push({
+        id,
+        tipo: inimigo.tipo,
+        x: inimigo.x,
+        y: inimigo.y,
+        z: inimigo.z,
+        yaw: inimigo.yaw,
+        hp: inimigo.hp,
+        hpMax: inimigo.hpMax,
+        estado: inimigo.estado,
+      });
+    });
     afterLag(() => {
-      handlers.onPatch(players, performance.now());
+      handlers.onPatch(players, enemies, performance.now());
     });
   });
 
@@ -161,6 +211,24 @@ export async function joinIsland(handlers: IslandHandlers): Promise<IslandConnec
     });
   });
 
+  room.onMessage(MSG.damage, (damage: DamagePayload) => {
+    afterLag(() => {
+      handlers.onDamage(damage);
+    });
+  });
+
+  room.onMessage(MSG.status, (status: StatusPayload) => {
+    afterLag(() => {
+      handlers.onStatus(status);
+    });
+  });
+
+  room.onMessage(MSG.notice, (notice: NoticePayload) => {
+    afterLag(() => {
+      handlers.onNotice(notice);
+    });
+  });
+
   room.onMessage(MSG.loot, (loot: LootPayload) => {
     afterLag(() => {
       handlers.onLoot(loot);
@@ -184,6 +252,16 @@ export async function joinIsland(handlers: IslandHandlers): Promise<IslandConnec
     interact: (alvo) => {
       afterLag(() => {
         room.send(MSG.interact, { alvo });
+      });
+    },
+    attack: (payload) => {
+      afterLag(() => {
+        room.send(MSG.attack, payload);
+      });
+    },
+    useItem: (item) => {
+      afterLag(() => {
+        room.send(MSG.useItem, { item });
       });
     },
     leave: () => {

@@ -3,10 +3,18 @@ const ptBR = {
   connecting: 'Conectando…',
   loading: 'Carregando os modelos…',
   disconnected: 'Desconectado',
+  caiu: 'Você caiu! Levantando em instantes…',
+  /** Por que o servidor recusou usar um item. */
+  avisos: {
+    'nao-tem': 'Você não tem esse item.',
+    'nao-usavel': 'Esse item não se usa assim.',
+    'vida-cheia': 'Sua vida já está cheia.',
+    caido: 'Você não consegue usar isso caído.',
+  } as const,
   playerCount: (n: number) => (n === 1 ? '1 jogador' : `${n} jogadores`),
   offline: 'Sozinho (sem servidor)',
   controls:
-    'WASD andar · Espaço pular · Shift esquivar · F falar e abrir · Mouse gira a câmera · Roda aproxima',
+    'WASD andar · Espaço pular · Shift esquivar · Clique ou J atacar (segure para carregar) · F falar e abrir · I inventário · Mouse ou Q/E giram a câmera',
   lag: (ms: number) => `latência simulada: ${ms} ms`,
   debug: (info: {
     fps: number;
@@ -15,10 +23,12 @@ const ptBR = {
     y: number;
     z: number;
     corrections: number;
+    /** Chamadas de desenho do último quadro (orçamento da SPEC §10). */
+    draws: number;
   }) =>
     `${Math.round(info.fps)} fps · ${info.state} · ` +
     `x ${info.x.toFixed(1)} y ${info.y.toFixed(1)} z ${info.z.toFixed(1)} · ` +
-    `correções: ${info.corrections}`,
+    `correções: ${info.corrections} · ${info.draws} desenhos`,
 };
 
 export const ui = ptBR;

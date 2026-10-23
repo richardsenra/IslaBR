@@ -18,9 +18,13 @@ const PULL_OUT_PER_SECOND = 6;
  */
 export class ThirdPersonCamera {
   yaw: number;
-  private pitch = 0.32;
-  private wanted = 6;
-  private current = 6;
+  /**
+   * Mais alta que no M1: com a câmera baixa, o inimigo colado no jogador some
+   * atrás do corpo dele. Em 0,5 rad ainda dá para ver o chão à frente.
+   */
+  private pitch = 0.5;
+  private wanted = 5.6;
+  private current = 5.6;
 
   constructor(
     private readonly camera: THREE.PerspectiveCamera,
