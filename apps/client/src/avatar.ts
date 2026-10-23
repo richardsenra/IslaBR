@@ -1,12 +1,80 @@
 import * as THREE from 'three';
 import { STATE_BLEND_SECONDS, wrapAngle, type CharacterState } from '@islabr/shared';
+import { criarModelo, type ModeloAnimado } from './models.js';
 
 /**
- * Boneco placeholder (primitivas do three.js) com animação procedural por
- * estado. Sem glTF nem esqueleto: o M1 só precisa mostrar o que a máquina de
- * estados está fazendo. Montado olhando para +Z, a mesma convenção do yaw.
+ * Boneco do jogo.
+ *
+ * Quando o modelo glTF está carregado (KayKit, CC0), o avatar é o modelo com
+ * esqueleto e os clipes do KayKit. Se o carregamento falhar, cai no boneco de
+ * primitivas com animação procedural, que foi o que existiu até o M2 — assim
+ * um erro de rede não deixa o jogador invisível.
+ *
+ * Nos dois casos a interface é a mesma: `place` e `animate(estado, dt)`.
  */
 
+/** Constante de tempo que dá uma transição de ~0,15 s (SPEC §6). */
+const BLEND_TAU = STATE_BLEND_SECONDS / 3;
+
+/**
+ * O KayKit exporta o personagem olhando para +Z, que é a mesma convenção de
+ * yaw do jogo, então não precisa girar nada. Um modelo que venha olhando para
+ * -Z pediria Math.PI aqui.
+ */
+const MODEL_YAW_OFFSET = 0;
+
+export interface AvatarOptions {
+  /** Nome do modelo em `public/models`; sem ele, usa o boneco de primitivas. */
+  readonly modelo?: string;
+  /** Cor do boneco de primitivas. */
+  readonly cor: string;
+}
+
+export class Avatar {
+  readonly root = new THREE.Group();
+
+  private readonly modelo: ModeloAnimado | null;
+  private readonly primitivo: BonecoPrimitivo | null;
+
+  constructor(options: AvatarOptions) {
+    this.modelo = options.modelo ? criarModelo(options.modelo) : null;
+    if (this.modelo) {
+      this.modelo.raiz.rotation.y = MODEL_YAW_OFFSET;
+      this.root.add(this.modelo.raiz);
+      this.primitivo = null;
+    } else {
+      this.primitivo = new BonecoPrimitivo(options.cor);
+      this.root.add(this.primitivo.raiz);
+    }
+  }
+
+  /** Cor só vale para o boneco de primitivas; o modelo tem textura própria. */
+  setColor(cor: string): void {
+    this.primitivo?.pintar(cor);
+  }
+
+  /** Posição dos pés e rumo. */
+  place(x: number, y: number, z: number, yaw: number): void {
+    this.root.position.set(x, y, z);
+    this.root.rotation.y = yaw;
+  }
+
+  animate(state: CharacterState, dt: number): void {
+    if (this.modelo) {
+      this.modelo.tocar(state, STATE_BLEND_SECONDS);
+      this.modelo.avancar(dt);
+      return;
+    }
+    this.primitivo?.animar(state, dt);
+  }
+
+  dispose(): void {
+    this.modelo?.descartar();
+    this.primitivo?.descartar();
+  }
+}
+
+/** Pose alvo de cada estado no boneco de primitivas. */
 interface Pose {
   /** Velocidade do ciclo de passos, em rad/s. */
   readonly cadence: number;
@@ -68,15 +136,11 @@ const POSES: Record<CharacterState, Pose> = {
   },
   hurt: { ...BASE, cadence: 0, legSpread: 0.2, armRaise: -0.8, lean: -0.35 },
   dead: { ...BASE, cadence: 0, legSwing: 0, armSwing: 0, lean: 1.45, squash: 0.85 },
-  // Reservados para o M3; por ora só uma pose de preparação.
   attack1: { ...BASE, cadence: 0, armRaise: -1.4, lean: 0.2 },
   attack2: { ...BASE, cadence: 0, armRaise: -1.6, lean: 0.25 },
   attack3: { ...BASE, cadence: 0, armRaise: -1.8, lean: 0.3 },
   charged: { ...BASE, cadence: 0, armRaise: -2.2, lean: -0.15, squash: 1.04 },
 };
-
-/** Constante de tempo que dá uma transição de ~0,15 s (SPEC §6). */
-const BLEND_TAU = STATE_BLEND_SECONDS / 3;
 
 function limb(width: number, height: number, depth: number, material: THREE.Material): THREE.Mesh {
   const mesh = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), material);
@@ -85,8 +149,9 @@ function limb(width: number, height: number, depth: number, material: THREE.Mate
   return mesh;
 }
 
-export class Avatar {
-  readonly root = new THREE.Group();
+/** Boneco de primitivas com animação procedural, usado quando não há modelo. */
+class BonecoPrimitivo {
+  readonly raiz = new THREE.Group();
 
   private readonly pivot = new THREE.Group();
   private readonly body = new THREE.Group();
@@ -144,22 +209,15 @@ export class Avatar {
     this.pivot.position.y = 0.6;
     this.body.position.y = -0.6;
     this.pivot.add(this.body);
-    this.root.add(this.pivot);
+    this.raiz.add(this.pivot);
   }
 
-  /** A cor do jogador só é conhecida quando o primeiro pacote chega. */
-  setColor(color: string): void {
+  pintar(color: string): void {
     this.skin.color.set(color);
   }
 
-  /** Posição dos pés e rumo. */
-  place(x: number, y: number, z: number, yaw: number): void {
-    this.root.position.set(x, y, z);
-    this.root.rotation.y = yaw;
-  }
-
   /** Mistura a pose do estado atual e avança o ciclo de animação. */
-  animate(state: CharacterState, dt: number): void {
+  animar(state: CharacterState, dt: number): void {
     const target = POSES[state];
     const blend = 1 - Math.exp(-dt / BLEND_TAU);
     this.pose = {
@@ -202,8 +260,8 @@ export class Avatar {
     this.body.position.y = -0.6 + Math.abs(Math.sin(this.phase)) * this.pose.bob;
   }
 
-  dispose(): void {
-    this.root.traverse((object) => {
+  descartar(): void {
+    this.raiz.traverse((object) => {
       if (object instanceof THREE.Mesh) {
         object.geometry.dispose();
       }

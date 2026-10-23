@@ -1,6 +1,7 @@
 /** Textos de interface (não de conteúdo). Só pt-BR por enquanto (SPEC §2). */
 const ptBR = {
   connecting: 'Conectando…',
+  loading: 'Carregando os modelos…',
   disconnected: 'Desconectado',
   playerCount: (n: number) => (n === 1 ? '1 jogador' : `${n} jogadores`),
   offline: 'Sozinho (sem servidor)',

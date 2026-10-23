@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { ARENA_SPOTS, type InteractSpot } from '@islabr/shared';
 import { Avatar } from './avatar.js';
+import { NPC_MODELS } from './models.js';
 
 /**
  * Alvos de interação desenhados: NPC vira boneco, objeto e baú viram caixa.
@@ -56,7 +57,8 @@ export class Spots {
 
     for (const spot of ARENA_SPOTS) {
       if (spot.tipo === 'npc') {
-        const avatar = new Avatar(spot.cor);
+        const modelo = NPC_MODELS[spot.alvo];
+        const avatar = new Avatar(modelo ? { modelo, cor: spot.cor } : { cor: spot.cor });
         avatar.place(spot.x, spot.y, spot.z, Math.PI);
         this.group.add(avatar.root);
         this.desenhados.push({ spot, raiz: avatar.root, avatar });

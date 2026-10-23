@@ -17,6 +17,7 @@ import { DialogueBox } from './dialogue.js';
 import { Hud } from './hud.js';
 import { ui } from './i18n.js';
 import { InputReader } from './input.js';
+import { PLAYER_MODELS, carregarModelos, modeloDoJogador } from './models.js';
 import { joinIsland, simulatedLagMs, type IslandConnection, type NetPlayer } from './network.js';
 import { createStage } from './scene.js';
 import { Spots } from './spots.js';
@@ -50,6 +51,15 @@ const dialogo = new DialogueBox(
 const { scene, camera, renderer } = createStage(canvas);
 scene.add(createArena());
 
+// Os modelos precisam estar na memória antes de qualquer boneco ser criado;
+// se a rede falhar, o jogo segue com o boneco de primitivas.
+hud.setStatus(ui.loading);
+try {
+  await carregarModelos([...PLAYER_MODELS]);
+} catch (erro) {
+  console.error('modelos não carregaram, usando bonecos de primitiva', erro);
+}
+
 const spots = new Spots();
 scene.add(spots.group);
 
@@ -60,7 +70,7 @@ const local = new PredictedPlayer(
   spawnPhysics(ARENA_SPAWN.x, ARENA_SPAWN.y, ARENA_SPAWN.z, ARENA_SPAWN.yaw),
   ARENA_COLLIDERS,
 );
-const localAvatar = new Avatar(playerColor(0));
+const localAvatar = new Avatar({ modelo: modeloDoJogador(0), cor: playerColor(0) });
 scene.add(localAvatar.root);
 
 interface RemoteAvatar {
@@ -91,7 +101,8 @@ function onPatch(players: readonly NetPlayer[], arrivedAt: number): void {
 
     let remote = remotes.get(player.sessionId);
     if (!remote) {
-      const avatar = new Avatar(playerColor(player.colorIndex));
+      const modelo = modeloDoJogador(player.colorIndex);
+      const avatar = new Avatar({ modelo, cor: playerColor(player.colorIndex) });
       scene.add(avatar.root);
       remote = { avatar, buffer: new SnapshotBuffer() };
       remotes.set(player.sessionId, remote);
