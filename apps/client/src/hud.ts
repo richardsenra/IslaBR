@@ -41,6 +41,7 @@ export class Hud {
     y: number;
     z: number;
     corrections: number;
+    draws: number;
   }): void {
     this.elementos.debug.textContent = ui.debug(info);
   }

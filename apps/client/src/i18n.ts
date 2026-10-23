@@ -23,10 +23,12 @@ const ptBR = {
     y: number;
     z: number;
     corrections: number;
+    /** Chamadas de desenho do último quadro (orçamento da SPEC §10). */
+    draws: number;
   }) =>
     `${Math.round(info.fps)} fps · ${info.state} · ` +
     `x ${info.x.toFixed(1)} y ${info.y.toFixed(1)} z ${info.z.toFixed(1)} · ` +
-    `correções: ${info.corrections}`,
+    `correções: ${info.corrections} · ${info.draws} desenhos`,
 };
 
 export const ui = ptBR;

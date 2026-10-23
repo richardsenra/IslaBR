@@ -297,6 +297,7 @@ let lastFrame = performance.now();
 let accumulator = 0;
 let sendTimer = 0;
 let fps = 60;
+let desenhos = 0;
 
 /** Dispara o golpe: anima, registra a cadência e avisa o servidor. */
 function atacar(solto: 'normal' | 'charged', agora: number, yaw: number): void {
@@ -445,7 +446,10 @@ renderer.setAnimationLoop((now) => {
     y: player.y,
     z: player.z,
     corrections: local.correctionCount,
+    draws: desenhos,
   });
 
   renderer.render(scene, camera);
+  // O contador é do quadro que acabou de sair; aparece no HUD do próximo.
+  desenhos = renderer.info.render.calls;
 });
