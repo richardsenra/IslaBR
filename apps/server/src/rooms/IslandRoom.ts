@@ -14,6 +14,7 @@ import {
 } from '@islabr/shared';
 import { IslandState, PlayerState } from './IslandState.js';
 import { PlayerSession } from './playerSession.js';
+import { obterStore, type JogadorSalvo } from '../store/index.js';
 
 /**
  * Instância da ilha (SPEC §4).
@@ -60,7 +61,7 @@ export class IslandRoom extends Room<{ state: IslandState }> {
     if (ativa) client.send(MSG.questUpdate, ativa);
   }
 
-  override onJoin(client: Client): void {
+  override async onJoin(client: Client, options?: unknown): Promise<void> {
     const colorIndex = this.nextColorIndex;
     this.nextColorIndex += 1;
 
@@ -77,20 +78,46 @@ export class IslandRoom extends Room<{ state: IslandState }> {
       }),
     );
 
-    const session = new PlayerSession({
+    const aceito = {
       seq: 0,
       x: ARENA_SPAWN.x,
       y: ARENA_SPAWN.y,
       z: ARENA_SPAWN.z,
       atMs: this.now(),
-    });
+    };
+
+    // Token de convidado (SPEC §4): é por ele que o progresso volta.
+    const token = tokenDe(options);
+    const salvo = token ? await carregarComAviso(token) : undefined;
+
+    const session = new PlayerSession(aceito, salvo);
     this.sessions.set(client.sessionId, session);
     // A carteira e o objetivo saem quando o cliente mandar `ready`.
   }
 
   override onLeave(client: Client): void {
+    const session = this.sessions.get(client.sessionId);
     this.state.players.delete(client.sessionId);
     this.sessions.delete(client.sessionId);
+    if (session) void this.salvar(session);
+  }
+
+  override async onDispose(): Promise<void> {
+    // Sala vazia ou servidor caindo: grava quem ainda tem mudança pendente.
+    await Promise.all([...this.sessions.values()].map((session) => this.salvar(session)));
+  }
+
+  /** Grava o progresso deste jogador, se houver o que gravar. */
+  private async salvar(session: PlayerSession): Promise<void> {
+    if (!session.sujo || !session.playerId) return;
+    session.sujo = false;
+    try {
+      await obterStore().salvar(session.playerId, session.progress, session.book);
+    } catch (erro) {
+      // Perder a gravação não pode derrubar a partida de quem está jogando.
+      session.sujo = true;
+      console.error('não deu para salvar o progresso:', erro);
+    }
   }
 
   private onMove(client: Client, raw: unknown): void {
@@ -164,5 +191,27 @@ export class IslandRoom extends Room<{ state: IslandState }> {
       });
     }
     if (result.inventario) client.send(MSG.inventoryUpdate, result.inventario);
+
+    // Missão e baú mudam pouco e valem muito: grava assim que muda.
+    void this.salvar(session);
+  }
+}
+
+/** O token vem das opções de entrada do cliente; nada mais é aceito. */
+function tokenDe(options: unknown): string | null {
+  if (typeof options !== 'object' || options === null) return null;
+  const token = (options as Record<string, unknown>)['token'];
+  if (typeof token !== 'string') return null;
+  const limpo = token.trim();
+  return limpo.length >= 8 && limpo.length <= 128 ? limpo : null;
+}
+
+async function carregarComAviso(token: string): Promise<JogadorSalvo | undefined> {
+  try {
+    return await obterStore().carregar(token);
+  } catch (erro) {
+    // Sem progresso salvo o jogador ainda joga; só começa do zero.
+    console.error('não deu para carregar o progresso:', erro);
+    return undefined;
   }
 }

@@ -98,8 +98,13 @@ O HUD de depuração mostra fps, estado do personagem, posição e quantas corre
 o servidor mandou. Correções subindo sem parar significam cliente e servidor
 discordando de posição.
 
-Ainda **não** existem: combate, inimigos, loja, fabricação, as outras zonas da
-ilha e progresso salvo (recarregar a página recomeça do zero).
+**Seu progresso é guardado** se o servidor tiver banco (veja a seção do final).
+O navegador guarda um token de convidado, então recarregar a página devolve
+moedas, itens e a missão onde você parou. Sem banco, o jogo roda igual, mas o
+progresso só dura enquanto o servidor estiver de pé.
+
+Ainda **não** existem: combate, inimigos, loja, fabricação e as outras zonas da
+ilha.
 
 ## Se algo der errado
 
@@ -138,13 +143,30 @@ referência cruzada.
 Leia [CLAUDE.md](CLAUDE.md) e [SPEC.md](SPEC.md) antes de contribuir: a spec
 define os milestones e os critérios de aceite de cada um.
 
-## Banco de dados (ainda não é preciso)
+## Banco de dados (opcional, guarda o progresso)
 
-O progresso em Postgres entra no próximo passo do projeto. Quando entrar:
+Sem banco o jogo roda; o progresso fica em memória e some quando o servidor
+reinicia. Com banco, ele sobrevive a recarregar a página e a reiniciar tudo.
 
 ```sh
 docker compose up -d postgres   # sobe só o banco
 docker compose up -d            # sobe banco e servidor
+```
+
+Depois, aponte o servidor para ele copiando o exemplo:
+
+```sh
+cp apps/server/.env.example apps/server/.env
+pnpm dev
+```
+
+O servidor cria as tabelas sozinho ao subir e imprime
+`Progresso persistente no Postgres.`; sem banco, avisa que está só em memória e
+continua. Para aplicar as migrações à mão, ou depois de mexer no schema:
+
+```sh
+pnpm --filter @islabr/server db:generate   # gera o SQL a partir do schema
+pnpm --filter @islabr/server db:migrate    # aplica no banco
 ```
 
 Em máquina sem Docker, dá para rodar um Postgres 17 na pasta do usuário, sem

@@ -28,6 +28,7 @@ import {
   type QuestProgress,
   type QuestUpdatePayload,
 } from '@islabr/shared';
+import type { JogadorSalvo } from '../store/index.js';
 
 const quests = content.quests;
 
@@ -45,11 +46,18 @@ const NADA: InteractResult = { atualizacoes: [] };
 export class PlayerSession {
   /** Última posição aceita, para o anti-teleporte do M1. */
   aceito: AcceptedMove;
-  progress: PlayerProgress = STARTING_PROGRESS;
-  book: QuestBook = {};
+  progress: PlayerProgress;
+  book: QuestBook;
+  /** Id do jogador guardado; é por ele que o progresso é salvo. */
+  readonly playerId: string;
+  /** Vira `true` quando há mudança por salvar. */
+  sujo = false;
 
-  constructor(aceito: AcceptedMove) {
+  constructor(aceito: AcceptedMove, salvo?: JogadorSalvo) {
     this.aceito = aceito;
+    this.playerId = salvo?.id ?? '';
+    this.progress = salvo?.progress ?? STARTING_PROGRESS;
+    this.book = salvo?.book ?? {};
   }
 
   get inventario(): InventoryUpdatePayload {
@@ -80,6 +88,7 @@ export class PlayerSession {
   private evento(event: GameEvent): QuestUpdatePayload[] {
     const resultado = applyQuestEvent(quests, this.book, event, this.progress.itens);
     this.book = resultado.book;
+    if (resultado.atualizacoes.length > 0) this.sujo = true;
 
     const atualizacoes = resultado.atualizacoes.map(toUpdate);
     for (const concluida of resultado.concluidas) {
@@ -145,6 +154,7 @@ export class PlayerSession {
       const quest = quests.find((q) => q.id === disponivel);
       const outcome = acceptQuest(quests, this.book, disponivel, this.progress.itens);
       this.book = outcome.book;
+      this.sujo = true;
       return {
         dialogo: {
           dialogo: quest?.dialogo_entrada ?? npc.dialogo_ocioso,
@@ -176,6 +186,7 @@ export class PlayerSession {
     if (!outcome.aberto) return { ...NADA, recusa: outcome.recusa ?? 'recusado' };
 
     this.progress = outcome.progress;
+    this.sujo = true;
     // Pegar item de baú conta para objetivo de coleta.
     const atualizacoes: QuestUpdatePayload[] = [];
     for (const item of chest.conteudo.itens) {

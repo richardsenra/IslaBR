@@ -85,6 +85,27 @@ function toCharacterState(value: string): CharacterState {
   return isCharacterState(value) ? value : 'idle';
 }
 
+const CHAVE_TOKEN = 'islabr.token';
+
+/**
+ * Token de convidado guardado no navegador (SPEC §4). É ele que faz o
+ * progresso voltar ao recarregar a página. Conta de verdade fica para depois;
+ * limpar os dados do site começa um jogador novo.
+ */
+export function tokenDeConvidado(): string {
+  try {
+    const guardado = window.localStorage.getItem(CHAVE_TOKEN);
+    if (guardado && guardado.length >= 8) return guardado;
+    const novo = crypto.randomUUID();
+    window.localStorage.setItem(CHAVE_TOKEN, novo);
+    return novo;
+  } catch {
+    // Navegador sem localStorage (aba anônima com restrição): joga como
+    // convidado novo, sem salvar.
+    return crypto.randomUUID();
+  }
+}
+
 export async function joinIsland(handlers: IslandHandlers): Promise<IslandConnection> {
   const oneWayMs = simulatedLagMs() / 2;
   const afterLag = (run: () => void): void => {
@@ -93,7 +114,9 @@ export async function joinIsland(handlers: IslandHandlers): Promise<IslandConnec
   };
 
   const client = new Client(serverUrl);
-  const room = await client.joinOrCreate<IslandStateView>(ROOM.island);
+  const room = await client.joinOrCreate<IslandStateView>(ROOM.island, {
+    token: tokenDeConvidado(),
+  });
 
   room.onStateChange((state) => {
     const players: NetPlayer[] = [];

@@ -8,6 +8,27 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
+
+    # O mesmo Postgres do docker-compose, para os testes de persistência
+    # rodarem contra um banco de verdade em vez de serem pulados.
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: islabr
+          POSTGRES_PASSWORD: islabr
+          POSTGRES_DB: islabr
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U islabr"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgres://islabr:islabr@localhost:5432/islabr
+
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
