@@ -12,7 +12,9 @@ import {
   type LootPayload,
   type MoveCorrectionPayload,
   type MovePayload,
+  type NoticePayload,
   type QuestUpdatePayload,
+  type StatusPayload,
 } from '@islabr/shared';
 
 /**
@@ -85,6 +87,8 @@ export interface IslandHandlers {
   onQuestUpdate(update: QuestUpdatePayload): void;
   onInventory(inventory: InventoryUpdatePayload): void;
   onLoot(loot: LootPayload): void;
+  onStatus(status: StatusPayload): void;
+  onNotice(notice: NoticePayload): void;
   onDisconnect(): void;
 }
 
@@ -95,6 +99,8 @@ export interface IslandConnection {
   interact(alvo: string): void;
   /** Golpe: só a direção; dano, alcance e cadência são do servidor. */
   attack(payload: AttackPayload): void;
+  /** Usar item do inventário; o servidor confere e responde. */
+  useItem(item: string): void;
   leave(): void;
 }
 
@@ -211,6 +217,18 @@ export async function joinIsland(handlers: IslandHandlers): Promise<IslandConnec
     });
   });
 
+  room.onMessage(MSG.status, (status: StatusPayload) => {
+    afterLag(() => {
+      handlers.onStatus(status);
+    });
+  });
+
+  room.onMessage(MSG.notice, (notice: NoticePayload) => {
+    afterLag(() => {
+      handlers.onNotice(notice);
+    });
+  });
+
   room.onMessage(MSG.loot, (loot: LootPayload) => {
     afterLag(() => {
       handlers.onLoot(loot);
@@ -239,6 +257,11 @@ export async function joinIsland(handlers: IslandHandlers): Promise<IslandConnec
     attack: (payload) => {
       afterLag(() => {
         room.send(MSG.attack, payload);
+      });
+    },
+    useItem: (item) => {
+      afterLag(() => {
+        room.send(MSG.useItem, { item });
       });
     },
     leave: () => {

@@ -1,40 +1,165 @@
 import * as THREE from 'three';
+import { getEnemy } from '@islabr/content';
 import { SnapshotBuffer } from '@islabr/shared';
 import type { NetEnemy } from './network.js';
 
 /**
  * Inimigos desenhados (SPEC §6, M3). O estado — posição, vida, o que está
- * fazendo — vem do servidor; aqui só se interpola e se anima. Placeholder de
- * primitivas, como o resto: não há caranguejo nos assets CC0 que temos.
+ * fazendo — vem do servidor; aqui só se interpola e se anima. São placeholders
+ * de primitivas, como o resto: não há esses bichos nos assets CC0 que temos.
+ *
+ * Todo ataque tem aviso visível antes (o mosquito treme, o sapo infla, a
+ * água-viva brilha): o servidor espera esse tempo, e o jogador precisa ter o
+ * que ver nele.
  */
-
-const COR_COMUM = '#e4572e';
-const COR_ESPINHOSO = '#6d2e2a';
-const COR_ESPINHO = '#f2c14e';
 
 /** Quanto tempo o corpo leva para sumir depois de morrer. */
 const MORTE_SEGUNDOS = 0.45;
 /** Quanto tempo o brilho de "levei golpe" dura. */
 const FLASH_SEGUNDOS = 0.14;
 
+/** Estados em que o bicho já percebeu o jogador e está na briga. */
+const EM_ALERTA: ReadonlySet<string> = new Set([
+  'perseguindo',
+  'atacando',
+  'ferido',
+  'orbitando',
+  'preparando',
+  'mergulhando',
+  'recuando',
+  'pulando',
+  'cuspindo',
+  'carregando',
+]);
+
+/** Estados em que o bicho está perto do chão e pode esconder atrás do jogador. */
+const ESCONDIVEIS: ReadonlySet<string> = new Set([
+  'perseguindo',
+  'atacando',
+  'ferido',
+  'pulando',
+  'cuspindo',
+  'carregando',
+  'mergulhando',
+]);
+
+/** Base de todo bicho: materiais, brilho de golpe, aviso colorido e morte. */
+abstract class Criatura {
+  readonly raiz = new THREE.Group();
+  /** Altura da barra de vida acima do chão, para cada bicho. */
+  abstract readonly alturaDaBarra: number;
+
+  protected readonly corpo = new THREE.Group();
+  private readonly materiais: THREE.MeshLambertMaterial[] = [];
+  private readonly extras: THREE.Material[] = [];
+  protected tempo = Math.random() * Math.PI * 2;
+  private flash = 0;
+  private morte = 0;
+  /** Brilho de aviso (a cor e a força); some quando o aviso acaba. */
+  private avisoCor = new THREE.Color(0xffffff);
+  private avisoForca = 0;
+
+  constructor() {
+    this.raiz.add(this.corpo);
+  }
+
+  protected material(
+    cor: string,
+    opcoes: THREE.MeshLambertMaterialParameters = {},
+  ): THREE.MeshLambertMaterial {
+    const material = new THREE.MeshLambertMaterial({ color: cor, ...opcoes });
+    this.materiais.push(material);
+    return material;
+  }
+
+  /** Materiais que não são Lambert (translúcidos, sem luz) e também precisam de descarte. */
+  protected extra<T extends THREE.Material>(material: T): T {
+    this.extras.push(material);
+    return material;
+  }
+
+  /** Acende o corpo por um instante: o jeito de dizer "isso acertou". */
+  acertar(): void {
+    this.flash = FLASH_SEGUNDOS;
+  }
+
+  /** Brilho colorido enquanto o bicho prepara um ataque. Chamar com 0 para apagar. */
+  protected avisar(cor: number, forca: number): void {
+    this.avisoCor.setHex(cor);
+    this.avisoForca = forca;
+  }
+
+  reviver(): void {
+    this.morte = 0;
+    this.flash = 0;
+    this.avisoForca = 0;
+    this.raiz.visible = true;
+    this.corpo.rotation.set(0, 0, 0);
+    this.corpo.position.set(0, 0, 0);
+    this.corpo.scale.setScalar(1);
+  }
+
+  /** Avança a animação do estado que o servidor mandou. */
+  animar(estado: string, dt: number): void {
+    this.tempo += dt;
+    this.flash = Math.max(0, this.flash - dt);
+
+    // Brilho: o branco do golpe vence o aviso colorido enquanto dura.
+    const golpe = this.flash > 0 ? this.flash / FLASH_SEGUNDOS : 0;
+    for (const material of this.materiais) {
+      if (golpe > 0) {
+        material.emissive.setScalar(golpe * 0.85);
+      } else {
+        material.emissive.copy(this.avisoCor).multiplyScalar(this.avisoForca);
+      }
+    }
+
+    if (estado === 'morto') {
+      this.avisoForca = 0;
+      this.morte += dt;
+      const t = Math.min(this.morte / MORTE_SEGUNDOS, 1);
+      // Vira de barriga para cima e encolhe.
+      this.corpo.rotation.z = t * Math.PI;
+      this.corpo.position.y = t * 0.25;
+      this.corpo.scale.setScalar(Math.max(1 - t * t, 0.001));
+      this.raiz.visible = t < 1;
+      return;
+    }
+
+    this.avisoForca = 0;
+    this.animarVivo(estado, dt);
+  }
+
+  protected abstract animarVivo(estado: string, dt: number): void;
+
+  descartar(): void {
+    this.raiz.traverse((objeto) => {
+      if (objeto instanceof THREE.Mesh) objeto.geometry.dispose();
+    });
+    for (const material of this.materiais) material.dispose();
+    for (const material of this.extras) material.dispose();
+  }
+}
+
+const COR_COMUM = '#e4572e';
+const COR_ESPINHOSO = '#6d2e2a';
+const COR_ESPINHO = '#f2c14e';
+
 interface Garra {
   readonly pivo: THREE.Group;
   readonly lado: 1 | -1;
 }
 
-/** Um caranguejo: corpo, olhos, garras, pernas e (se for o espinhoso) espinhos. */
-class Caranguejo {
-  readonly raiz = new THREE.Group();
+/** Caranguejo: corpo largo, olhos em haste, garras que estalam e pernas. */
+class Caranguejo extends Criatura {
+  readonly alturaDaBarra: number;
 
-  private readonly corpo = new THREE.Group();
   private readonly pernas: THREE.Mesh[] = [];
   private readonly garras: Garra[] = [];
-  private readonly materiais: THREE.MeshLambertMaterial[] = [];
-  private fase = Math.random() * Math.PI * 2;
-  private flash = 0;
-  private morte = 0;
 
   constructor(espinhoso: boolean) {
+    super();
+    this.alturaDaBarra = espinhoso ? 1.9 : 1.55;
     const cor = espinhoso ? COR_ESPINHOSO : COR_COMUM;
     const casco = this.material(cor);
     const claro = this.material(espinhoso ? '#8a403a' : '#f08a5d');
@@ -95,78 +220,318 @@ class Caranguejo {
     } else {
       this.raiz.scale.setScalar(1.45);
     }
-
-    this.raiz.add(this.corpo);
   }
 
-  private material(cor: string): THREE.MeshLambertMaterial {
-    const material = new THREE.MeshLambertMaterial({ color: cor });
-    this.materiais.push(material);
-    return material;
-  }
-
-  /** Acende o corpo por um instante: o jeito de dizer "isso acertou". */
-  acertar(): void {
-    this.flash = FLASH_SEGUNDOS;
-  }
-
-  reviver(): void {
-    this.morte = 0;
-    this.flash = 0;
-    this.raiz.visible = true;
-    this.corpo.rotation.z = 0;
-    this.corpo.position.y = 0;
-    this.corpo.scale.setScalar(1);
-  }
-
-  /** Avança a animação do estado que o servidor mandou. */
-  animar(estado: string, dt: number): void {
-    // O brilho de dano decai rápido.
-    this.flash = Math.max(0, this.flash - dt);
-    const brilho = this.flash > 0 ? this.flash / FLASH_SEGUNDOS : 0;
-    for (const material of this.materiais) material.emissive.setScalar(brilho * 0.85);
-
-    if (estado === 'morto') {
-      this.morte += dt;
-      const t = Math.min(this.morte / MORTE_SEGUNDOS, 1);
-      // Vira de barriga para cima e encolhe.
-      this.corpo.rotation.z = t * Math.PI;
-      this.corpo.position.y = t * 0.25;
-      this.corpo.scale.setScalar(Math.max(1 - t * t, 0.001));
-      this.raiz.visible = t < 1;
-      return;
-    }
-
+  protected animarVivo(estado: string, dt: number): void {
     const correndo = estado === 'perseguindo';
     const atacando = estado === 'atacando';
-    this.fase += dt * (correndo ? 16 : atacando ? 9 : 2);
+    this.tempo += dt * (correndo ? 15 : atacando ? 8 : 1);
 
     // Anda de lado: o corpo balança e as pernas vão e voltam.
-    this.corpo.position.x = correndo ? Math.sin(this.fase * 0.5) * 0.04 : 0;
-    this.corpo.position.y = correndo ? Math.abs(Math.sin(this.fase)) * 0.05 : 0;
+    this.corpo.position.x = correndo ? Math.sin(this.tempo * 0.5) * 0.04 : 0;
+    this.corpo.position.y = correndo ? Math.abs(Math.sin(this.tempo)) * 0.05 : 0;
     this.pernas.forEach((perna, indice) => {
       const lado = indice < 3 ? -1 : 1;
       const base = lado * -0.45;
-      perna.rotation.z = base + (correndo ? Math.sin(this.fase + indice * 1.3) * 0.35 : 0);
+      perna.rotation.z = base + (correndo ? Math.sin(this.tempo + indice * 1.3) * 0.35 : 0);
     });
 
     // As garras estalam quando ele ataca; paradas, ficam relaxadas.
     for (const { pivo, lado } of this.garras) {
-      const estalo = atacando ? Math.max(0, Math.sin(this.fase)) * 0.7 : 0;
+      const estalo = atacando ? Math.max(0, Math.sin(this.tempo)) * 0.7 : 0;
       pivo.rotation.y = lado * (0.15 + estalo);
-      pivo.rotation.x = atacando ? -0.35 * Math.max(0, Math.sin(this.fase)) : 0;
+      pivo.rotation.x = atacando ? -0.35 * Math.max(0, Math.sin(this.tempo)) : 0;
     }
 
     // Levou golpe: encolhe de susto.
-    const susto = estado === 'ferido' ? 0.85 : 1;
-    this.corpo.scale.set(1, susto, 1);
+    this.corpo.scale.set(1, estado === 'ferido' ? 0.85 : 1, 1);
+  }
+}
+
+/** Mosquito: corpo pequeno, probóscide e asas que batem; treme antes de mergulhar. */
+class Mosquito extends Criatura {
+  readonly alturaDaBarra = 0.9;
+
+  private readonly asas: THREE.Group[] = [];
+
+  constructor() {
+    super();
+    const pelo = this.material('#4a3b2a');
+    const barriga = this.material('#7a6a3f');
+    const olhoMat = this.material('#d94141');
+    const asa = this.extra(
+      new THREE.MeshBasicMaterial({
+        color: '#e8f3ff',
+        transparent: true,
+        opacity: 0.55,
+        side: THREE.DoubleSide,
+      }),
+    );
+
+    const torax = new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 10), pelo);
+    torax.scale.set(0.8, 0.75, 1.3);
+    torax.position.y = 0.45;
+    const abdomen = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 10), barriga);
+    abdomen.scale.set(0.8, 0.75, 1.7);
+    abdomen.position.set(0, 0.42, -0.36);
+    const cabeca = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 8), pelo);
+    cabeca.position.set(0, 0.47, 0.3);
+    const probóscide = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.4, 6), barriga);
+    probóscide.rotation.x = Math.PI / 2;
+    probóscide.position.set(0, 0.43, 0.58);
+    this.corpo.add(torax, abdomen, cabeca, probóscide);
+
+    for (const lado of [-1, 1] as const) {
+      const olho = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 6), olhoMat);
+      olho.position.set(lado * 0.09, 0.51, 0.38);
+      this.corpo.add(olho);
+
+      // A asa gira em torno da raiz, junto ao corpo.
+      const pivo = new THREE.Group();
+      pivo.position.set(lado * 0.12, 0.6, 0.02);
+      const folha = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.012, 0.22), asa);
+      folha.position.x = lado * 0.28;
+      pivo.add(folha);
+      this.corpo.add(pivo);
+      this.asas.push(pivo);
+    }
+    this.raiz.scale.setScalar(1.7);
   }
 
-  descartar(): void {
-    this.raiz.traverse((objeto) => {
-      if (objeto instanceof THREE.Mesh) objeto.geometry.dispose();
+  protected animarVivo(estado: string, dt: number): void {
+    // Asas rápidas sempre; mais ainda quando vai atacar.
+    const frequencia = estado === 'mergulhando' ? 70 : 52;
+    this.asas.forEach((asa, indice) => {
+      const lado = indice === 0 ? -1 : 1;
+      asa.rotation.z = lado * Math.sin(this.tempo * frequencia) * 0.7;
     });
-    for (const material of this.materiais) material.dispose();
+
+    const mergulhando = estado === 'mergulhando';
+    // Nariz para baixo na descida, empinado ao subir.
+    this.corpo.rotation.x = mergulhando ? 0.75 : estado === 'recuando' ? -0.5 : 0.08;
+    // Paira e orbita balançando de leve; nos outros estados o corpo fica firme.
+    const pairando = estado === 'orbitando' || estado === 'parado';
+    this.corpo.position.y = pairando ? Math.sin(this.tempo * 4) * 0.05 : 0;
+
+    if (estado === 'preparando') {
+      // Treme e fica vermelho: é o aviso de que vai mergulhar.
+      this.corpo.position.x = Math.sin(this.tempo * 90) * 0.03;
+      this.avisar(0xff2020, 0.45 + 0.35 * Math.sin(this.tempo * 40));
+    } else {
+      this.corpo.position.x = 0;
+    }
+    void dt;
+  }
+}
+
+/** Sapo: corpo gordo, olhos saltados, estica no pulo e infla antes de cuspir. */
+class Sapo extends Criatura {
+  readonly alturaDaBarra = 1.5;
+
+  private readonly pernasTraseiras: THREE.Mesh[] = [];
+
+  constructor() {
+    super();
+    const pele = this.material('#5f9e45');
+    const barriga = this.material('#c9e265');
+    const branco = this.material('#fffbe0');
+    const pupila = this.material('#1d2a1a');
+    const boca = this.material('#2f4a27');
+
+    const tronco = new THREE.Mesh(new THREE.SphereGeometry(0.45, 18, 12), pele);
+    tronco.scale.set(1, 0.78, 1.15);
+    tronco.position.y = 0.38;
+    const papo = new THREE.Mesh(new THREE.SphereGeometry(0.3, 14, 10), barriga);
+    papo.scale.set(1, 0.7, 0.9);
+    papo.position.set(0, 0.3, 0.3);
+    const sorriso = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.03, 0.05), boca);
+    sorriso.position.set(0, 0.4, 0.52);
+    this.corpo.add(tronco, papo, sorriso);
+
+    for (const lado of [-1, 1] as const) {
+      const olho = new THREE.Mesh(new THREE.SphereGeometry(0.11, 10, 8), branco);
+      olho.position.set(lado * 0.2, 0.78, 0.25);
+      const iris = new THREE.Mesh(new THREE.SphereGeometry(0.055, 8, 6), pupila);
+      iris.position.set(lado * 0.2, 0.79, 0.34);
+      this.corpo.add(olho, iris);
+
+      const frente = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.05, 0.3, 8), pele);
+      frente.position.set(lado * 0.3, 0.17, 0.4);
+      this.corpo.add(frente);
+
+      const coxa = new THREE.Mesh(new THREE.SphereGeometry(0.2, 10, 8), pele);
+      coxa.scale.set(0.7, 0.7, 1.4);
+      coxa.position.set(lado * 0.42, 0.22, -0.2);
+      this.corpo.add(coxa);
+      this.pernasTraseiras.push(coxa);
+    }
+    this.raiz.scale.setScalar(1.35);
+  }
+
+  protected animarVivo(estado: string, dt: number): void {
+    void dt;
+    let largura = 1;
+    // Todo ramo do switch define a altura, então não precisa de valor inicial.
+    let altura: number;
+    let comprimento = 1;
+
+    switch (estado) {
+      case 'pulando':
+        // Esticado no ar.
+        largura = 0.88;
+        altura = 1.18;
+        comprimento = 1.1;
+        break;
+      case 'cuspindo': {
+        // Infla e pulsa a garganta; fica verde-claro, o aviso do cuspe.
+        const pulso = 0.5 + 0.5 * Math.sin(this.tempo * 18);
+        largura = 1.2 + pulso * 0.12;
+        altura = 1.2 + pulso * 0.1;
+        comprimento = 1.12;
+        this.avisar(0x9be15d, 0.35 + pulso * 0.3);
+        break;
+      }
+      case 'ferido':
+        altura = 0.8;
+        largura = 1.12;
+        break;
+      default:
+        // Parado, respira.
+        altura = 1 + Math.sin(this.tempo * 3) * 0.035;
+    }
+
+    this.corpo.scale.set(largura, altura, comprimento);
+    this.pernasTraseiras.forEach((coxa) => {
+      coxa.rotation.x = estado === 'pulando' ? -0.7 : 0;
+    });
+  }
+}
+
+/** Água-viva: cúpula translúcida, tentáculos que balançam e um brilho antes do choque. */
+class AguaViva extends Criatura {
+  readonly alturaDaBarra = 1.6;
+
+  private readonly tentaculos: THREE.Mesh[] = [];
+  private readonly miolo: THREE.MeshBasicMaterial;
+  private readonly cupula: THREE.MeshLambertMaterial;
+  private readonly anel: THREE.Mesh;
+  private readonly anelMaterial: THREE.MeshBasicMaterial;
+  private anelTempo = 0;
+  private estadoAnterior = 'flutuando';
+  /** Raio do choque, do JSON, para o anel mostrar a área de verdade. */
+  private readonly raioDoChoque: number;
+
+  constructor() {
+    super();
+    const ia = getEnemy('e05').ia;
+    this.raioDoChoque = ia?.tipo === 'flutuante' ? ia.alcance + 0.3 : 3;
+
+    this.cupula = this.material('#7fd6ff', {
+      transparent: true,
+      opacity: 0.62,
+      side: THREE.DoubleSide,
+    });
+    const tentaculo = this.material('#a8e6ff', { transparent: true, opacity: 0.75 });
+    this.miolo = this.extra(
+      new THREE.MeshBasicMaterial({ color: '#c8f4ff', transparent: true, opacity: 0.8 }),
+    );
+
+    const cupula = new THREE.Mesh(
+      new THREE.SphereGeometry(0.5, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2),
+      this.cupula,
+    );
+    cupula.position.y = 0.55;
+    const nucleo = new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 10), this.miolo);
+    nucleo.position.y = 0.6;
+    this.corpo.add(cupula, nucleo);
+
+    for (let i = 0; i < 7; i += 1) {
+      const angulo = (i / 7) * Math.PI * 2;
+      const fio = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.012, 0.7, 6), tentaculo);
+      // O pivô fica no alto do tentáculo, para ele balançar pela base.
+      fio.geometry.translate(0, -0.35, 0);
+      fio.position.set(Math.cos(angulo) * 0.32, 0.55, Math.sin(angulo) * 0.32);
+      this.corpo.add(fio);
+      this.tentaculos.push(fio);
+    }
+
+    // Anel do choque: cresce até a área real e some.
+    this.anelMaterial = this.extra(
+      new THREE.MeshBasicMaterial({
+        color: '#ffffaa',
+        transparent: true,
+        opacity: 0,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+      }),
+    );
+    this.anel = new THREE.Mesh(new THREE.RingGeometry(0.85, 1, 40), this.anelMaterial);
+    this.anel.rotation.x = -Math.PI / 2;
+    this.anel.position.y = 0.05;
+    this.anel.visible = false;
+    this.raiz.add(this.anel);
+
+    this.raiz.scale.setScalar(1.3);
+  }
+
+  override reviver(): void {
+    super.reviver();
+    this.anel.visible = false;
+    this.anelTempo = 0;
+  }
+
+  protected animarVivo(estado: string, dt: number): void {
+    this.tentaculos.forEach((fio, indice) => {
+      fio.rotation.x = Math.sin(this.tempo * 2.4 + indice) * 0.25;
+      fio.rotation.z = Math.cos(this.tempo * 2 + indice * 1.7) * 0.25;
+    });
+
+    // A cúpula pulsa devagar, como quem nada.
+    const pulso = 1 + Math.sin(this.tempo * 2.2) * 0.04;
+    this.corpo.scale.set(pulso, 1 / pulso, pulso);
+
+    if (estado === 'carregando') {
+      // Brilha mais e mais: o aviso do choque.
+      const carga = 0.5 + 0.5 * Math.sin(this.tempo * 16);
+      this.avisar(0xfff2a0, 0.4 + carga * 0.5);
+      this.miolo.color.set('#ffffcc');
+      this.cupula.opacity = 0.8;
+      this.corpo.scale.multiplyScalar(1.1);
+    } else {
+      this.miolo.color.set('#c8f4ff');
+      this.cupula.opacity = 0.62;
+    }
+
+    // Saiu da carga: o choque acabou de sair, então solta o anel.
+    if (this.estadoAnterior === 'carregando' && estado !== 'carregando') {
+      this.anelTempo = 0.35;
+      this.anel.visible = true;
+    }
+    this.estadoAnterior = estado;
+
+    if (this.anelTempo > 0) {
+      this.anelTempo = Math.max(0, this.anelTempo - dt);
+      const t = 1 - this.anelTempo / 0.35;
+      // O anel mora na raiz (que tem escala), então desfaz a escala da raiz.
+      this.anel.scale.setScalar((0.4 + t * 0.6) * (this.raioDoChoque / this.raiz.scale.x));
+      this.anelMaterial.opacity = 0.85 * (1 - t);
+      if (this.anelTempo === 0) this.anel.visible = false;
+    }
+  }
+}
+
+function criarCriatura(tipo: string): Criatura {
+  switch (tipo) {
+    case 'e03':
+      return new Mosquito();
+    case 'e04':
+      return new Sapo();
+    case 'e05':
+      return new AguaViva();
+    case 'e02':
+      return new Caranguejo(true);
+    default:
+      return new Caranguejo(false);
   }
 }
 
@@ -216,7 +581,7 @@ class BarraDeVida {
 }
 
 interface Visao {
-  readonly caranguejo: Caranguejo;
+  readonly criatura: Criatura;
   readonly barra: BarraDeVida;
   readonly raiz: THREE.Group;
   buffer: SnapshotBuffer;
@@ -245,14 +610,14 @@ export class Enemies {
       let visao = this.visoes.get(dado.id);
 
       if (!visao) {
-        const caranguejo = new Caranguejo(dado.tipo === 'e02');
+        const criatura = criarCriatura(dado.tipo);
         const barra = new BarraDeVida();
         const raiz = new THREE.Group();
-        raiz.add(caranguejo.raiz, barra.sprite);
-        barra.sprite.position.y = dado.tipo === 'e02' ? 1.9 : 1.55;
+        raiz.add(criatura.raiz, barra.sprite);
+        barra.sprite.position.y = criatura.alturaDaBarra;
         this.group.add(raiz);
         visao = {
-          caranguejo,
+          criatura,
           barra,
           raiz,
           buffer: new SnapshotBuffer(),
@@ -267,7 +632,7 @@ export class Enemies {
 
       // Voltou a viver: nasce no posto, sem deslizar do lugar onde morreu.
       if (visao.estado === 'morto' && dado.estado !== 'morto') {
-        visao.caranguejo.reviver();
+        visao.criatura.reviver();
         visao.buffer = new SnapshotBuffer();
         visao.raiz.position.set(dado.x, dado.y, dado.z);
       }
@@ -288,7 +653,7 @@ export class Enemies {
     for (const [id, visao] of this.visoes) {
       if (presentes.has(id)) continue;
       this.group.remove(visao.raiz);
-      visao.caranguejo.descartar();
+      visao.criatura.descartar();
       visao.barra.descartar();
       this.visoes.delete(id);
     }
@@ -304,29 +669,27 @@ export class Enemies {
           visao.raiz.rotation.y = pose.yaw;
         }
       }
-      visao.caranguejo.animar(visao.estado, dt);
-      const alerta =
-        visao.estado === 'perseguindo' || visao.estado === 'atacando' || visao.estado === 'ferido';
-      visao.barra.atualizar(visao.hp, visao.hpMax, visao.estado === 'morto', alerta);
+      visao.criatura.animar(visao.estado, dt);
+      visao.barra.atualizar(
+        visao.hp,
+        visao.hpMax,
+        visao.estado === 'morto',
+        EM_ALERTA.has(visao.estado),
+      );
     }
   }
 
   /**
-   * Tem inimigo alerta (perseguindo, atacando ou ferido) à frente do jogador,
-   * perto o bastante para o corpo dele o esconder da câmera? `yaw` é para onde
-   * a câmera olha, que é onde o jogador ataca.
+   * Tem inimigo alerta à frente do jogador, perto o bastante para o corpo dele
+   * o esconder da câmera? `yaw` é para onde a câmera olha, que é onde o jogador
+   * ataca. O que voa alto não conta: a câmera o vê por cima do boneco.
    */
   alertaNaFrente(x: number, z: number, yaw: number, raio: number): boolean {
     const frenteX = Math.sin(yaw);
     const frenteZ = Math.cos(yaw);
     for (const visao of this.visoes.values()) {
-      if (
-        visao.estado !== 'perseguindo' &&
-        visao.estado !== 'atacando' &&
-        visao.estado !== 'ferido'
-      ) {
-        continue;
-      }
+      if (!ESCONDIVEIS.has(visao.estado)) continue;
+      if (visao.raiz.position.y > 1.3) continue;
       const dx = visao.raiz.position.x - x;
       const dz = visao.raiz.position.z - z;
       const distancia = Math.hypot(dx, dz);
@@ -339,7 +702,7 @@ export class Enemies {
 
   /** Brilha o inimigo que levou o golpe. */
   acertar(id: string): void {
-    this.visoes.get(id)?.caranguejo.acertar();
+    this.visoes.get(id)?.criatura.acertar();
   }
 
   /** Onde o inimigo está agora, para colocar o número de dano em cima dele. */

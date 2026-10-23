@@ -72,6 +72,7 @@ câmera (Esc devolve o cursor).
 | Shift | esquivar; rolando, o personagem passa por vãos baixos |
 | Clique ou J | atacar; três toques seguidos fazem o combo, e segurar 0,6 s dá o golpe carregado (o golpe sai ao soltar) |
 | F | falar com quem está perto, abrir baú, colher, quebrar caixa e passar a fala |
+| I | abrir e fechar o inventário (com ele aberto, clique num item ou aperte 1–9 para usar) |
 | Mouse ou Q/E | girar a câmera (o golpe sai para onde ela olha) |
 | Roda | aproximar e afastar |
 
@@ -99,9 +100,26 @@ cai levanta alguns segundos depois, com os corações cheios.
 Às vezes o inimigo some atrás do boneco, porque a câmera fica atrás dele; nessas
 horas o boneco fica semitransparente e a barra de vida mostra onde o bicho está.
 
-O que cai dos bichos (moedas, cascas, ferrões, corações pequenos) é sorteado no
-servidor. Para a m04, derrote 8 caranguejos depois de colher as 6 frutas da horta
-da m03, no canto oeste da vila.
+**Os cinco bichos.** Cada um tem um jeito de atacar, e todos avisam antes:
+
+| Bicho | Onde | Como lutar |
+| --- | --- | --- |
+| Caranguejo | leste e sul | persegue e belisca; dois golpes derrubam |
+| Caranguejo espinhoso | oeste | devolve o golpe de frente; ataque pelas costas |
+| Mosquito | norte | circula no alto, onde a espada não alcança; treme e mergulha, e é na descida que dá para acertar |
+| Sapo gosmento | norte | pula em você e, de longe, infla e cospe gosma que te deixa lento por 3 s (a tela esverdeia) |
+| Água-viva | norte | boia devagar, brilha e solta um choque em área: saia do círculo antes |
+
+O que cai dos bichos (moedas, cascas, ferrões, gosma, géis) é sorteado no
+servidor. O coração pequeno não vai para o inventário: cura meio coração na hora.
+Para a m04, derrote 8 caranguejos depois de colher as 6 frutas da horta da m03,
+no canto oeste da vila.
+
+**Inventário.** A tecla I abre uma grade de 20 casas com os itens empilhados.
+Consumíveis se usam clicando ou apertando o número da casa: a poção pequena
+devolve 2 corações, a grande devolve todos, e a heróica dá 2 corações extras por
+um minuto. O servidor recusa poção de cura com a vida cheia, para ninguém gastar
+à toa.
 
 **A arena de testes.** Ela é provisória e serve para exercitar o movimento:
 
@@ -122,8 +140,8 @@ O navegador guarda um token de convidado, então recarregar a página devolve
 moedas, itens e a missão onde você parou. Sem banco, o jogo roda igual, mas o
 progresso só dura enquanto o servidor estiver de pé.
 
-Ainda **não** existem: loja, fabricação, os outros inimigos e mini-chefes e as
-outras zonas da ilha.
+Ainda **não** existem: loja, fabricação, os mini-chefes, o chefe e as outras zonas
+da ilha.
 
 ## Se algo der errado
 

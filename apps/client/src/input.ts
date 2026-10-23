@@ -106,6 +106,16 @@ export class InputReader {
     return this.consume('ShiftLeft') || this.consume('ShiftRight');
   }
 
+  /** I abre e fecha o inventário. */
+  consumeInventory(): boolean {
+    return this.consume('KeyI');
+  }
+
+  /** Tecla avulsa apertada desde a última leitura (os números do inventário). */
+  consumeKey(code: string): boolean {
+    return this.consume(code);
+  }
+
   /** F interage com o alvo perto e avança a fala aberta (SPEC §6). */
   consumeInteract(): boolean {
     return this.consume('KeyF') || this.consume('Enter');

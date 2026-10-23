@@ -192,3 +192,119 @@ body {
 #aviso[hidden] {
   display: none;
 }
+
+/* Inventário (M3): grade simples com empilhamento. */
+
+#inventario {
+  position: fixed;
+  top: 50%;
+  right: 16px;
+  width: 310px;
+  transform: translateY(-50%);
+  padding: 14px;
+  border-radius: 14px;
+  background: rgb(18 18 28 / 88%);
+  color: #fff;
+}
+
+#inventario[hidden] {
+  display: none;
+}
+
+#inventario-titulo {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 10px;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+#inventario-titulo span {
+  font-weight: 400;
+  font-size: 11px;
+  opacity: 0.65;
+}
+
+#inventario-grade {
+  display: grid;
+  grid-template-columns: repeat(var(--colunas, 5), 1fr);
+  gap: 6px;
+}
+
+.casa {
+  position: relative;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 2px solid rgb(255 255 255 / 12%);
+  border-radius: 8px;
+  background: rgb(255 255 255 / 6%);
+  color: #14141c;
+  font-weight: 800;
+  cursor: default;
+}
+
+.casa:not(:disabled) {
+  background: var(--cor, #888);
+  border-color: rgb(0 0 0 / 35%);
+}
+
+.casa.usavel {
+  cursor: pointer;
+}
+
+.casa.usavel:hover,
+.casa.selecionada {
+  border-color: #fff;
+}
+
+.casa .sigla {
+  font-size: 16px;
+}
+
+.casa .atalho {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+.casa .qtd {
+  position: absolute;
+  right: 4px;
+  bottom: 2px;
+  font-size: 12px;
+  color: #fff;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 80%);
+}
+
+#inventario-detalhe {
+  min-height: 3.2em;
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.35;
+  opacity: 0.9;
+}
+
+#notice {
+  position: fixed;
+  top: 30%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgb(60 60 90 / 90%);
+}
+
+#notice[hidden] {
+  display: none;
+}
+
+/* Gosma do sapo: a tela esverdeia enquanto o jogador está lento. */
+#gosma {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+  background: radial-gradient(ellipse at center, transparent 40%, rgb(120 200 60 / 45%) 100%);
+}

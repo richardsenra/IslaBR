@@ -25,6 +25,7 @@ import { Enemies } from './enemies.js';
 import { Hud } from './hud.js';
 import { ui } from './i18n.js';
 import { InputReader } from './input.js';
+import { InventoryPanel } from './inventory.js';
 import { PLAYER_MODELS, carregarModelos, modeloDoJogador } from './models.js';
 import {
   joinIsland,
@@ -63,8 +64,35 @@ const dialogo = new DialogueBox(
 );
 const efeitos = new Effects(byId('numeros'), byId('vermelho'));
 const avisoEl = byId('aviso');
+const noticeEl = byId('notice');
+const gosmaEl = byId('gosma');
 const cargaEl = byId('carga');
 const cargaBarraEl = byId('carga-barra');
+
+/** Velocidade de quem está com gosma, em fração da normal. */
+const ESCALA_LENTA = 0.5;
+/** Até quando o jogador está lento, em ms do relógio do navegador. */
+let lentoAte = 0;
+let noticeTimer: number | null = null;
+
+function mostrarNotice(texto: string): void {
+  noticeEl.hidden = false;
+  noticeEl.textContent = texto;
+  inventario.avisar(texto);
+  if (noticeTimer !== null) window.clearTimeout(noticeTimer);
+  noticeTimer = window.setTimeout(() => {
+    noticeEl.hidden = true;
+  }, 2200);
+}
+
+const inventario = new InventoryPanel(
+  byId('inventario'),
+  byId('inventario-grade'),
+  byId('inventario-detalhe'),
+  (itemId) => {
+    connection?.useItem(itemId);
+  },
+);
 
 const { scene, camera, renderer } = createStage(canvas);
 scene.add(createArena());
@@ -226,9 +254,17 @@ joinIsland({
   },
   onInventory: (inventory) => {
     hud.setCarteira(inventory);
+    inventario.atualizar(inventory.itens);
     caido = inventory.coracoes <= 0;
     avisoEl.hidden = !caido;
     if (caido) avisoEl.textContent = ui.caiu;
+  },
+  onStatus: (status) => {
+    // A gosma deixa o jogador lento; quanto, e por quanto tempo, o servidor diz.
+    if (status.tipo === 'lento') lentoAte = performance.now() + status.segundos * 1000;
+  },
+  onNotice: (notice) => {
+    mostrarNotice(ui.avisos[notice.codigo]);
   },
   onLoot: (loot) => {
     hud.mostrarLoot(loot);
@@ -297,6 +333,19 @@ renderer.setAnimationLoop((now) => {
   let jump = input.consumeJump();
   let dodge = input.consumeDodge();
   const interagir = input.consumeInteract();
+
+  // Inventário: I abre e fecha; com ele aberto, 1 a 9 usam as primeiras casas.
+  if (input.consumeInventory() && inventario.alternar()) {
+    // O cursor precisa voltar para dar para clicar nos itens.
+    document.exitPointerLock();
+  }
+  if (inventario.aberto) {
+    for (let casa = 0; casa < 9; casa += 1) {
+      if (input.consumeKey(`Digit${casa + 1}`)) inventario.usarCasa(casa);
+    }
+  }
+  const lento = now < lentoAte;
+  gosmaEl.style.opacity = lento ? '1' : '0';
   const solto = input.consumeAttack();
 
   // Passo fixo: a simulação do cliente é igual à que o servidor valida.
@@ -308,6 +357,7 @@ renderer.setAnimationLoop((now) => {
       moveZ: direction.z,
       jump,
       dodge,
+      speedScale: lento ? ESCALA_LENTA : 1,
     });
     accumulator -= STEP_SECONDS;
     jump = false;
