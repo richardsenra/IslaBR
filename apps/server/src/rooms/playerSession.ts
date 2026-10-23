@@ -8,7 +8,11 @@
 
 import { content, getChest, getDialogue, getNpc } from '@islabr/content';
 import {
+  DODGE_INVULN,
   STARTING_PROGRESS,
+  addItem,
+  duracaoDoGolpe,
+  proximoGolpe,
   acceptQuest,
   applyQuestEvent,
   applyReward,
@@ -27,7 +31,15 @@ import {
   type QuestBook,
   type QuestProgress,
   type QuestUpdatePayload,
+  type AttackKind,
+  type Saque,
 } from '@islabr/shared';
+import { danoRecebido } from './combate.js';
+
+/** Carência depois de apanhar, para não levar dois golpes no mesmo instante. */
+const INVULNERAVEL_APOS_DANO = 0.6;
+/** Tempo caído antes de voltar com os corações cheios. */
+const RENASCER_SEGUNDOS = 3;
 import type { JogadorSalvo } from '../store/index.js';
 
 const quests = content.quests;
@@ -53,11 +65,112 @@ export class PlayerSession {
   /** Vira `true` quando há mudança por salvar. */
   sujo = false;
 
+  /** Enquanto maior que zero, o jogador não leva dano (SPEC §6). */
+  private invulneravelAte = 0;
+  private renascerEm = 0;
+  /** Coletáveis já colhidos nesta sessão; renascem na próxima. */
+  private readonly coletados = new Set<string>();
+  private ultimoGolpe: AttackKind | null = null;
+  private ultimoGolpeEm = 0;
+  private proximoGolpePermitidoEm = 0;
+
   constructor(aceito: AcceptedMove, salvo?: JogadorSalvo) {
     this.aceito = aceito;
     this.playerId = salvo?.id ?? '';
     this.progress = salvo?.progress ?? STARTING_PROGRESS;
     this.book = salvo?.book ?? {};
+  }
+
+  /** Arma na mão: a melhor que o jogador tiver (SPEC §7.7). */
+  get arma(): string | null {
+    if (itemCount(this.progress, 'arma_nv2') > 0) return 'arma_nv2';
+    if (itemCount(this.progress, 'graveto_reforcado') > 0) return 'graveto_reforcado';
+    return null;
+  }
+
+  get temArmadura(): boolean {
+    return itemCount(this.progress, 'armadura_nv1') > 0;
+  }
+
+  get vivo(): boolean {
+    return this.progress.coracoes > 0;
+  }
+
+  /** Invulnerabilidade curta da esquiva e do dano levado (SPEC §6). */
+  get invulneravel(): boolean {
+    return this.invulneravelAte > 0;
+  }
+
+  /** Um golpe a cada `ATTACK_SECONDS`; o cliente não acelera isso. */
+  podeAtacar(agora: number): boolean {
+    return agora >= this.proximoGolpePermitidoEm;
+  }
+
+  registrarGolpe(golpe: AttackKind, agora: number): void {
+    this.ultimoGolpe = golpe;
+    this.ultimoGolpeEm = agora;
+    this.proximoGolpePermitidoEm = agora + duracaoDoGolpe(golpe) * 1000 * 0.8;
+  }
+
+  /** Qual golpe o combo entrega agora, se o cliente não disser. */
+  golpeDaVez(agora: number): AttackKind {
+    return proximoGolpe(this.ultimoGolpe, (agora - this.ultimoGolpeEm) / 1000);
+  }
+
+  /** Passa o tempo: invulnerabilidade e volta à vida. */
+  passar(dt: number): void {
+    this.invulneravelAte = Math.max(0, this.invulneravelAte - dt);
+    if (this.vivo || this.renascerEm <= 0) return;
+    this.renascerEm -= dt;
+    if (this.renascerEm > 0) return;
+    this.progress = { ...this.progress, coracoes: this.progress.coracoesMax };
+    this.sujo = true;
+  }
+
+  /** Dano já decidido pelo servidor. Devolve quanto realmente entrou. */
+  levarDano(dano: number, agora: number): number {
+    const sofrido = danoRecebido({
+      dano,
+      invulneravel: this.invulneravel,
+      temArmadura: this.temArmadura,
+    });
+    if (sofrido <= 0) return 0;
+
+    this.progress = {
+      ...this.progress,
+      coracoes: Math.max(0, this.progress.coracoes - sofrido),
+    };
+    // Carência depois de apanhar, para não levar dois golpes no mesmo instante.
+    this.invulneravelAte = INVULNERAVEL_APOS_DANO;
+    this.sujo = true;
+    if (!this.vivo) this.renascerEm = RENASCER_SEGUNDOS;
+    void agora;
+    return sofrido;
+  }
+
+  /** Esquiva: invulnerabilidade curta (SPEC §6). */
+  esquivar(): void {
+    this.invulneravelAte = DODGE_INVULN;
+  }
+
+  /** Conta uma morte de inimigo para as missões ativas. */
+  contarMorte(tipo: string): QuestUpdatePayload[] {
+    return this.evento({ tipo: 'kill', inimigo: tipo });
+  }
+
+  /** Guarda o que caiu do inimigo e conta para objetivos de coleta. */
+  receber(saque: Saque): QuestUpdatePayload[] {
+    const atualizacoes: QuestUpdatePayload[] = [];
+    if (saque.moedas > 0) {
+      this.progress = { ...this.progress, moedas: this.progress.moedas + saque.moedas };
+      this.sujo = true;
+    }
+    for (const item of saque.itens) {
+      this.progress = addItem(this.progress, item, 1);
+      this.sujo = true;
+      atualizacoes.push(...this.evento({ tipo: 'collect', item, qtd: 1 }));
+    }
+    return atualizacoes;
   }
 
   get inventario(): InventoryUpdatePayload {
@@ -109,6 +222,8 @@ export class PlayerSession {
         return this.usar(spot);
       case 'bau':
         return this.abrirBau(spot.alvo);
+      case 'coletavel':
+        return this.coletar(spot);
     }
   }
 
@@ -178,6 +293,33 @@ export class PlayerSession {
     });
     if (atualizacoes.length === 0) return { ...NADA, recusa: 'nada-a-fazer' };
     return { atualizacoes };
+  }
+
+  /**
+   * Colhe um item do chão (as frutas da horta). Cada pé só dá uma vez por
+   * sessão; a planta "renasce" quando o jogador entra de novo, como a erva do
+   * pântano (SPEC §7.7). Por isso isto não é gravado no banco.
+   */
+  private coletar(spot: InteractSpot): InteractResult {
+    if (this.coletados.has(spot.id)) return { ...NADA, recusa: 'ja-coletado' };
+    this.coletados.add(spot.id);
+
+    this.progress = addItem(this.progress, spot.alvo, 1);
+    this.sujo = true;
+    const atualizacoes = this.evento({ tipo: 'collect', item: spot.alvo, qtd: 1 });
+
+    return {
+      atualizacoes,
+      inventario: this.inventario,
+      ganhos: {
+        de: spot.rotulo,
+        moedas: 0,
+        joias: 0,
+        itens: [spot.alvo],
+        insignias: [],
+        coracoes: 0,
+      },
+    };
   }
 
   private abrirBau(chestId: string): InteractResult {

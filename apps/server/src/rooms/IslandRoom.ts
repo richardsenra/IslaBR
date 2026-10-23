@@ -1,17 +1,32 @@
 import { Room, type Client } from '@colyseus/core';
 import {
   ARENA_COLLIDERS,
+  ARENA_ENEMIES,
   ARENA_SPAWN,
+  ENEMY_RESPAWN_SECONDS,
   INTERACT_RADIUS,
   ISLAND_MAX_PLAYERS,
   MSG,
   SERVER_TICK_MS,
   checkMove,
+  parseAttackPayload,
   parseInteractPayload,
   parseMovePayload,
   spotById,
   type MoveCorrectionPayload,
+  type Saque,
+  type Sorteio,
 } from '@islabr/shared';
+import { getEnemy } from '@islabr/content';
+import { EnemyState } from './EnemyState.js';
+import { resolverAtaque } from './combate.js';
+import {
+  criarInimigo,
+  passoDaIA,
+  type AlvoDoInimigo,
+  type EnemyRuntime,
+  type Mordida,
+} from './enemyAI.js';
 import { IslandState, PlayerState } from './IslandState.js';
 import { PlayerSession } from './playerSession.js';
 import { obterStore, type JogadorSalvo } from '../store/index.js';
@@ -35,6 +50,14 @@ export class IslandRoom extends Room<{ state: IslandState }> {
   private readonly sessions = new Map<string, PlayerSession>();
   private nextColorIndex = 0;
 
+  /** Inimigos vivos da instância; o estado replicado é o espelho deste. */
+  private readonly inimigos = new Map<string, EnemyRuntime>();
+  /** Inimigos derrotados esperando a hora de voltar. */
+  private readonly renascendo = new Map<string, number>();
+
+  /** Sorteio dos drops. Trocado nos testes por um de semente fixa. */
+  protected sorteio: Sorteio = Math.random;
+
   /** Sobrescrito nos testes para não depender do relógio real. */
   protected now(): number {
     return Date.now();
@@ -47,9 +70,98 @@ export class IslandRoom extends Room<{ state: IslandState }> {
     this.onMessage(MSG.interact, (client, raw: unknown) => {
       this.onInteract(client, raw);
     });
+    this.onMessage(MSG.attack, (client, raw: unknown) => {
+      this.onAttack(client, raw);
+    });
     this.onMessage(MSG.ready, (client) => {
       this.enviarSituacao(client);
     });
+
+    this.povoarInimigos();
+    // Tick de 20 Hz (SPEC §4).
+    this.setSimulationInterval((deltaMs) => {
+      this.tick(deltaMs / 1000);
+    }, SERVER_TICK_MS);
+  }
+
+  private povoarInimigos(): void {
+    for (const spawn of ARENA_ENEMIES) {
+      const inimigo = criarInimigo(spawn.id, spawn.tipo, spawn.x, spawn.z);
+      this.inimigos.set(spawn.id, inimigo);
+      this.state.inimigos.set(
+        spawn.id,
+        new EnemyState({
+          tipo: inimigo.tipo,
+          x: inimigo.x,
+          y: inimigo.y,
+          z: inimigo.z,
+          yaw: inimigo.yaw,
+          hp: inimigo.hp,
+          hpMax: inimigo.hp,
+          estado: inimigo.estado,
+        }),
+      );
+    }
+  }
+
+  /** Um passo da simulação: IA, mordidas e quem volta a viver. */
+  private tick(dt: number): void {
+    const alvos: AlvoDoInimigo[] = [];
+    for (const [sessionId, session] of this.sessions) {
+      const estado = this.state.players.get(sessionId);
+      if (!estado) continue;
+      alvos.push({
+        sessionId,
+        x: session.aceito.x,
+        y: session.aceito.y,
+        z: session.aceito.z,
+        atacavel: session.vivo,
+      });
+    }
+
+    for (const inimigo of this.inimigos.values()) {
+      if (inimigo.estado === 'morto') continue;
+      const mordida = passoDaIA(inimigo, alvos, dt);
+      this.espelhar(inimigo);
+      if (mordida) this.morder(mordida);
+    }
+
+    this.cuidarDoRenascimento(dt);
+
+    for (const [sessionId, session] of this.sessions) {
+      session.passar(dt);
+      const estado = this.state.players.get(sessionId);
+      if (estado) estado.coracoes = session.progress.coracoes;
+    }
+  }
+
+  private cuidarDoRenascimento(dt: number): void {
+    for (const [id, restante] of this.renascendo) {
+      const falta = restante - dt;
+      if (falta > 0) {
+        this.renascendo.set(id, falta);
+        continue;
+      }
+      this.renascendo.delete(id);
+      const inimigo = this.inimigos.get(id);
+      const spawn = ARENA_ENEMIES.find((candidato) => candidato.id === id);
+      if (!inimigo || !spawn) continue;
+      const novo = criarInimigo(spawn.id, spawn.tipo, spawn.x, spawn.z);
+      this.inimigos.set(id, novo);
+      this.espelhar(novo);
+    }
+  }
+
+  /** Copia o inimigo para o estado que a sala replica. */
+  private espelhar(inimigo: EnemyRuntime): void {
+    const estado = this.state.inimigos.get(inimigo.id);
+    if (!estado) return;
+    estado.x = inimigo.x;
+    estado.y = inimigo.y;
+    estado.z = inimigo.z;
+    estado.yaw = inimigo.yaw;
+    estado.hp = inimigo.hp;
+    estado.estado = inimigo.estado;
   }
 
   /** Carteira e objetivo atual, quando o cliente avisa que está escutando. */
@@ -194,6 +306,98 @@ export class IslandRoom extends Room<{ state: IslandState }> {
 
     // Missão e baú mudam pouco e valem muito: grava assim que muda.
     void this.salvar(session);
+  }
+
+  /** Golpe do jogador: o servidor decide quem foi acertado e o que caiu. */
+  private onAttack(client: Client, raw: unknown): void {
+    const session = this.sessions.get(client.sessionId);
+    const estado = this.state.players.get(client.sessionId);
+    if (!session || !estado || !session.vivo) return;
+
+    const payload = parseAttackPayload(raw);
+    if (!payload) return;
+    if (!session.podeAtacar(this.now())) return;
+    session.registrarGolpe(payload.golpe, this.now());
+
+    const resultado = resolverAtaque(
+      {
+        x: session.aceito.x,
+        y: session.aceito.y,
+        z: session.aceito.z,
+        yaw: payload.yaw,
+        arma: session.arma,
+      },
+      payload.golpe,
+      [...this.inimigos.values()],
+      this.sorteio,
+    );
+
+    for (const acerto of resultado.acertos) {
+      this.espelhar(acerto.inimigo);
+      this.broadcast(MSG.damage, {
+        alvo: acerto.inimigo.id,
+        valor: acerto.dano,
+        origem: client.sessionId,
+        x: acerto.inimigo.x,
+        y: acerto.inimigo.y + 1,
+        z: acerto.inimigo.z,
+        morreu: acerto.morreu,
+        euLevei: false,
+      });
+
+      if (!acerto.morreu) continue;
+      this.renascendo.set(acerto.inimigo.id, ENEMY_RESPAWN_SECONDS);
+      this.premiar(client, session, acerto.inimigo.tipo, acerto.saque);
+    }
+
+    // O espinhoso devolve o golpe de frente (SPEC §7.6).
+    if (resultado.refletido > 0) this.machucar(client, session, resultado.refletido, 'espinho');
+  }
+
+  /** Paga o saque e conta a morte para as missões. */
+  private premiar(client: Client, session: PlayerSession, tipo: string, saque: Saque | null): void {
+    const atualizacoes = session.contarMorte(tipo);
+    for (const update of atualizacoes) client.send(MSG.questUpdate, update);
+
+    if (saque && (saque.moedas > 0 || saque.itens.length > 0)) {
+      session.receber(saque);
+      client.send(MSG.loot, {
+        de: getEnemy(tipo).nome,
+        moedas: saque.moedas,
+        joias: 0,
+        itens: saque.itens,
+      });
+    }
+    client.send(MSG.inventoryUpdate, session.inventario);
+    void this.salvar(session);
+  }
+
+  /** Mordida de inimigo em jogador. */
+  private morder(mordida: Mordida): void {
+    const session = this.sessions.get(mordida.alvo);
+    const client = this.clients.find((candidato) => candidato.sessionId === mordida.alvo);
+    if (!session || !client) return;
+    this.machucar(client, session, mordida.dano, mordida.inimigo);
+  }
+
+  private machucar(client: Client, session: PlayerSession, dano: number, origem: string): void {
+    const sofrido = session.levarDano(dano, this.now());
+    if (sofrido <= 0) return;
+
+    const estado = this.state.players.get(client.sessionId);
+    if (estado) estado.coracoes = session.progress.coracoes;
+
+    this.broadcast(MSG.damage, {
+      alvo: client.sessionId,
+      valor: sofrido,
+      origem,
+      x: session.aceito.x,
+      y: session.aceito.y + 1.5,
+      z: session.aceito.z,
+      morreu: !session.vivo,
+      euLevei: false,
+    });
+    client.send(MSG.inventoryUpdate, session.inventario);
   }
 }
 

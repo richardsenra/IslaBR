@@ -217,7 +217,7 @@ renderer.setAnimationLoop((now) => {
       dialogo.avancar();
     } else if (alvo && connection) {
       connection.interact(alvo.id);
-      if (alvo.tipo === 'objeto') spots.esconder(alvo.id);
+      if (alvo.tipo === 'objeto' || alvo.tipo === 'coletavel') spots.esconder(alvo.id);
     }
   }
 

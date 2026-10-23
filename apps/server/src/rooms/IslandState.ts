@@ -1,4 +1,5 @@
 import { schema, t, type SchemaType } from '@colyseus/schema';
+import { EnemyState } from './EnemyState.js';
 
 /**
  * Estado replicado de um jogador. Posições em float32 porque o cliente usa a
@@ -17,6 +18,9 @@ export const PlayerState = schema(
     seq: t.number().default(0),
     /** Índice na paleta de cores, só para distinguir os jogadores no M1. */
     colorIndex: t.uint8().default(0),
+    /** Corações atuais e máximos, para todos verem quem está ferido. */
+    coracoes: t.float32().default(3),
+    coracoesMax: t.float32().default(3),
   },
   'PlayerState',
 );
@@ -25,6 +29,7 @@ export type PlayerState = SchemaType<typeof PlayerState>;
 export const IslandState = schema(
   {
     players: t.map(PlayerState),
+    inimigos: t.map(EnemyState),
   },
   'IslandState',
 );
