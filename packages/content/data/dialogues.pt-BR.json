@@ -1,275 +1,281 @@
 {
-  "nara_ocioso": {
-    "npc": "npc_nara",
-    "caixas": [
-      "Pisa devagar nesse cais, que tábua solta aqui não é lenda.",
-      "Se quiser trabalho, é só perguntar. Sempre tem."
-    ]
-  },
-  "bento_ocioso": {
-    "npc": "npc_bento",
-    "caixas": [
-      "Essa ilha tem bicho pra tudo. Caranguejo, mosquito, sapo e fiscal.",
-      "Na loja aqui do lado tem poção, quando eu lembrar de repor."
-    ]
-  },
-  "iracema_ocioso": {
-    "npc": "npc_iracema",
-    "caixas": [
-      "Cheiro forte? É o chá. Ou o caldeirão. Um dos dois.",
-      "Se machucar, volta aqui na varanda que eu dou conta."
-    ]
-  },
-  "calango_ocioso": {
-    "npc": "npc_calango",
-    "caixas": [
-      "Eu sou mago formado, viu? Só não me pergunta onde está o diploma.",
-      "A bancada é logo ali. Mexa nela com cuidado, ela range."
-    ]
-  },
-  "tito_ocioso": {
-    "npc": "npc_tito",
-    "caixas": [
-      "Peixe aqui não morde mais. Alguma coisa espantou todos.",
-      "Eu fico nessa pedra. Vista boa e, se vier bicho, eu corro primeiro."
-    ]
-  },
-  "anselmo_ocioso": {
-    "npc": "npc_anselmo",
-    "caixas": [
-      "Fóssil é jornal velho da natureza. E eu leio tudo.",
-      "Fique por aqui na entrada. Lá dentro ainda é molhado demais."
-    ]
-  },
+"nara_ocioso": {
+  "npc": "npc_nara",
+  "caixas": [
+    "Pisa devagar nesse cais. Tem tábua solta aqui que já derrubou marinheiro mais experiente que você.",
+    "Se veio atrás de trabalho, pode falar comigo. Sempre tem alguma coisa precisando de atenção por aqui.",
+    "Já conferiu seu equipamento? Um bom marinheiro sabe que é melhor se preparar antes de partir."
+  ]
+},
+"bento_ocioso": {
+  "npc": "npc_bento",
+  "caixas": [
+    "Essa ilha tem bicho pra tudo. Caranguejo, mosquito, sapo e gente que não sabe cuidar da própria horta.",
+    "Na loja aqui do lado tem poção, quando eu lembro de repor. Minha memória anda ótima, só esqueço onde deixo as coisas.",
+    "Se estiver com fome, procure alguma fruta madura. Só não mexa nas da minha horta sem pedir!"
+  ]
+},
+"iracema_ocioso": {
+  "npc": "npc_iracema",
+  "caixas": [
+    "Cheiro forte? É o chá. Ou o caldeirão. Um dos dois. Ainda estou aperfeiçoando a receita.",
+    "Se você se machucar, volta aqui na varanda que eu dou conta. Só não me apareça com uma mordida de caranguejo e diga que foi uma batalha épica.",
+    "Estou tentando aperfeiçoar uma mistura de ervas. Se sair fumaça roxa do caldeirão, não se preocupe... provavelmente é normal."
+  ]
+},
+"calango_ocioso": {
+  "npc": "npc_calango",
+  "caixas": [
+    "Eu sou mago formado, viu? Só não me pergunta onde está o diploma. A última vez que o vi, ele estava embaixo de uma panela.",
+    "A bancada é logo ali. Mexa nela com cuidado, ela range. Não é assombração, é só uma perna bamba. Provavelmente.",
+    "Estou tentando inventar uma poção que deixe o cabelo crescer mais rápido. Até agora, só consegui fazer crescer uma sobrancelha."
+  ]
+},
+"tito_ocioso": {
+  "npc": "npc_tito",
+  "caixas": [
+    "Peixe aqui não morde mais. Quer dizer, alguns mordem. Mas eu sou rápido o suficiente para não deixar isso acontecer duas vezes!",
+    "Eu fico nessa pedra. Vista boa e, se vier bicho, eu corro primeiro. Estratégia de sobrevivência.",
+    "Um dia ainda vou pescar um peixe tão grande que vou precisar de uma carroça para levar para casa. Pode anotar!"
+  ]
+},
+"anselmo_ocioso": {
+  "npc": "npc_anselmo",
+  "caixas": [
+    "Fóssil é jornal velho da natureza. E eu leio tudo. Infelizmente, a natureza não tem uma seção de classificados.",
+    "Fique por aqui na entrada. Lá dentro ainda é molhado demais para minhas anotações.",
+    "Estou catalogando minhas descobertas. Já perdi três lápis, duas folhas e quase perdi a paciência. A pesquisa científica exige sacrifícios."
+  ]
+},
 
   "nara_m01_intro": {
     "npc": "npc_nara",
     "caixas": [
-      "Então você é o reforço que o navio trouxe. Bem-vindo à Ilha Primeira Maré!",
-      "Primeira regra: ninguém trabalha sozinho aqui. Vá se apresentar ao Seu Bento e à Dona Iracema.",
-      "Os dois moram na Vila Aconchego, subindo a trilha de pedra do cais."
+      "Então você é o reforço que o navio trouxe. Bem-vindo à Ilha Primeira Maré! Espero que tenha estômago forte. O mar anda meio imprevisível por estas bandas.",
+      "Antes de pensar em aventuras, preciso que conheça os moradores. Uma tripulação funciona melhor quando sabe com quem pode contar, e aqui ninguém sobrevive tentando resolver tudo sozinho.",
+      "Vá se apresentar ao Seu Bento e à Dona Iracema, lá na Vila Aconchego. Eles moram subindo a trilha de pedra do cais. Se alguém conhece esta ilha de verdade, são os dois."
     ]
   },
   "nara_m01_fim": {
     "npc": "npc_nara",
     "caixas": [
-      "Conheceu a vila inteira em uma manhã. Está contratado.",
-      "Toma esse graveto reforçado. Não é espada, mas já quebrou muita caixa.",
-      "Falando em caixa: as do cais estão me atrapalhando. Fale comigo quando quiser resolver isso."
+      "Conheceu a vila inteira em uma manhã. Está contratado! Pelo menos já sei que consegue andar sem se perder no caminho.",
+      "Toma esse graveto reforçado. Não é uma espada, mas já quebrou muita caixa e salvou alguns dedos no processo.",
+      "Falando em caixas, tenho um problema no cais. A maré trouxe algumas para perto do navio, e elas estão atrapalhando a passagem da carga. Quando quiser ajudar, fale comigo."
     ]
   },
   "nara_m02_intro": {
     "npc": "npc_nara",
     "caixas": [
-      "A maré jogou cinco caixas velhas no meio do cais e ninguém assume a culpa.",
-      "Quebre todas. Serve de treino para o braço e limpa a minha passagem.",
-      "Elas estão empilhadas entre o navio e o farol."
+      "A maré jogou cinco caixas velhas no meio do cais. A madeira está tão danificada que não vale a pena tentar reaproveitá-las, e ninguém sabe de qual embarcação vieram.",
+      "Preciso liberar a passagem antes de recebermos os próximos suprimentos. Se deixarmos aquilo ali, os marinheiros vão tropeçar nas caixas em vez de descarregar o navio.",
+      "Quebre as cinco caixas próximas ao navio, entre ele e o farol. Assim resolvemos a bagunça e você ainda ganha um pouco de prática com esse graveto."
     ]
   },
   "nara_m02_fim": {
     "npc": "npc_nara",
     "caixas": [
-      "Cais limpo e braço aquecido. Gostei do serviço.",
-      "Achei um baú atrás do farol que estava escondido pelas caixas. É seu.",
-      "Agora suba para a vila: o Seu Bento vive precisando de mão."
+      "Cais limpo e braço aquecido. Gostei do serviço! Agora a tripulação consegue trabalhar sem transformar cada entrega numa corrida de obstáculos.",
+      "Agora suba para a vila e procure o Seu Bento. Ele vive precisando de uma mão, e tenho certeza de que vai encontrar alguma coisa para você fazer.",
+      "Ahh... Já ia me esquecendo... Enquanto conferia o espaço atrás do farol, encontrei um baú escondido pelas caixas. Não faço ideia de quem o deixou ali, então pode ficar com ele."
     ]
   },
 
   "bento_m03_intro": {
     "npc": "npc_bento",
     "caixas": [
-      "Você chegou na hora. Minha horta está carregada e minha coluna, não.",
-      "Colha seis frutas para mim, das vermelhas e redondas.",
-      "A horta é atrás de casa, do lado do cercado."
+      "Você chegou na hora. Minha horta está carregada de frutas, mas minha coluna resolveu se aposentar antes de mim.",
+      "Preciso colher seis frutas vermelhas e redondas. Se eu me abaixar mais uma vez, vou precisar que alguém me carregue de volta para casa.",
+      "A horta fica atrás de casa, do lado do cercado. Pegue as frutas maduras, por favor. Quero aproveitar a colheita antes que os caranguejos descubram que ela está pronta."
     ]
   },
   "bento_m03_fim": {
     "npc": "npc_bento",
     "caixas": [
-      "Seis frutas e nenhuma amassada. Você tem mão boa.",
-      "Toma duas poções pequenas, de brinde da casa.",
-      "A loja abre agora para você. É esse balcão aqui mesmo, quando eu estiver atrás dele."
+      "Seis frutas e nenhuma amassada. Você tem mão boa! Minha coluna agradece, e o almoço de hoje está garantido.",
+      "Toma duas poções pequenas, de brinde da casa. É o mínimo que posso fazer por quem salvou minha horta e minha dignidade.",
+      "A loja abre agora para você. É esse balcão aqui mesmo, quando eu estiver atrás dele. Só não espere encontrar tudo organizado; até as poções parecem mudar de lugar sozinhas."
     ]
   },
   "bento_m04_intro": {
     "npc": "npc_bento",
     "caixas": [
-      "Pois agora é guerra. Os caranguejos descobriram a minha horta.",
-      "Derrote oito deles na praia, que é de lá que eles sobem.",
-      "A trilha para a Praia dos Caranguejos desce no fim da vila."
+      "Pois agora é guerra. Os caranguejos descobriram minha horta e estão levando as frutas antes mesmo de amadurecerem. Um deles ainda teve a audácia de encarar minha bota!",
+      "Preciso que você derrote oito deles na praia. É de lá que estão vindo, e não adianta consertar a cerca se esses danados continuarem subindo pela trilha.",
+      "A trilha para a Praia dos Caranguejos desce no fim da vila. E, se encontrar algum caranguejo carregando uma fruta, considere isso uma confissão."
     ]
   },
   "bento_m04_fim": {
     "npc": "npc_bento",
     "caixas": [
-      "Oito! Hoje eu durmo tranquilo.",
-      "Leve essas vinte e cinco moedas, você suou por elas.",
-      "Se for voltar para a praia, procure o Tito. Ele anda falando de coisa esquisita na areia."
+      "Oito! Hoje eu durmo tranquilo. Minha horta finalmente vai ter uma noite de paz, pelo menos até os mosquitos resolverem se organizar.",
+      "Leve estas vinte e cinco moedas. Você trabalhou por elas, e eu prefiro pagar alguém competente a perder toda a colheita.",
+      "Se voltar para a praia, procure o Tito. Ele anda falando de marcas estranhas na areia. Conheço o rapaz desde pequeno, e ele exagera bastante... mas desta vez parece realmente preocupado."
     ]
   },
 
   "iracema_m05_intro": {
     "npc": "npc_iracema",
     "caixas": [
-      "Meu remédio acabou e meio mundo aqui tosse.",
-      "Preciso de três ervas do pântano, e que você espante cinco mosquitos de lá. Eles azedam a planta.",
-      "O Pântano Lodoso é depois da curva da trilha. Pise nas pedras, não no lodo."
+      "Ainda bem que você apareceu! Meu estoque de remédios está quase no fim, e tem gente na vila tossindo há dias. Preciso preparar uma nova mistura antes que a situação piore.",
+      "Para isso, preciso de três ervas do pântano. O problema é que os mosquitos estão por toda parte e estragam as plantas que tento colher. Espante cinco deles para que eu consiga aproveitar as ervas.",
+      "O Pântano Lodoso fica depois da curva da trilha. Pise nas pedras, não no lodo. E tome cuidado: ultimamente, até os animais parecem evitar certas partes daquele lugar."
     ]
   },
   "iracema_m05_fim": {
     "npc": "npc_iracema",
     "caixas": [
-      "Pronto. Isso ferve e vira xarope antes do almoço.",
-      "Trinta moedas e uma poção heróica para você. Guarde para uma emergência de verdade.",
-      "E, se vir o Zé Calango por lá, me avise. Faz dias que ninguém vê o homem."
+      "Muito bem! Com essas ervas, consigo preparar o xarope antes do almoço e ajudar quem está doente. Você chegou numa boa hora.",
+      "Aqui estão trinta moedas e uma poção heróica. Guarde-a para uma emergência de verdade. Conheço aventureiros que gastam tudo para se recuperar de um arranhão.",
+      "Aliás, se encontrar o Zé Calango pelo pântano, me avise. Faz dias que ninguém o vê. Ele diz que está pesquisando, mas nunca explica direito o que procura."
     ]
   },
   "iracema_m06_intro": {
     "npc": "npc_iracema",
     "caixas": [
-      "Eu perdi a chave da minha casa de cima. A das Falésias do Vento.",
-      "Subi para olhar o mar, sentei numa pedra alta e desci sem ela.",
-      "Procure antes do mirante. A subida para as falésias começa atrás da minha varanda."
+      "Tenho um pequeno problema. Perdi a chave da minha casa de cima, lá nas Falésias do Vento. Sem ela, não consigo pegar alguns ingredientes que deixei guardados.",
+      "Subi para observar o mar, sentei numa pedra alta e desci sem perceber que a chave havia caído. Só notei quando cheguei à porta. A idade não perdoa ninguém!",
+      "Pode procurar antes do mirante? A subida para as falésias começa atrás da minha varanda. E, se olhar para o mar, repare nas correntes. Tenho visto mudanças estranhas por lá ultimamente."
     ]
   },
   "iracema_m06_fim": {
     "npc": "npc_iracema",
     "caixas": [
-      "Casa aberta, chaleira no fogo e eu com vergonha.",
-      "Beba isso aqui. É forte: dá para aguentar mais um coração de pancada, de hoje em diante.",
-      "O baú do canto é seu também. E essa mesma chave abre o baú do cume, se você tiver perna."
+      "Casa aberta, chaleira no fogo e eu com vergonha. Obrigada por encontrar a chave. Agora posso voltar a trabalhar sem precisar pedir para alguém entrar pela janela.",
+      "Beba isto aqui. É forte: vai ajudar você a aguentar mais um golpe em suas aventuras. Fiz a mistura com cuidado, então o gosto ruim é totalmente intencional.",
+      "O baú do canto também é seu. E essa mesma chave abre o baú do cume, se você tiver perna para chegar lá. Só não demore muito nas falésias quando o vento começar a mudar."
     ]
   },
   "iracema_m07_intro": {
     "npc": "npc_iracema",
     "caixas": [
-      "O Zé Calango entrou no pântano e não voltou. Mago é tudo assim.",
-      "Lá dentro é escuro demais para achar qualquer um. Acenda as três lanternas dos postes.",
-      "Com elas acesas você vê a fumaça do caldeirão dele entre as árvores."
+      "O Zé Calango entrou no pântano e não voltou. Ele disse que precisava verificar umas coisas perto da ilhota, mas já faz tempo demais para uma simples pesquisa.",
+      "Lá dentro é escuro e a vegetação esconde os caminhos. Acenda as três lanternas dos postes para iluminar a região e facilitar a procura.",
+      "Com elas acesas, você deve conseguir enxergar a fumaça do caldeirão dele entre as árvores. Se encontrá-lo, diga que preocupação não é ingrediente de poção. Pelo menos não de uma que eu recomende."
     ]
   },
   "calango_m07_fim": {
     "npc": "npc_calango",
     "caixas": [
-      "Achou! Eu não estava perdido, estava... pesquisando. Em pé. Há dois dias.",
-      "Toma vinte moedas pelo susto que eu te dei.",
-      "Fique aqui um instante: minha bancada está livre e eu tenho uma ideia que fede."
+      "Achou! Eu não estava perdido, estava... pesquisando. Em pé. Há dois dias. Certamente existe uma diferença acadêmica entre as duas coisas.",
+      "Toma vinte moedas pelo susto que eu te dei. E não conte à Iracema que passei duas noites sem dormir. Ela vai me obrigar a tomar aquele chá horrível.",
+      "Fique aqui um instante. Minha bancada está livre e tenho uma ideia que fede bastante, mas pode resolver um problema importante lá na ilhota."
     ]
   },
 
   "calango_m08_intro": {
     "npc": "npc_calango",
     "caixas": [
-      "A ilhota do pântano tem uma nuvem de mosquito que não deixa ninguém passar.",
-      "Vamos fazer repelente: duas cascas de caranguejo, uma gosma de sapo e a erva da lua cheia.",
-      "A erva está num tronco oco, aqui perto. Depois mistura tudo na bancada."
+      "A ilhota do pântano está coberta por uma nuvem de mosquitos. Ninguém consegue passar por lá sem sair parecendo um jantar ambulante.",
+      "Vamos preparar um repelente na bancada. Preciso de duas cascas de caranguejo, uma gosma de sapo e a erva da lua cheia. Cada ingrediente tem uma propriedade útil, embora a mistura vá cheirar como um experimento que deu errado.",
+      "A erva está num tronco oco aqui perto. Reúna os ingredientes e misture tudo na bancada. Se funcionar, poderemos explorar a ilhota sem alimentar metade dos insetos da região."
     ]
   },
   "calango_m08_fim": {
     "npc": "npc_calango",
     "caixas": [
-      "Que cheiro horrível. Funcionou!",
-      "Anota essa receita de poção pequena, de aluno para mestre. Ou o contrário.",
-      "Agora dá para chegar na ilhota. Mas cuidado: o Sapo-Ancestral mora por ali."
+      "Que cheiro horrível. Funcionou! Eu sabia que minha genialidade seria reconhecida um dia, embora esperasse que isso acontecesse sem esse cheiro.",
+      "Anota essa receita de poção pequena, de aluno para mestre. Ou de mestre para aluno. A hierarquia muda conforme o resultado do experimento.",
+      "Agora dá para chegar à ilhota. Mas cuidado: dizem que o Sapo-Ancestral vive por ali. E, se as histórias estiverem certas, ele não gosta de visitantes. Nem de repelente."
     ]
   },
 
   "tito_m09_intro": {
     "npc": "npc_tito",
     "caixas": [
-      "Você acredita em mim? Ótimo, porque o Seu Bento não acredita.",
-      "Tem marca de ventosa na ilha. Redonda, do tamanho de um prato. Achei três.",
-      "Uma na praia, uma no pântano e uma nas falésias. Vá ver com seus olhos."
+      "Você acredita em mim? Ótimo, porque o Seu Bento não acredita. Ele diz que passei tempo demais olhando para as ondas, mas eu sei o que vi.",
+      "Encontrei marcas redondas na areia, parecidas com ventosas. Eram grandes demais para os bichos que conheço, e havia mais de uma. Depois daquilo, os peixes sumiram daquela parte da praia.",
+      "Achei três marcas: uma na praia, uma no pântano e outra nas falésias. Vá conferir com seus próprios olhos. Se alguém descobrir o que as deixou, talvez a gente entenda por que os animais estão fugindo."
     ]
   },
   "tito_m09_fim": {
     "npc": "npc_tito",
     "caixas": [
-      "Três marcas! Então não era cachaça, era bicho.",
-      "Trinta e cinco moedas e esse mapa rasgado, que eu pesquei junto com uma bota.",
-      "Falta metade dele. Se você juntar os pedaços, a gente descobre de onde o bicho sai."
+      "Três marcas! Então eu não estava imaginando coisas. Quer dizer, posso imaginar muita coisa, mas aquelas marcas estavam lá de verdade.",
+      "Toma trinta e cinco moedas e este mapa rasgado, que pesquei junto com uma bota. Não me pergunte de quem era a bota.",
+      "Falta metade do mapa. Pelo que consigo enxergar, ele mostra uma passagem perto da costa. Se juntarmos os pedaços, talvez descubramos de onde vieram aquelas marcas."
     ]
   },
   "tito_m10_intro": {
     "npc": "npc_tito",
     "caixas": [
-      "O mapa veio em pedaços, e eu já sei onde estão três deles.",
-      "Um na gruta da praia, um no baú da ilhota e um na primeira sala da caverna.",
-      "Se a chave da ilhota faltar, é com o Sapo-Ancestral que você resolve."
+      "Lembra do mapa que encontrei? Consegui descobrir onde estão três pedaços que faltam. Não sei quem desenhou isso, mas parece conhecer passagens que quase ninguém visita.",
+      "Um pedaço está na gruta da praia, outro num baú da ilhota e o terceiro na primeira sala da caverna. Precisamos reuni-los para entender o que o mapa está tentando mostrar.",
+      "Se a chave da ilhota estiver faltando, é com o Sapo-Ancestral que você resolve. Só não tente negociar oferecendo mosquitos. Pelo que ouvi, ele já tem todos os que deseja."
     ]
   },
   "tito_m10_fim": {
     "npc": "npc_tito",
     "caixas": [
-      "Olha isso: o mapa inteiro mostra comporta, canal e a caverna cheia d'água.",
-      "Leve essa joia. Era do meu avô e ele também gostava de confusão.",
-      "A Caverna do Tentáculo está aberta. A entrada é no fim da praia, naquele paredão."
+      "Olha isso! O mapa completo mostra comportas, canais e uma caverna cheia d'água. Alguém planejou essa passagem com muito cuidado, mas não consigo entender por que ela foi escondida.",
+      "Leve esta joia. Era do meu avô, que dizia ter encontrado algo parecido quando era jovem. Nunca explicou onde. Achei que fosse mais uma história dele, mas agora já não sei.",
+      "A Caverna do Tentáculo fica no fim da praia, naquele paredão. O mapa pode nos ajudar a entender o que há lá dentro. Só tome cuidado: não gosto da ideia de entrar num lugar que parece ter sido esquecido de propósito."
     ]
   },
   "tito_m11_intro": {
     "npc": "npc_tito",
     "caixas": [
-      "As salas de dentro estão alagadas e eu não entro em água escura, nem morto.",
-      "O mapa marca três comportas. Abra as três e a maré desce lá dentro.",
-      "Comece pela comporta da sala seca, a primeira depois da entrada."
+      "As salas de dentro estão alagadas, e eu não entro em água escura nem morto. O mapa mostra que a passagem continua, mas ninguém vai conseguir explorar tudo enquanto estiver submerso.",
+      "Há três comportas desenhadas no mapa. Se abrirmos as três, a água deve baixar e revelar o caminho. Pelo menos é o que o desenho sugere, e eu prefiro confiar no papel a testar a profundidade com a cabeça.",
+      "Comece pela comporta da sala seca, a primeira depois da entrada. Depois podemos descobrir o que os antigos tentaram esconder ali."
     ]
   },
   "tito_m11_fim": {
     "npc": "npc_tito",
     "caixas": [
-      "A água baixou! Dá para ouvir o eco agora.",
-      "Quarenta moedas, e eu fico aqui na entrada, obrigado.",
-      "Fale com o Dr. Anselmo, aquele do acampamento de caixas. Ele vive querendo entrar."
+      "A água baixou! Dá para ouvir o eco lá de dentro agora. Antes, parecia que a caverna engolia qualquer som. Não sei se isso é bom ou ruim.",
+      "Aqui estão quarenta moedas. Eu ficaria feliz em acompanhar você, mas prefiro continuar vivo e contar a história depois.",
+      "Fale com o Dr. Anselmo, aquele do acampamento de caixas. Ele vive querendo investigar a caverna e pode ajudar a interpretar o que vocês encontrarem."
     ]
   },
 
   "anselmo_m12_intro": {
     "npc": "npc_anselmo",
     "caixas": [
-      "Maravilhoso! A água baixou e revelou um tentáculo de pedra de trinta metros.",
-      "Corra ao longo dele, do começo até a ponta, seguindo as marcas de tinta no chão.",
-      "E olhe bem a ponta. Tem algo lá que eu não consigo explicar daqui."
+      "Extraordinário! A água baixou e revelou uma estrutura que se parece com um tentáculo de pedra de quase trinta metros. Não consigo afirmar se é uma formação natural ou se alguém a construiu.",
+      "Preciso que você percorra toda a extensão, do começo até a ponta, seguindo as marcas de tinta no chão. Quero comparar as características da superfície e descobrir se a estrutura continua pela caverna.",
+      "Observe bem a ponta. Encontrei sinais de desgaste que não combinam com a erosão comum. Se houver alguma explicação para isso, ela pode nos ajudar a entender por que esta caverna foi inundada."
     ]
   },
   "anselmo_m12_fim": {
     "npc": "npc_anselmo",
     "caixas": [
-      "Caracóis parasitas! Dezenas deles. Agora tudo encaixa.",
-      "O Guardião não está caçando ninguém: ele vem aqui se coçar na pedra.",
-      "Tome a chave da sala do fundo. Ele está lá, e vai ser bem mais simpático do que eu espero."
+      "Caracóis parasitas! Dezenas deles. Agora algumas coisas começam a fazer sentido: a superfície foi alterada por organismos que se fixaram nela. Mas ainda não consigo explicar a origem da estrutura.",
+      "O que me preocupa é que as marcas não parecem recentes. Seja lá o que aconteceu aqui, pode ter começado muito antes de qualquer um de nós chegar à ilha. Talvez até antes das histórias que o Seu Bento ouviu do avô.",
+      "Tome a chave da sala do fundo. Há mais coisas para investigar lá dentro. E, por favor, não toque em nada que pareça vivo, mesmo que tenha a aparência de uma pedra. Meu último conselho desse tipo quase me custou uma sobrancelha."
     ]
   },
   "anselmo_m13_intro": {
     "npc": "npc_anselmo",
     "caixas": [
-      "A porta do fundo é a última. O Guardião está atrás dela, coçando as costas.",
-      "Ele luta em três etapas: tentáculos, maré alta e desespero.",
-      "Volte vivo e me conte tudo. De preferência nessa ordem."
+      "A porta do fundo é a última passagem indicada no mapa. Se os antigos fizeram todo esse esforço para controlar a água e esconder o caminho, provavelmente havia uma razão importante.",
+      "Não sabemos o que está atrás daquela porta. Há sinais de que a estrutura se estende para além da sala, e os relatos sobre sons vindos do fundo do mar estão começando a me parecer menos absurdos.",
+      "Entre com cuidado e tente descobrir o que existe lá dentro. Se encontrar algo que não consiga explicar, não tente resolver tudo na força. E, por favor, volte vivo: preciso de alguém para confirmar minhas anotações."
     ]
   },
   "anselmo_m13_fim": {
     "npc": "npc_anselmo",
     "caixas": [
-      "Você encarou o Guardião e voltou andando. Vou escrever três capítulos sobre isso.",
-      "Fique com o Amuleto da Maré e com essas joias. Ciência também paga.",
-      "A Capitã Nara precisa saber. Ela está no porto, perto do navio."
+      "Você voltou! Depois de tudo o que encontramos, não posso mais tratar os relatos antigos como simples superstição. Há algo nesta ilha que ainda não compreendemos, e agora temos evidências concretas de que não são apenas histórias.",
+      "Fique com o Amuleto da Maré e estas joias. O amuleto estava entre os objetos preservados na sala. Não sei exatamente para que servia, mas os símbolos parecem relacionados aos mecanismos da caverna.",
+      "A Capitã Nara precisa saber o que aconteceu. Ela está no porto, perto do navio. Talvez reconheça alguma coisa no amuleto ou saiba de histórias de outras ilhas que se pareçam com as nossas descobertas."
     ]
   },
 
   "nara_m14_intro": {
     "npc": "npc_nara",
     "caixas": [
-      "Me contaram da luta, mas marinheiro só acredita em prova.",
-      "Traga a Escama do Guardião. Está no baú que apareceu na sala do chefe.",
-      "Pegue e volte para o navio. Eu te espero com o mapa aberto."
+      "Me contaram sobre o que você encontrou na caverna. Ouvi histórias parecidas de outros marinheiros, mas cada um descrevia algo diferente. Nunca pensei que encontraria evidências tão perto do meu próprio navio.",
+      "Preciso confirmar que o objeto encontrado lá realmente pertence àquela estrutura. Traga a Escama do Guardião, que está no baú da sala do chefe. Não quero partir com base apenas em rumores.",
+      "Pegue a escama e volte para o navio. Vou deixar o mapa aberto. Se tudo isso estiver conectado, talvez o que descobrimos seja apenas uma parte de uma história muito maior."
     ]
   },
   "nara_m14_fim": {
     "npc": "npc_nara",
     "caixas": [
-      "Escama na mesa. Agora é oficial: a ilha é sua também.",
-      "Esse é o mapa da próxima ilha. A mancha é café, não é tempestade.",
-      "Quando quiser partir, é só subir no navio. Ou ir para casa descansar, que você merece."
+      "Escama na mesa. Agora temos uma prova de que os relatos não eram invenções. Ainda não sei explicar tudo o que aconteceu nesta ilha, mas já não posso fingir que o mar está normal.",
+      "Este é o mapa da próxima ilha. A mancha é café, não é tempestade. Não sabemos o que vamos encontrar por lá, mas talvez existam respostas para algumas das perguntas que ficaram aqui.",
+      "Quando quiser partir, é só subir no navio. O Amuleto da Maré e o que você descobriu nesta ilha podem ser importantes na viagem. Descanse um pouco antes de irmos. Você merece."
     ]
   }
 }
