@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import {
   ARENA_COLLIDERS,
   ARENA_SPAWN,
@@ -5,20 +6,33 @@ import {
   MOVE_SEND_MS,
   PredictedPlayer,
   SnapshotBuffer,
+  duracaoDoGolpe,
   moveDirectionFromCamera,
   nearestSpot,
   playerColor,
+  proximoGolpe,
+  recargaDoGolpeMs,
   spawnPhysics,
+  type AttackKind,
+  type CharacterState,
   type InteractSpot,
 } from '@islabr/shared';
 import { Avatar } from './avatar.js';
 import { ThirdPersonCamera } from './camera.js';
 import { DialogueBox } from './dialogue.js';
+import { Effects } from './effects.js';
+import { Enemies } from './enemies.js';
 import { Hud } from './hud.js';
 import { ui } from './i18n.js';
 import { InputReader } from './input.js';
 import { PLAYER_MODELS, carregarModelos, modeloDoJogador } from './models.js';
-import { joinIsland, simulatedLagMs, type IslandConnection, type NetPlayer } from './network.js';
+import {
+  joinIsland,
+  simulatedLagMs,
+  type IslandConnection,
+  type NetEnemy,
+  type NetPlayer,
+} from './network.js';
 import { createStage } from './scene.js';
 import { Spots } from './spots.js';
 import { createArena } from './world.js';
@@ -47,6 +61,10 @@ const dialogo = new DialogueBox(
   byId('dialogo-texto'),
   byId('dialogo-rodape'),
 );
+const efeitos = new Effects(byId('numeros'), byId('vermelho'));
+const avisoEl = byId('aviso');
+const cargaEl = byId('carga');
+const cargaBarraEl = byId('carga-barra');
 
 const { scene, camera, renderer } = createStage(canvas);
 scene.add(createArena());
@@ -62,6 +80,9 @@ try {
 
 const spots = new Spots();
 scene.add(spots.group);
+
+const enemies = new Enemies();
+scene.add(enemies.group);
 
 const input = new InputReader(canvas);
 const follow = new ThirdPersonCamera(camera, ARENA_SPAWN.yaw);
@@ -84,8 +105,30 @@ let myColorIndex: number | null = null;
 /** Alvo que o ícone flutuante está marcando agora. */
 let alvo: InteractSpot | undefined;
 
-function onPatch(players: readonly NetPlayer[], arrivedAt: number): void {
+/**
+ * Estado do golpe do jogador local. O servidor é quem decide o dano; isto só
+ * guarda o que animar e quando o próximo golpe pode sair, com a mesma conta de
+ * cadência do servidor para o cliente não mandar golpe que seria recusado.
+ */
+let golpeAtual: AttackKind | null = null;
+let golpeAte = 0;
+let golpeLiberadoEm = 0;
+let golpeGatilho = 0;
+let golpeAnimado = 0;
+let ultimoGolpe: AttackKind | null = null;
+let ultimoGolpeEm = 0;
+let machucadoAte = 0;
+let caido = false;
+/** Opacidade atual do boneco local; sobe e desce suave, sem piscar. */
+let opacidadeLocal = 1;
+
+function onPatch(
+  players: readonly NetPlayer[],
+  inimigos: readonly NetEnemy[],
+  arrivedAt: number,
+): void {
   const present = new Set<string>();
+  enemies.sync(inimigos, arrivedAt);
 
   for (const player of players) {
     present.add(player.sessionId);
@@ -128,9 +171,50 @@ function onPatch(players: readonly NetPlayer[], arrivedAt: number): void {
   hud.setPlayerCount(players.length);
 }
 
+/** Dano decidido pelo servidor chegou: dá peso ao que o jogador vê. */
+function onDamage(dano: {
+  alvo: string;
+  valor: number;
+  origem: string;
+  x: number;
+  y: number;
+  z: number;
+}): void {
+  const agora = performance.now();
+  const sou = connection?.sessionId;
+
+  if (dano.alvo === sou) {
+    // Eu apanhei.
+    if (dano.valor <= 0) return;
+    efeitos.numero(new THREE.Vector3(dano.x, local.current.y, dano.z), `-${dano.valor}`, 'jogador');
+    efeitos.piscarVermelho(agora);
+    efeitos.tremer(0.14, 0.2);
+    efeitos.congelar(agora);
+    machucadoAte = agora + 320;
+    return;
+  }
+
+  const posicao = enemies.posicaoDe(dano.alvo);
+  if (!posicao) return;
+
+  if (dano.valor > 0) {
+    enemies.acertar(dano.alvo);
+    efeitos.numero(posicao, String(dano.valor), dano.valor > 1 ? 'carregado' : 'inimigo');
+    // Só quem bateu sente o peso do golpe.
+    if (dano.origem === sou) {
+      efeitos.congelar(agora);
+      efeitos.tremer(dano.valor > 1 ? 0.1 : 0.05);
+    }
+  } else if (dano.origem === sou) {
+    // O espinhoso devolveu o golpe: bateu, mas não adiantou.
+    efeitos.numero(posicao, '0', 'neutro');
+  }
+}
+
 hud.setStatus(ui.connecting);
 joinIsland({
   onPatch,
+  onDamage,
   onCorrection: (correction) => {
     local.applyCorrection(correction);
   },
@@ -142,6 +226,9 @@ joinIsland({
   },
   onInventory: (inventory) => {
     hud.setCarteira(inventory);
+    caido = inventory.coracoes <= 0;
+    avisoEl.hidden = !caido;
+    if (caido) avisoEl.textContent = ui.caiu;
   },
   onLoot: (loot) => {
     hud.mostrarLoot(loot);
@@ -175,10 +262,31 @@ let accumulator = 0;
 let sendTimer = 0;
 let fps = 60;
 
+/** Dispara o golpe: anima, registra a cadência e avisa o servidor. */
+function atacar(solto: 'normal' | 'charged', agora: number, yaw: number): void {
+  if (!connection || caido || dialogo.aberta || agora < golpeLiberadoEm) return;
+
+  const golpe: AttackKind =
+    solto === 'charged' ? 'charged' : proximoGolpe(ultimoGolpe, (agora - ultimoGolpeEm) / 1000);
+
+  ultimoGolpe = golpe;
+  ultimoGolpeEm = agora;
+  golpeAtual = golpe;
+  golpeAte = agora + duracaoDoGolpe(golpe) * 1000;
+  golpeLiberadoEm = agora + recargaDoGolpeMs(golpe);
+  golpeGatilho += 1;
+
+  connection.attack({ golpe, yaw });
+}
+
 renderer.setAnimationLoop((now) => {
   const dt = Math.min((now - lastFrame) / 1000, MAX_FRAME_SECONDS);
   lastFrame = now;
   fps += (1 / Math.max(dt, 1e-6) - fps) * 0.08;
+
+  // Hit-stop (SPEC §6): o mundo congela por um instante no acerto, mas a
+  // simulação do jogador continua, para o controle nunca travar.
+  const dtAnim = efeitos.congelado(now) ? 0 : dt;
 
   const look = input.readLook();
   follow.orbit(look.yaw, look.pitch);
@@ -189,6 +297,7 @@ renderer.setAnimationLoop((now) => {
   let jump = input.consumeJump();
   let dodge = input.consumeDodge();
   const interagir = input.consumeInteract();
+  const solto = input.consumeAttack();
 
   // Passo fixo: a simulação do cliente é igual à que o servidor valida.
   accumulator = Math.min(accumulator + dt, MAX_FRAME_SECONDS);
@@ -207,6 +316,11 @@ renderer.setAnimationLoop((now) => {
 
   const player = local.current;
 
+  // O golpe sai para onde a câmera olha: é para lá que o jogador está mirando.
+  if (solto) atacar(solto, now, follow.yaw);
+  const batendo = golpeAtual !== null && now < golpeAte;
+  if (!batendo) golpeAtual = null;
+
   // Alvo da tecla F: o mais perto dentro do raio, que ainda esteja no mundo.
   const perto = nearestSpot(player.x, player.y, player.z);
   alvo = perto && spots.estaVisivel(perto.id) ? perto : undefined;
@@ -221,30 +335,62 @@ renderer.setAnimationLoop((now) => {
     }
   }
 
+  // O que o boneco faz na tela, por prioridade: caído, machucado, esquiva,
+  // golpe e, por fim, o que a física diz.
+  let estadoVisual: CharacterState = player.state;
+  if (caido) estadoVisual = 'dead';
+  else if (now < machucadoAte) estadoVisual = 'hurt';
+  else if (player.state === 'dodge') estadoVisual = 'dodge';
+  else if (golpeAtual) estadoVisual = golpeAtual;
+  const yawVisual = batendo && golpeAtual ? follow.yaw : player.yaw;
+
   if (connection) {
     sendTimer += dt * 1000;
     if (sendTimer >= MOVE_SEND_MS) {
       // Guarda o resto para o envio manter os 20 Hz, e não cair para 15.
       sendTimer = Math.min(sendTimer - MOVE_SEND_MS, MOVE_SEND_MS);
-      connection.sendMove(local.toMovePayload());
+      // O estado e o rumo vão como o jogador os vê, para os outros também
+      // verem o golpe.
+      connection.sendMove({ ...local.toMovePayload(), state: estadoVisual, yaw: yawVisual });
     }
   }
 
-  localAvatar.place(player.x, player.y, player.z, player.yaw);
-  localAvatar.animate(player.state, dt);
+  // Inimigo alerta à frente fica escondido atrás do corpo do jogador, porque a
+  // câmera está atrás dele. Fadar o boneco deixa o bicho aparecer.
+  const escondendo = enemies.alertaNaFrente(player.x, player.z, follow.yaw, 4);
+  opacidadeLocal += ((escondendo ? 0.35 : 1) - opacidadeLocal) * Math.min(dt * 10, 1);
+  localAvatar.setOpacidade(opacidadeLocal);
+
+  localAvatar.place(player.x, player.y, player.z, yawVisual);
+  localAvatar.animate(estadoVisual, dtAnim, golpeAnimado !== golpeGatilho);
+  golpeAnimado = golpeGatilho;
+
   follow.update(player.x, player.y, player.z, ARENA_COLLIDERS, dt);
-  spots.update(dt, player, alvo);
+  efeitos.tremerCamera(camera, dt);
+  spots.update(dtAnim, player, alvo);
+  enemies.update(now, dtAnim);
 
   for (const remote of remotes.values()) {
     const pose = remote.buffer.sample(now);
     if (!pose) continue;
     remote.avatar.place(pose.x, pose.y, pose.z, pose.yaw);
-    remote.avatar.animate(pose.state, dt);
+    remote.avatar.animate(pose.state, dtAnim);
   }
+
+  // Barra de carga do golpe carregado: só aparece depois de segurar um pouco.
+  const carga = input.chargeProgress();
+  const carregando = carga !== null && carga > 0.15;
+  cargaEl.hidden = !carregando;
+  if (carregando && carga !== null) {
+    cargaBarraEl.style.width = `${Math.round(carga * 100)}%`;
+    cargaEl.classList.toggle('pronta', carga >= 1);
+  }
+
+  efeitos.update(dt, now, camera, canvas);
 
   hud.setDebug({
     fps,
-    state: player.state,
+    state: estadoVisual,
     x: player.x,
     y: player.y,
     z: player.z,

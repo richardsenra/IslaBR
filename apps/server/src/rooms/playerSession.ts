@@ -8,11 +8,13 @@
 
 import { content, getChest, getDialogue, getNpc } from '@islabr/content';
 import {
+  CHARGED_MIN_GAP_MS,
+  DODGE_COOLDOWN,
   DODGE_INVULN,
   STARTING_PROGRESS,
   addItem,
-  duracaoDoGolpe,
   proximoGolpe,
+  recargaDoGolpeMs,
   acceptQuest,
   applyQuestEvent,
   applyReward,
@@ -68,6 +70,7 @@ export class PlayerSession {
   /** Enquanto maior que zero, o jogador não leva dano (SPEC §6). */
   private invulneravelAte = 0;
   private renascerEm = 0;
+  private esquivaLiberadaEm = 0;
   /** Coletáveis já colhidos nesta sessão; renascem na próxima. */
   private readonly coletados = new Set<string>();
   private ultimoGolpe: AttackKind | null = null;
@@ -102,14 +105,17 @@ export class PlayerSession {
   }
 
   /** Um golpe a cada `ATTACK_SECONDS`; o cliente não acelera isso. */
-  podeAtacar(agora: number): boolean {
-    return agora >= this.proximoGolpePermitidoEm;
+  podeAtacar(agora: number, golpe: AttackKind): boolean {
+    if (agora < this.proximoGolpePermitidoEm) return false;
+    // O carregado exige o tempo de ter sido segurado (ver CHARGED_MIN_GAP_MS).
+    if (golpe === 'charged' && agora - this.ultimoGolpeEm < CHARGED_MIN_GAP_MS) return false;
+    return true;
   }
 
   registrarGolpe(golpe: AttackKind, agora: number): void {
     this.ultimoGolpe = golpe;
     this.ultimoGolpeEm = agora;
-    this.proximoGolpePermitidoEm = agora + duracaoDoGolpe(golpe) * 1000 * 0.8;
+    this.proximoGolpePermitidoEm = agora + recargaDoGolpeMs(golpe);
   }
 
   /** Qual golpe o combo entrega agora, se o cliente não disser. */
@@ -148,9 +154,17 @@ export class PlayerSession {
     return sofrido;
   }
 
-  /** Esquiva: invulnerabilidade curta (SPEC §6). */
-  esquivar(): void {
-    this.invulneravelAte = DODGE_INVULN;
+  /**
+   * Esquiva: invulnerabilidade curta (SPEC §6). O servidor não vê o botão, vê o
+   * personagem entrar em `dodge`; por isso é ele quem impõe a recarga de 1,2 s.
+   * Sem isso, um cliente adulterado mandaria `dodge` em loop e nunca levaria dano.
+   * Devolve se a invulnerabilidade foi concedida.
+   */
+  tentarEsquivar(agora: number): boolean {
+    if (agora < this.esquivaLiberadaEm) return false;
+    this.esquivaLiberadaEm = agora + DODGE_COOLDOWN * 1000;
+    this.invulneravelAte = Math.max(this.invulneravelAte, DODGE_INVULN);
+    return true;
   }
 
   /** Conta uma morte de inimigo para as missões ativas. */

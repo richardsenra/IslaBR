@@ -3,10 +3,11 @@ const ptBR = {
   connecting: 'Conectando…',
   loading: 'Carregando os modelos…',
   disconnected: 'Desconectado',
+  caiu: 'Você caiu! Levantando em instantes…',
   playerCount: (n: number) => (n === 1 ? '1 jogador' : `${n} jogadores`),
   offline: 'Sozinho (sem servidor)',
   controls:
-    'WASD andar · Espaço pular · Shift esquivar · F falar e abrir · Mouse gira a câmera · Roda aproxima',
+    'WASD andar · Espaço pular · Shift esquivar · Clique ou J atacar (segure para carregar) · F falar e abrir · Mouse ou Q/E giram a câmera',
   lag: (ms: number) => `latência simulada: ${ms} ms`,
   debug: (info: {
     fps: number;

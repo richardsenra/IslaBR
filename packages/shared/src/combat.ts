@@ -69,6 +69,28 @@ export function duracaoDoGolpe(golpe: AttackKind): number {
   return golpe === 'charged' ? CHARGED_ATTACK_SECONDS : ATTACK_SECONDS;
 }
 
+/**
+ * Fração da duração do golpe depois da qual já dá para atacar de novo. Menor
+ * que 1 porque emendar o combo tem que ser possível antes de a animação acabar.
+ * Cliente e servidor usam esta mesma conta: o cliente não manda golpe que o
+ * servidor ia recusar, e o servidor não deixa passar golpe mais rápido.
+ */
+export const ATTACK_COOLDOWN_FACTOR = 0.8;
+
+/** Quanto esperar, em ms, até o próximo golpe depois deste. */
+export function recargaDoGolpeMs(golpe: AttackKind): number {
+  return duracaoDoGolpe(golpe) * 1000 * ATTACK_COOLDOWN_FACTOR;
+}
+
+/**
+ * Tempo mínimo, em ms, entre o golpe anterior e um carregado. O servidor não
+ * enxerga o botão sendo segurado, só o golpe saindo; sem este piso, um cliente
+ * adulterado mandaria "carregado" em rajada e bateria em dobro na cadência do
+ * golpe normal. Com ele, o carregado nunca rende mais dano por segundo que o
+ * normal.
+ */
+export const CHARGED_MIN_GAP_MS = CHARGE_SECONDS * 1000 * 0.8;
+
 export interface Ponto {
   readonly x: number;
   readonly y: number;

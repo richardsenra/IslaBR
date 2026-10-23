@@ -258,6 +258,9 @@ export class IslandRoom extends Room<{ state: IslandState }> {
     player.y = claim.y;
     player.z = claim.z;
     player.yaw = claim.yaw;
+    // Entrar em esquiva dá a invulnerabilidade curta; a recarga é do servidor.
+    if (claim.state === 'dodge' && player.state !== 'dodge') session.tentarEsquivar(now);
+
     player.state = claim.state;
     player.seq = claim.seq;
 
@@ -316,7 +319,7 @@ export class IslandRoom extends Room<{ state: IslandState }> {
 
     const payload = parseAttackPayload(raw);
     if (!payload) return;
-    if (!session.podeAtacar(this.now())) return;
+    if (!session.podeAtacar(this.now(), payload.golpe)) return;
     session.registrarGolpe(payload.golpe, this.now());
 
     const resultado = resolverAtaque(
