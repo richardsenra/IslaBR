@@ -7,6 +7,7 @@ import {
   PredictedPlayer,
   SnapshotBuffer,
   duracaoDoGolpe,
+  melhorArma,
   moveDirectionFromCamera,
   nearestSpot,
   playerColor,
@@ -178,6 +179,7 @@ function onPatch(
       remote = { avatar, buffer: new SnapshotBuffer() };
       remotes.set(player.sessionId, remote);
     }
+    remote.avatar.equipar(player.arma === '' ? null : player.arma);
 
     remote.buffer.push({
       t: arrivedAt,
@@ -255,6 +257,9 @@ joinIsland({
   onInventory: (inventory) => {
     hud.setCarteira(inventory);
     inventario.atualizar(inventory.itens);
+    // A arma na mão é a melhor do inventário: a mesma regra que o servidor usa
+    // para decidir o dano.
+    localAvatar.equipar(melhorArma(inventory.itens));
     caido = inventory.coracoes <= 0;
     avisoEl.hidden = !caido;
     if (caido) avisoEl.textContent = ui.caiu;

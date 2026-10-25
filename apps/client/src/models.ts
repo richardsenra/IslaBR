@@ -39,6 +39,17 @@ export const NPC_MODELS: Readonly<Record<string, ModelName>> = {
   npc_anselmo: 'Knight',
 };
 
+/**
+ * Modelo de cada arma, pelo id do item. O graveto ainda não tem modelo próprio
+ * (não há graveto nos assets CC0), então aparece como uma adaga curta.
+ */
+const MODELO_DA_ARMA: Readonly<Record<string, string>> = {
+  graveto_reforcado: 'dagger',
+  arma_nv2: 'sword_1handed',
+};
+
+const armas = new Map<string, THREE.Group>();
+
 const ANIM_LIBRARIES = [
   'Rig_Medium_General',
   'Rig_Medium_MovementBasic',
@@ -116,6 +127,14 @@ export async function carregarModelos(nomes: readonly string[]): Promise<void> {
     }
   }
 
+  // As armas são glTF soltos (um arquivo .gltf, um .bin e a textura).
+  await Promise.all(
+    Object.entries(MODELO_DA_ARMA).map(async ([item, arquivo]) => {
+      const gltf = await loader.loadAsync(`${base()}/${arquivo}.gltf`);
+      armas.set(item, gltf.scene);
+    }),
+  );
+
   const personagens = await Promise.all(
     nomes.map(async (nome) => [nome, await carregar(nome)] as const),
   );
@@ -128,6 +147,11 @@ export async function carregarModelos(nomes: readonly string[]): Promise<void> {
     if (altura > 0) raiz.scale.setScalar(PLAYER_HEIGHT / altura);
     templates.set(nome, raiz);
   }
+}
+
+/** Cópia do modelo da arma, ou `null` se o item não tem modelo. */
+export function criarArma(itemId: string): THREE.Object3D | null {
+  return armas.get(itemId)?.clone(true) ?? null;
 }
 
 export function temModelo(nome: string): boolean {

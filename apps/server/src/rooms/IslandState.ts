@@ -21,6 +21,8 @@ export const PlayerState = schema(
     /** Corações atuais e máximos, para todos verem quem está ferido. */
     coracoes: t.float32().default(3),
     coracoesMax: t.float32().default(3),
+    /** Arma na mão (id do item), para os outros jogadores verem. Vazio = nenhuma. */
+    arma: t.string().default(''),
   },
   'PlayerState',
 );

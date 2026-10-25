@@ -170,6 +170,32 @@ describe('golpe do jogador', () => {
   });
 });
 
+describe('kit de teste', () => {
+  it('dá os itens que o jogador ainda não tem', () => {
+    const sessao = jogador();
+    sessao.darKitDeTeste(['graveto_reforcado', 'arma_nv2']);
+    expect(sessao.progress.itens['graveto_reforcado']).toBe(1);
+    expect(sessao.progress.itens['arma_nv2']).toBe(1);
+    expect(sessao.arma).toBe('arma_nv2');
+    expect(sessao.sujo).toBe(true);
+  });
+
+  it('não repete o item de quem já tem: entrar de novo não acumula', () => {
+    const sessao = jogador();
+    sessao.darKitDeTeste(['arma_nv2']);
+    sessao.darKitDeTeste(['arma_nv2']);
+    expect(sessao.progress.itens['arma_nv2']).toBe(1);
+  });
+
+  it('kit vazio não mexe em nada', () => {
+    const sessao = jogador();
+    sessao.darKitDeTeste([]);
+    expect(sessao.progress).toEqual(STARTING_PROGRESS);
+    expect(sessao.sujo).toBe(false);
+    expect(sessao.arma).toBeNull();
+  });
+});
+
 describe('saque e missão', () => {
   it('moedas e itens que caem entram na carteira', () => {
     const sessao = jogador();

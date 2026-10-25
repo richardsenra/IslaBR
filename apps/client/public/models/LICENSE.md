@@ -17,6 +17,8 @@ O crédito não é obrigatório pela licença, mas fica registrado aqui de prop�
 | `Rig_Medium_MovementBasic.glb` | Clipes de correr e pular |
 | `Rig_Medium_MovementAdvanced.glb` | Clipes de esquiva |
 | `Rig_Medium_CombatMelee.glb` | Clipes de golpe (combo de 3 e carregado) |
+| `sword_1handed.gltf` (+ `.bin`, `knight_texture.png`) | Espada de Coral, na mão direita |
+| `dagger.gltf` (+ `.bin`, `rogue_texture.png`) | Graveto Reforçado (placeholder: não há graveto nos assets) |
 
 Os seis personagens compartilham o mesmo esqueleto de 23 ossos das bibliotecas
 de animação, então qualquer clipe toca em qualquer um deles sem retarget.

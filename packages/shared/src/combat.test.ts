@@ -10,6 +10,7 @@ import {
   danoDoGolpe,
   danoNoJogador,
   dentroDaEsfera,
+  melhorArma,
   golpeDeFrente,
   proximoGolpe,
   resolverGolpe,
@@ -37,6 +38,32 @@ describe('dano das armas', () => {
     const golpes = ['attack1', 'attack2', 'attack3'] as const;
     for (const golpe of golpes) {
       expect(danoDoGolpe('graveto_reforcado', golpe)).toBe(1);
+    }
+  });
+});
+
+describe('melhor arma', () => {
+  it('sem arma no inventário, nenhuma', () => {
+    expect(melhorArma({})).toBeNull();
+    expect(melhorArma({ pocao_pequena: 3, erva: 2 })).toBeNull();
+  });
+
+  it('com só o graveto, o graveto', () => {
+    expect(melhorArma({ graveto_reforcado: 1 })).toBe('graveto_reforcado');
+  });
+
+  it('com as duas, a que bate mais forte', () => {
+    expect(melhorArma({ graveto_reforcado: 1, arma_nv2: 1 })).toBe('arma_nv2');
+    expect(danoDaArma(melhorArma({ graveto_reforcado: 1, arma_nv2: 1 }))).toBe(2);
+  });
+
+  it('arma com quantidade zero não conta', () => {
+    expect(melhorArma({ graveto_reforcado: 1, arma_nv2: 0 })).toBe('graveto_reforcado');
+  });
+
+  it('todo item que bate tem dano declarado no conteúdo', () => {
+    for (const id of ['graveto_reforcado', 'arma_nv2']) {
+      expect(getItem(id).efeito?.dano, id).toBe(danoDaArma(id));
     }
   });
 });

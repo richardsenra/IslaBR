@@ -14,9 +14,9 @@
   },
   {
     "id": "arma_nv2",
-    "nome": "Lança de Maré",
+    "nome": "Espada de Coral",
     "tipo": "arma",
-    "descricao": "Ponta de coral amarrada num cabo de madeira clara. Bate o dobro do graveto.",
+    "descricao": "Lâmina de coral polido num cabo de madeira clara. Bate o dobro do graveto.",
     "empilhavel": false,
     "consumivel": false,
     "vendavel": false,

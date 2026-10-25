@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { STATE_BLEND_SECONDS, wrapAngle, type CharacterState } from '@islabr/shared';
-import { criarModelo, type ModeloAnimado } from './models.js';
+import { criarArma, criarModelo, type ModeloAnimado } from './models.js';
 
 /**
  * Boneco do jogo.
@@ -23,6 +23,16 @@ const BLEND_TAU = STATE_BLEND_SECONDS / 3;
  */
 const MODEL_YAW_OFFSET = 0;
 
+/**
+ * Osso da mão direita no esqueleto do KayKit, onde a arma é encaixada. No
+ * arquivo ele se chama `handslot.r`, mas o carregador de glTF do three.js tira
+ * os pontos dos nomes dos nós (`PropertyBinding.sanitizeNodeName`), então aqui ele
+ * é `handslotr`. Procurar pelo nome do arquivo não acha nada.
+ */
+const OSSO_DA_MAO = 'handslotr';
+/** Giro da arma em relação ao osso, para a lâmina apontar para fora da mão. */
+const ARMA_GIRO = { x: 0, y: 0, z: 0 };
+
 export interface AvatarOptions {
   /** Nome do modelo em `public/models`; sem ele, usa o boneco de primitivas. */
   readonly modelo?: string;
@@ -38,6 +48,10 @@ export class Avatar {
   /** Materiais só deste boneco, para poder fadá-lo sem fadar os outros. */
   private readonly materiais: THREE.Material[] = [];
   private opacidade = 1;
+  private armaId: string | null = null;
+  private armaObjeto: THREE.Object3D | null = null;
+  /** Materiais da arma na mão, separados para sair junto com ela. */
+  private materiaisDaArma: THREE.Material[] = [];
 
   constructor(options: AvatarOptions) {
     this.modelo = options.modelo ? criarModelo(options.modelo) : null;
@@ -60,6 +74,51 @@ export class Avatar {
       this.primitivo = new BonecoPrimitivo(options.cor);
       this.root.add(this.primitivo.raiz);
     }
+  }
+
+  /**
+   * Põe a arma na mão direita do boneco (o osso `handslot.r` do esqueleto do
+   * KayKit), ou tira com `null`. Ela anima junto com o braço. Só vale para o
+   * modelo glTF; o boneco de primitivas, que é reserva, fica de mãos vazias.
+   */
+  equipar(itemId: string | null): void {
+    if (!this.modelo || itemId === this.armaId) return;
+    this.armaId = itemId;
+
+    if (this.armaObjeto) {
+      this.armaObjeto.removeFromParent();
+      this.armaObjeto = null;
+    }
+    for (const material of this.materiaisDaArma) {
+      this.materiais.splice(this.materiais.indexOf(material), 1);
+      material.dispose();
+    }
+    this.materiaisDaArma = [];
+    if (!itemId) return;
+
+    const mao = this.modelo.raiz.getObjectByName(OSSO_DA_MAO);
+    const arma = criarArma(itemId);
+    if (!mao || !arma) {
+      // Não é para acontecer; se acontecer, o jogador ficaria sem arma na tela
+      // sem ninguém saber por quê.
+      console.warn(`arma não equipada: osso ${OSSO_DA_MAO} ou modelo de ${itemId} ausente`);
+      return;
+    }
+
+    // Material próprio, para a arma também fadar junto com o dono.
+    arma.traverse((objeto) => {
+      if (!(objeto instanceof THREE.Mesh)) return;
+      const copia = (objeto.material as THREE.Material).clone();
+      copia.transparent = this.opacidade < 1;
+      copia.opacity = this.opacidade;
+      objeto.material = copia;
+      this.materiais.push(copia);
+      this.materiaisDaArma.push(copia);
+    });
+
+    arma.rotation.set(ARMA_GIRO.x, ARMA_GIRO.y, ARMA_GIRO.z);
+    mao.add(arma);
+    this.armaObjeto = arma;
   }
 
   /**

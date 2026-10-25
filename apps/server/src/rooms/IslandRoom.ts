@@ -30,6 +30,7 @@ import {
   type Acao,
 } from './enemyAI.js';
 import { IslandState, PlayerState } from './IslandState.js';
+import { kitDeTeste } from './kitDeTeste.js';
 import { PlayerSession } from './playerSession.js';
 import { obterStore, type JogadorSalvo } from '../store/index.js';
 
@@ -139,7 +140,10 @@ export class IslandRoom extends Room<{ state: IslandState }> {
     for (const [sessionId, session] of this.sessions) {
       session.passar(dt);
       const estado = this.state.players.get(sessionId);
-      if (estado) estado.coracoes = session.progress.coracoes;
+      if (estado) {
+        estado.coracoes = session.progress.coracoes;
+        estado.arma = session.arma ?? '';
+      }
     }
   }
 
@@ -211,7 +215,10 @@ export class IslandRoom extends Room<{ state: IslandState }> {
     const salvo = token ? await carregarComAviso(token) : undefined;
 
     const session = new PlayerSession(aceito, salvo);
+    session.darKitDeTeste(kitDeTeste());
     this.sessions.set(client.sessionId, session);
+    const estado = this.state.players.get(client.sessionId);
+    if (estado) estado.arma = session.arma ?? '';
     // A carteira e o objetivo saem quando o cliente mandar `ready`.
   }
 

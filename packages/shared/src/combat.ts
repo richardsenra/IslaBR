@@ -39,6 +39,22 @@ export const WEAPON_DAMAGE: Readonly<Record<string, number>> = {
   arma_nv2: 2,
 };
 
+/**
+ * A melhor arma que o jogador tem, ou `null`. Servidor e cliente usam esta
+ * mesma regra: um decide o dano, o outro decide o que aparece na mão do boneco.
+ */
+export function melhorArma(itens: Readonly<Record<string, number>>): string | null {
+  let melhor: string | null = null;
+  let melhorDano = 0;
+  for (const [id, dano] of Object.entries(WEAPON_DAMAGE)) {
+    if ((itens[id] ?? 0) > 0 && dano > melhorDano) {
+      melhor = id;
+      melhorDano = dano;
+    }
+  }
+  return melhor;
+}
+
 export function danoDaArma(arma: string | null): number {
   if (!arma) return 0;
   return WEAPON_DAMAGE[arma] ?? 0;

@@ -21,6 +21,7 @@ import {
   availableQuests,
   canAccept,
   itemCount,
+  melhorArma,
   openChest,
   questProgress,
   type AcceptedMove,
@@ -89,9 +90,20 @@ export class PlayerSession {
 
   /** Arma na mão: a melhor que o jogador tiver (SPEC §7.7). */
   get arma(): string | null {
-    if (itemCount(this.progress, 'arma_nv2') > 0) return 'arma_nv2';
-    if (itemCount(this.progress, 'graveto_reforcado') > 0) return 'graveto_reforcado';
-    return null;
+    return melhorArma(this.progress.itens);
+  }
+
+  /**
+   * Itens de teste, dados na entrada a quem ainda não os tem. Só vale quando o
+   * dono do servidor liga o kit (ISLABR_KIT_DE_TESTE); um jogo normal não passa
+   * por aqui.
+   */
+  darKitDeTeste(itens: readonly string[]): void {
+    for (const item of itens) {
+      if (itemCount(this.progress, item) > 0) continue;
+      this.progress = addItem(this.progress, item, 1);
+      this.sujo = true;
+    }
   }
 
   get temArmadura(): boolean {

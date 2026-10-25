@@ -90,7 +90,12 @@ quem acabou de entrar) e siga o que ela pedir: apresentar-se ao **Seu Bento** e
 atual fica no canto superior esquerdo, embaixo dos corações e das moedas.
 
 **Combate.** Termine a m01 para ganhar o **Graveto Reforçado**: sem arma na mão o
-golpe não machuca. Os **caranguejos** ficam espalhados pelo leste e pelo sul da
+golpe não machuca. A arma aparece na mão do boneco (o graveto como adaga, e a
+**Espada de Coral**, de 2 de dano, como espada).
+
+Para testar o combate sem cumprir missão, ligue o kit de teste no servidor:
+`ISLABR_KIT_DE_TESTE=graveto_reforcado,arma_nv2` em `apps/server/.env` dá as duas
+armas a quem entra. Deixe vazio num servidor de verdade. Os **caranguejos** ficam espalhados pelo leste e pelo sul da
 arena; chegue perto e eles te perseguem e mordem (meio coração). Dois golpes
 derrubam um caranguejo comum, e o carregado derruba em um. Esquivar (Shift) dá
 um instante de invulnerabilidade. Os **espinhosos** (marrom-escuros, no oeste)

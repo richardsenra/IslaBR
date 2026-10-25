@@ -31,6 +31,8 @@ interface PlayerView {
   readonly state: string;
   readonly seq: number;
   readonly colorIndex: number;
+  /** Id da arma na mão; vazio quando não tem nenhuma. */
+  readonly arma: string;
 }
 
 /** Inimigo replicado pelo servidor (apps/server/src/rooms/EnemyState.ts). */
@@ -64,6 +66,7 @@ export interface NetPlayer {
   readonly state: CharacterState;
   readonly seq: number;
   readonly colorIndex: number;
+  readonly arma: string;
 }
 
 export interface NetEnemy {
@@ -166,6 +169,7 @@ export async function joinIsland(handlers: IslandHandlers): Promise<IslandConnec
         state: toCharacterState(player.state),
         seq: player.seq,
         colorIndex: player.colorIndex,
+        arma: player.arma,
       });
     });
     const enemies: NetEnemy[] = [];
