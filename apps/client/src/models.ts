@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { DODGE_DURATION, PLAYER_HEIGHT, duracaoDoGolpe, type CharacterState } from '@islabr/shared';
+import { DODGE_DURATION, PLAYER_HEIGHT, impactoDoGolpe, type CharacterState } from '@islabr/shared';
 
 /**
  * Modelos glTF dos personagens (KayKit, CC0 — ver public/models/LICENSE.md).
@@ -69,24 +69,50 @@ const CLIP_BY_STATE: Readonly<Record<CharacterState, readonly string[]>> = {
   dodge: ['Dodge_Forward', 'Running_A'],
   hurt: ['Hit_A', 'Hit_B'],
   dead: ['Death_A', 'Death_B'],
-  attack1: ['Melee_1H_Attack_Chop', 'Idle_A'],
-  attack2: ['Melee_1H_Attack_Slice_Diagonal', 'Idle_A'],
-  attack3: ['Melee_1H_Attack_Slice_Horizontal', 'Idle_A'],
-  charged: ['Melee_2H_Attack_Spinning', 'Idle_A'],
+  // Combo: corte diagonal, varrida horizontal e golpe de cima para fechar.
+  attack1: ['Melee_1H_Attack_Slice_Diagonal', 'Idle_A'],
+  attack2: ['Melee_1H_Attack_Slice_Horizontal', 'Idle_A'],
+  attack3: ['Melee_1H_Attack_Chop', 'Idle_A'],
+  // Carregado: salto com golpe de cima, em vez do giro, que não passava peso.
+  charged: ['Melee_1H_Attack_Jump_Chop', 'Idle_A'],
 };
 
 /**
- * Quanto cada estado deve durar na tela, em segundos. Os clipes de ataque do
- * KayKit têm de 0,7 a 1,4 s e o golpe do jogo tem 0,35 s: a animação é
- * acelerada para caber, senão o golpe acertaria antes de o braço descer.
+ * Em que instante do clipe a lâmina acerta, em segundos. Medido nos próprios
+ * clipes do KayKit, pelo instante de maior velocidade do braço direito.
+ *
+ * A velocidade de cada golpe é calculada para esse instante cair no impacto do
+ * jogo (`impactoDoGolpe`), e não para o clipe inteiro caber no golpe. O clipe
+ * inteiro espremido virava um tranco sem preparação, e o dano saía antes de a
+ * espada chegar. O fim do clipe (a volta à posição de descanso) é cortado pela
+ * mudança de estado, então o golpe termina quando o jogo diz que terminou.
  */
+const IMPACTO_NO_CLIPE: Readonly<Partial<Record<CharacterState, number>>> = {
+  attack1: 0.42,
+  attack2: 0.28,
+  attack3: 0.62,
+  charged: 0.75,
+};
+
+/** Quanto a esquiva deve durar na tela: esta, sim, cabe inteira. */
 const DURACAO_DO_ESTADO: Readonly<Partial<Record<CharacterState, number>>> = {
-  attack1: duracaoDoGolpe('attack1'),
-  attack2: duracaoDoGolpe('attack2'),
-  attack3: duracaoDoGolpe('attack3'),
-  charged: duracaoDoGolpe('charged'),
   dodge: DODGE_DURATION,
 };
+
+/** Velocidade de reprodução de um golpe, para o impacto do clipe cair no do jogo. */
+function velocidadeDoGolpe(estado: CharacterState): number | undefined {
+  const noClipe = IMPACTO_NO_CLIPE[estado];
+  if (noClipe === undefined) return undefined;
+  if (
+    estado !== 'attack1' &&
+    estado !== 'attack2' &&
+    estado !== 'attack3' &&
+    estado !== 'charged'
+  ) {
+    return undefined;
+  }
+  return noClipe / impactoDoGolpe(estado);
+}
 
 /** Estados que tocam uma vez e seguram a última pose. */
 const ONCE: ReadonlySet<CharacterState> = new Set<CharacterState>([
@@ -191,7 +217,10 @@ export function criarModelo(nome: string): ModeloAnimado | null {
         acao.clampWhenFinished = true;
       }
       const duracao = DURACAO_DO_ESTADO[estado];
-      if (duracao !== undefined && clip.duration > 0) {
+      const velocidade = velocidadeDoGolpe(estado);
+      if (velocidade !== undefined) {
+        acao.setEffectiveTimeScale(velocidade);
+      } else if (duracao !== undefined && clip.duration > 0) {
         acao.setEffectiveTimeScale(clip.duration / duracao);
       }
       acoes.set(estado, acao);

@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
-  CHARGED_MIN_GAP_MS,
+  CHARGE_SECONDS,
   DODGE_COOLDOWN,
   DODGE_INVULN,
   STARTING_PROGRESS,
   addItem,
+  duracaoDoGolpe,
+  impactoDoGolpe,
+  intervaloMinimoMs,
   recargaDoGolpeMs,
   type PlayerProgress,
 } from '@islabr/shared';
@@ -121,42 +124,94 @@ describe('esquiva', () => {
 });
 
 describe('golpe do jogador', () => {
-  it('só sai uma vez por recarga', () => {
-    const sessao = jogador();
-    expect(sessao.podeAtacar(1_000_000, 'attack1')).toBe(true);
-    sessao.registrarGolpe('attack1', 1_000_000);
+  const T0 = 1_000_000;
 
-    expect(sessao.podeAtacar(1_000_000 + 100, 'attack2')).toBe(false);
-    expect(sessao.podeAtacar(1_000_000 + recargaDoGolpeMs('attack1') + 1, 'attack2')).toBe(true);
+  it('só sai de novo depois do intervalo mínimo entre impactos', () => {
+    const sessao = jogador();
+    expect(sessao.podeAtacar(T0, 'attack1')).toBe(true);
+    sessao.registrarGolpe('attack1', T0);
+
+    const minimo = intervaloMinimoMs('attack1', 'attack2');
+    expect(sessao.podeAtacar(T0 + 50, 'attack2')).toBe(false);
+    expect(sessao.podeAtacar(T0 + minimo - 200, 'attack2')).toBe(false);
+    expect(sessao.podeAtacar(T0 + minimo, 'attack2')).toBe(true);
   });
 
-  it('o carregado exige o tempo de ter sido segurado', () => {
+  it('a folga de rede deixa passar um pacote um pouco adiantado, e só um pouco', () => {
     const sessao = jogador();
-    sessao.registrarGolpe('attack1', 1_000_000);
-
-    // Passada a recarga do golpe normal, mas sem ter dado tempo de carregar.
-    const logoDepois = 1_000_000 + recargaDoGolpeMs('attack1') + 10;
-    expect(logoDepois - 1_000_000).toBeLessThan(CHARGED_MIN_GAP_MS);
-    expect(sessao.podeAtacar(logoDepois, 'attack2')).toBe(true);
-    expect(sessao.podeAtacar(logoDepois, 'charged')).toBe(false);
-
-    // Esperando o suficiente, o carregado passa.
-    expect(sessao.podeAtacar(1_000_000 + CHARGED_MIN_GAP_MS + 1, 'charged')).toBe(true);
+    sessao.registrarGolpe('attack1', T0);
+    const minimo = intervaloMinimoMs('attack1', 'attack2');
+    expect(sessao.podeAtacar(T0 + minimo - 50, 'attack2')).toBe(true);
+    expect(sessao.podeAtacar(T0 + minimo - 120, 'attack2')).toBe(false);
   });
 
-  it('carregado em rajada não bate mais que o golpe normal em rajada', () => {
+  it('o mínimo é o de quem joga direito: recarga menos o impacto de um mais o do outro', () => {
+    // Golpe seguinte com impacto mais cedo precisa de mais espera entre chegadas.
+    const a = intervaloMinimoMs('attack1', 'attack2');
+    expect(a).toBe(
+      recargaDoGolpeMs('attack1') -
+        impactoDoGolpe('attack1') * 1000 +
+        impactoDoGolpe('attack2') * 1000,
+    );
+    expect(intervaloMinimoMs(null, 'attack1')).toBe(0);
+    for (const de of ['attack1', 'attack2', 'attack3', 'charged'] as const) {
+      for (const para of ['attack1', 'attack2', 'attack3', 'charged'] as const) {
+        expect(intervaloMinimoMs(de, para), `${de} -> ${para}`).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it('o impacto vem antes do fim do golpe, e a recarga antes do fim também', () => {
+    for (const golpe of ['attack1', 'attack2', 'attack3', 'charged'] as const) {
+      expect(impactoDoGolpe(golpe), golpe).toBeGreaterThan(0);
+      expect(impactoDoGolpe(golpe), golpe).toBeLessThan(duracaoDoGolpe(golpe));
+      expect(recargaDoGolpeMs(golpe) / 1000, golpe).toBeLessThan(duracaoDoGolpe(golpe));
+      // O impacto cai antes da recarga acabar: nunca há dois golpes em voo.
+      expect(impactoDoGolpe(golpe) * 1000, golpe).toBeLessThan(recargaDoGolpeMs(golpe));
+    }
+  });
+
+  it('o carregado exige o tempo de ter sido segurado, contado a partir do golpe anterior', () => {
+    const sessao = jogador();
+    sessao.registrarGolpe('attack1', T0);
+
+    const segurar =
+      CHARGE_SECONDS * 1000 + impactoDoGolpe('charged') * 1000 - impactoDoGolpe('attack1') * 1000;
+    expect(intervaloMinimoMs('attack1', 'charged')).toBeGreaterThanOrEqual(segurar);
+
+    // Mais cedo que isso o jogador não teria tido tempo de carregar.
+    expect(sessao.podeAtacar(T0 + segurar - 200, 'charged')).toBe(false);
+    expect(sessao.podeAtacar(T0 + segurar, 'charged')).toBe(true);
+  });
+
+  it('golpe em rajada não bate mais rápido que quem joga no ritmo certo', () => {
+    function golpesEm(golpe: 'attack1' | 'charged', ms: number): number {
+      const sessao = jogador();
+      let total = 0;
+      for (let t = T0; t < T0 + ms; t += 5) {
+        if (!sessao.podeAtacar(t, golpe)) continue;
+        sessao.registrarGolpe(golpe, t);
+        total += 1;
+      }
+      return total;
+    }
+    // 10 s apertando o mais rápido que dá: nunca passa do ritmo do projeto, mais a folga.
+    const ritmo = 10_000 / (intervaloMinimoMs('attack1', 'attack1') - 60) + 1;
+    expect(golpesEm('attack1', 10_000)).toBeLessThanOrEqual(ritmo);
+  });
+
+  it('carregado em rajada não rende mais dano por segundo que o golpe normal', () => {
     function danoEm(golpe: 'attack1' | 'charged', dano: number): number {
       const sessao = jogador();
       let total = 0;
-      for (let ms = 1_000_000; ms < 1_000_000 + 10_000; ms += 10) {
+      for (let ms = T0; ms < T0 + 10_000; ms += 10) {
         if (!sessao.podeAtacar(ms, golpe)) continue;
         sessao.registrarGolpe(golpe, ms);
         total += dano;
       }
       return total;
     }
-    // Normal tira 1; carregado tira 2 (CHARGED_MULTIPLIER).
-    expect(danoEm('charged', 2)).toBeLessThanOrEqual(danoEm('attack1', 1) * 1.2);
+    expect(danoEm('charged', 2)).toBeLessThanOrEqual(danoEm('attack1', 1) * 1.6);
   });
 
   it('a melhor arma do inventário é a que vale', () => {

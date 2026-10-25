@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { getEnemy, getItem } from '@islabr/content';
 import {
+  ATTACK_REACH,
   CHARGED_MULTIPLIER,
   COMBO_WINDOW_SECONDS,
   alvosAtingidos,
@@ -113,8 +114,10 @@ describe('esfera de acerto', () => {
 
   it('pega mais de um e devolve do mais perto para o mais longe', () => {
     const alvos = [
-      { id: 'longe', x: 0.5, y: 0, z: 2.2 },
-      { id: 'perto', x: 0, y: 0, z: 1.5 },
+      // Posições medidas a partir do alcance, para o teste não depender de um
+      // número solto que muda quando o golpe é reajustado.
+      { id: 'longe', x: 0.5, y: 0, z: ATTACK_REACH + 0.3 },
+      { id: 'perto', x: 0, y: 0, z: ATTACK_REACH - 0.1 },
     ];
     expect(alvosAtingidos(origem, 0, alvos).map((a) => a.id)).toEqual(['perto', 'longe']);
   });

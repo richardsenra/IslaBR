@@ -16,17 +16,30 @@ export const CHARGE_SECONDS = 0.6;
 /** Quanto tempo depois de um golpe ainda emenda o seguinte. */
 export const COMBO_WINDOW_SECONDS = 0.7;
 
-/** Duração de cada golpe, até poder atacar de novo. */
-export const ATTACK_SECONDS = 0.35;
-export const CHARGED_ATTACK_SECONDS = 0.6;
+/**
+ * Tempos de cada golpe, em segundos.
+ *
+ * `duracao` é quanto o golpe ocupa o personagem. `impacto` é o instante, depois
+ * de apertar, em que a lâmina acerta: é aí que o dano sai, e não no clique,
+ * para o número aparecer quando a espada chega e não antes de o braço descer.
+ *
+ * O combo é diagonal, horizontal e um golpe de cima, que fecha mais lento e
+ * pesado. O carregado é um salto com golpe de cima, e demora mais para bater.
+ */
+export const GOLPE_TEMPOS: Readonly<Record<AttackKind, { duracao: number; impacto: number }>> = {
+  attack1: { duracao: 0.55, impacto: 0.3 },
+  attack2: { duracao: 0.5, impacto: 0.2 },
+  attack3: { duracao: 0.75, impacto: 0.45 },
+  charged: { duracao: 0.95, impacto: 0.55 },
+};
 
 /** Congelamento na hora do acerto, em ms (SPEC §6). */
 export const HIT_STOP_MS = 60;
 
 /** Alcance do golpe, do centro do jogador para a frente. */
-export const ATTACK_REACH = 1.6;
+export const ATTACK_REACH = 1.3;
 /** Raio da esfera de acerto. */
-export const ATTACK_RADIUS = 0.9;
+export const ATTACK_RADIUS = 1.0;
 
 /** Dano do golpe carregado, em múltiplos do golpe normal (proposta). */
 export const CHARGED_MULTIPLIER = 2;
@@ -79,7 +92,12 @@ export function proximoGolpe(anterior: AttackKind | null, desdeOUltimo: number):
 }
 
 export function duracaoDoGolpe(golpe: AttackKind): number {
-  return golpe === 'charged' ? CHARGED_ATTACK_SECONDS : ATTACK_SECONDS;
+  return GOLPE_TEMPOS[golpe].duracao;
+}
+
+/** Segundos entre apertar e a lâmina acertar. */
+export function impactoDoGolpe(golpe: AttackKind): number {
+  return GOLPE_TEMPOS[golpe].impacto;
 }
 
 /**
@@ -96,13 +114,30 @@ export function recargaDoGolpeMs(golpe: AttackKind): number {
 }
 
 /**
- * Tempo mínimo, em ms, entre o golpe anterior e um carregado. O servidor não
- * enxerga o botão sendo segurado, só o golpe saindo; sem este piso, um cliente
- * adulterado mandaria "carregado" em rajada e bateria em dobro na cadência do
- * golpe normal. Com ele, o carregado nunca rende mais dano por segundo que o
- * normal.
+ * Menor intervalo, em ms, entre o golpe anterior chegar ao servidor e o próximo.
+ *
+ * O servidor só vê o momento do impacto (o cliente manda o golpe aí), então a
+ * regra "o próximo começa depois da recarga" vira, em tempo de chegada,
+ * `recarga(anterior) - impacto(anterior) + impacto(próximo)`. É exatamente o
+ * mínimo de quem joga direito: um cliente adulterado não bate mais rápido, e
+ * um honesto nunca é recusado (fora a folga de rede, que é do chamador).
  */
-export const CHARGED_MIN_GAP_MS = CHARGE_SECONDS * 1000 * 0.8;
+export function intervaloMinimoMs(anterior: AttackKind | null, proximo: AttackKind): number {
+  if (!anterior) return 0;
+  const entreImpactos =
+    recargaDoGolpeMs(anterior) - impactoDoGolpe(anterior) * 1000 + impactoDoGolpe(proximo) * 1000;
+
+  // O servidor não enxerga o botão sendo segurado, só o golpe saindo. Um
+  // carregado honesto exige segurar CHARGE_SECONDS (a contar do fim do golpe
+  // anterior, porque dá para começar a segurar durante ele); sem este piso,
+  // um cliente adulterado mandaria "carregado" em rajada.
+  if (proximo === 'charged') {
+    const segurando =
+      CHARGE_SECONDS * 1000 + impactoDoGolpe('charged') * 1000 - impactoDoGolpe(anterior) * 1000;
+    return Math.max(entreImpactos, segurando);
+  }
+  return Math.max(entreImpactos, 0);
+}
 
 export interface Ponto {
   readonly x: number;

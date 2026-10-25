@@ -7,6 +7,7 @@ import {
   PredictedPlayer,
   SnapshotBuffer,
   duracaoDoGolpe,
+  impactoDoGolpe,
   melhorArma,
   moveDirectionFromCamera,
   nearestSpot,
@@ -26,6 +27,7 @@ import { Enemies } from './enemies.js';
 import { Hud } from './hud.js';
 import { ui } from './i18n.js';
 import { InputReader } from './input.js';
+import { Rastros } from './rastros.js';
 import { InventoryPanel } from './inventory.js';
 import { PLAYER_MODELS, carregarModelos, modeloDoJogador } from './models.js';
 import {
@@ -113,6 +115,9 @@ scene.add(spots.group);
 const enemies = new Enemies();
 scene.add(enemies.group);
 
+const rastros = new Rastros();
+scene.add(rastros.group);
+
 const input = new InputReader(canvas);
 const follow = new ThirdPersonCamera(camera, ARENA_SPAWN.yaw);
 
@@ -143,6 +148,25 @@ let golpeAtual: AttackKind | null = null;
 let golpeAte = 0;
 let golpeLiberadoEm = 0;
 let golpeGatilho = 0;
+/** Quando o golpe em curso começou, para o avanço durar só até o impacto. */
+let golpeInicio = 0;
+/**
+ * O dano só sai no impacto, não no clique: o golpe fica pendente até a lâmina
+ * chegar. Assim o número aparece quando a espada acerta e não antes de o braço
+ * descer. A recarga impede dois pendentes ao mesmo tempo.
+ */
+let golpePendente: { golpe: AttackKind; enviarEm: number } | null = null;
+/**
+ * Quanto o personagem avança para dentro do golpe, em fração da velocidade de
+ * corrida, até o impacto. Dá peso ao golpe e fecha a distância até o bicho; o
+ * carregado é um salto.
+ */
+const AVANCO_DO_GOLPE: Readonly<Record<AttackKind, number>> = {
+  attack1: 0.35,
+  attack2: 0.3,
+  attack3: 0.5,
+  charged: 0.6,
+};
 let golpeAnimado = 0;
 let ultimoGolpe: AttackKind | null = null;
 let ultimoGolpeEm = 0;
@@ -305,7 +329,7 @@ let fps = 60;
 let desenhos = 0;
 
 /** Dispara o golpe: anima, registra a cadência e avisa o servidor. */
-function atacar(solto: 'normal' | 'charged', agora: number, yaw: number): void {
+function atacar(solto: 'normal' | 'charged', agora: number): void {
   if (!connection || caido || dialogo.aberta || agora < golpeLiberadoEm) return;
 
   const golpe: AttackKind =
@@ -314,11 +338,11 @@ function atacar(solto: 'normal' | 'charged', agora: number, yaw: number): void {
   ultimoGolpe = golpe;
   ultimoGolpeEm = agora;
   golpeAtual = golpe;
+  golpeInicio = agora;
   golpeAte = agora + duracaoDoGolpe(golpe) * 1000;
   golpeLiberadoEm = agora + recargaDoGolpeMs(golpe);
   golpeGatilho += 1;
-
-  connection.attack({ golpe, yaw });
+  golpePendente = { golpe, enviarEm: agora + impactoDoGolpe(golpe) * 1000 };
 }
 
 renderer.setAnimationLoop((now) => {
@@ -335,7 +359,15 @@ renderer.setAnimationLoop((now) => {
   follow.zoom(look.zoom);
 
   const axes = input.readAxes();
-  const direction = moveDirectionFromCamera(axes.forward, axes.strafe, follow.yaw);
+  const andar = moveDirectionFromCamera(axes.forward, axes.strafe, follow.yaw);
+  // Até o impacto o golpe empurra o personagem para a frente (o rumo da câmera),
+  // somado ao que o jogador já está andando; a física limita ao máximo de corrida.
+  const direction = { x: andar.x, z: andar.z };
+  if (golpeAtual && now < golpeInicio + impactoDoGolpe(golpeAtual) * 1000) {
+    const avanco = AVANCO_DO_GOLPE[golpeAtual];
+    direction.x += Math.sin(follow.yaw) * avanco;
+    direction.z += Math.cos(follow.yaw) * avanco;
+  }
   let jump = input.consumeJump();
   let dodge = input.consumeDodge();
   const interagir = input.consumeInteract();
@@ -373,7 +405,18 @@ renderer.setAnimationLoop((now) => {
   const player = local.current;
 
   // O golpe sai para onde a câmera olha: é para lá que o jogador está mirando.
-  if (solto) atacar(solto, now, follow.yaw);
+  if (solto) atacar(solto, now);
+  // Chegou o instante do impacto: o servidor é avisado e o rastro aparece.
+  if (golpePendente && now >= golpePendente.enviarEm) {
+    const { golpe } = golpePendente;
+    golpePendente = null;
+    if (connection && !caido) {
+      connection.attack({ golpe, yaw: follow.yaw });
+      rastros.golpe(golpe, player.x, player.y, player.z, follow.yaw);
+      // O carregado cai com força no chão: a câmera sente.
+      if (golpe === 'charged') efeitos.tremer(0.18, 0.28);
+    }
+  }
   const batendo = golpeAtual !== null && now < golpeAte;
   if (!batendo) golpeAtual = null;
 
@@ -425,6 +468,7 @@ renderer.setAnimationLoop((now) => {
   efeitos.tremerCamera(camera, dt);
   spots.update(dtAnim, player, alvo);
   enemies.update(now, dtAnim);
+  rastros.update(dtAnim);
 
   for (const remote of remotes.values()) {
     const pose = remote.buffer.sample(now);

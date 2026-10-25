@@ -8,13 +8,12 @@
 
 import { content, getChest, getDialogue, getNpc, itemsById } from '@islabr/content';
 import {
-  CHARGED_MIN_GAP_MS,
   DODGE_COOLDOWN,
   DODGE_INVULN,
   STARTING_PROGRESS,
   addItem,
+  intervaloMinimoMs,
   proximoGolpe,
-  recargaDoGolpeMs,
   acceptQuest,
   applyQuestEvent,
   applyReward,
@@ -39,6 +38,9 @@ import {
   type Saque,
 } from '@islabr/shared';
 import { danoRecebido } from './combate.js';
+
+/** Quanto a chegada de um golpe pode se adiantar por jitter de rede, em ms. */
+const FOLGA_DE_REDE_MS = 60;
 
 /** Carência depois de apanhar, para não levar dois golpes no mesmo instante. */
 const INVULNERAVEL_APOS_DANO = 0.6;
@@ -79,7 +81,6 @@ export class PlayerSession {
   private readonly coletados = new Set<string>();
   private ultimoGolpe: AttackKind | null = null;
   private ultimoGolpeEm = 0;
-  private proximoGolpePermitidoEm = 0;
 
   constructor(aceito: AcceptedMove, salvo?: JogadorSalvo) {
     this.aceito = aceito;
@@ -119,18 +120,23 @@ export class PlayerSession {
     return this.invulneravelAte > 0;
   }
 
-  /** Um golpe a cada `ATTACK_SECONDS`; o cliente não acelera isso. */
+  /**
+   * O golpe chega ao servidor no instante do impacto, não do clique, então a
+   * cadência é medida entre impactos (ver `intervaloMinimoMs`). A folga cobre o
+   * jitter da rede: sem ela, um jogador honesto com um pacote atrasado perderia
+   * o golpe seguinte.
+   */
   podeAtacar(agora: number, golpe: AttackKind): boolean {
-    if (agora < this.proximoGolpePermitidoEm) return false;
-    // O carregado exige o tempo de ter sido segurado (ver CHARGED_MIN_GAP_MS).
-    if (golpe === 'charged' && agora - this.ultimoGolpeEm < CHARGED_MIN_GAP_MS) return false;
+    if (this.ultimoGolpe !== null) {
+      const minimo = intervaloMinimoMs(this.ultimoGolpe, golpe) - FOLGA_DE_REDE_MS;
+      if (agora - this.ultimoGolpeEm < minimo) return false;
+    }
     return true;
   }
 
   registrarGolpe(golpe: AttackKind, agora: number): void {
     this.ultimoGolpe = golpe;
     this.ultimoGolpeEm = agora;
-    this.proximoGolpePermitidoEm = agora + recargaDoGolpeMs(golpe);
   }
 
   /** Qual golpe o combo entrega agora, se o cliente não disser. */
