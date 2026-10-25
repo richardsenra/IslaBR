@@ -25,6 +25,11 @@ export const GRAVITY = 18;
 export const JUMP_SPEED = 7;
 export const MAX_FALL_SPEED = 25;
 
+/** Velocidade da descida do ataque no ar (mergulho), em m/s. */
+export const PLUNGE_SPEED = 20;
+/** Fração do controle horizontal que sobra durante o mergulho. */
+export const PLUNGE_AIR_CONTROL = 0.25;
+
 export const DODGE_SPEED = 11;
 export const DODGE_DURATION = 0.35;
 /** Recarga de 1,2 s (SPEC §6). */
@@ -77,6 +82,11 @@ export interface MoveInput {
    * não precisa conferir porque só reduz a velocidade que ele já aceita.
    */
   readonly speedScale?: number;
+  /**
+   * Mergulho do ataque no ar: no ar, o personagem despenca para o chão e quase
+   * não anda de lado. No chão não faz nada.
+   */
+  readonly plunge?: boolean;
 }
 
 export function spawnPhysics(x = 0, y = 0, z = 0, yaw = 0): PlayerPhysics {
@@ -167,6 +177,7 @@ export function stepPlayer(
   }
 
   const dodging = dodgeTime > 0;
+  const mergulhando = input.plunge === true && !prev.onGround && !dodging && !dead;
 
   // Giro: rolando, o personagem encara a direção da esquiva.
   if (dodging) {
@@ -185,8 +196,9 @@ export function stepPlayer(
     vz = 0;
   } else {
     const escala = Math.min(Math.max(input.speedScale ?? 1, 0), 1);
-    vx = dirX * MOVE_SPEED * escala;
-    vz = dirZ * MOVE_SPEED * escala;
+    const controle = mergulhando ? PLUNGE_AIR_CONTROL : 1;
+    vx = dirX * MOVE_SPEED * escala * controle;
+    vz = dirZ * MOVE_SPEED * escala * controle;
   }
 
   let { x, y, z } = prev;
@@ -196,6 +208,7 @@ export function stepPlayer(
     vy = JUMP_SPEED;
   }
 
+  if (mergulhando) vy = Math.min(vy, -PLUNGE_SPEED);
   vy = Math.max(vy - GRAVITY * dt, -MAX_FALL_SPEED);
 
   const height = dodging ? PLAYER_DODGE_HEIGHT : PLAYER_HEIGHT;

@@ -32,6 +32,8 @@ export const GOLPE_TEMPOS: Readonly<Record<AttackKind, { duracao: number; impact
   attack2: { duracao: 0.5, impacto: 0.2 },
   attack3: { duracao: 0.75, impacto: 0.45 },
   charged: { duracao: 0.95, impacto: 0.55 },
+  // O mergulho bate no instante em que pisa no chão; a duração é a recuperação.
+  plunge: { duracao: 0.45, impacto: 0 },
 };
 
 /** Congelamento na hora do acerto, em ms (SPEC §6). */
@@ -50,6 +52,18 @@ export const CHARGED_KNOCKBACK = 4.5;
 
 /** Dano do golpe carregado, em múltiplos do golpe normal (proposta). */
 export const CHARGED_MULTIPLIER = 2;
+
+/** Ataque no ar (mergulho): desce com a espada e bate em área ao pousar. */
+export const PLUNGE_MULTIPLIER = 1.5;
+export const PLUNGE_REACH = 0;
+export const PLUNGE_RADIUS = 2.2;
+/** Empurrão do mergulho, menor que o do carregado. */
+export const PLUNGE_KNOCKBACK = 1.5;
+/**
+ * Quanto tempo o servidor aceita um mergulho depois de ver o jogador em
+ * mergulho. Sem isto qualquer cliente mandaria o golpe de dano maior de pé.
+ */
+export const MERGULHO_VALIDO_MS = 1500;
 
 export type AttackKind = AttackState;
 
@@ -83,7 +97,24 @@ export function danoDaArma(arma: string | null): number {
 /** Dano de um golpe, já contando o carregado. */
 export function danoDoGolpe(arma: string | null, golpe: AttackKind): number {
   const base = danoDaArma(arma);
-  return golpe === 'charged' ? base * CHARGED_MULTIPLIER : base;
+  if (golpe === 'charged') return base * CHARGED_MULTIPLIER;
+  // Arredonda para cima: com o graveto (1) o mergulho tira 2, como o carregado.
+  if (golpe === 'plunge') return Math.ceil(base * PLUNGE_MULTIPLIER);
+  return base;
+}
+
+/** Onde e quão grande é a esfera de acerto de cada golpe. */
+export function areaDoGolpe(golpe: AttackKind): { alcance: number; raio: number } {
+  if (golpe === 'charged') return { alcance: CHARGED_REACH, raio: CHARGED_RADIUS };
+  if (golpe === 'plunge') return { alcance: PLUNGE_REACH, raio: PLUNGE_RADIUS };
+  return { alcance: ATTACK_REACH, raio: ATTACK_RADIUS };
+}
+
+/** Quanto o golpe joga para longe quem sobrevive a ele, em metros. */
+export function empurraoDoGolpe(golpe: AttackKind): number {
+  if (golpe === 'charged') return CHARGED_KNOCKBACK;
+  if (golpe === 'plunge') return PLUNGE_KNOCKBACK;
+  return 0;
 }
 
 /**

@@ -1,10 +1,7 @@
 import { getEnemy } from '@islabr/content';
 import {
-  ATTACK_RADIUS,
-  ATTACK_REACH,
-  CHARGED_RADIUS,
-  CHARGED_REACH,
   alvosAtingidos,
+  areaDoGolpe,
   danoNoJogador,
   golpeDeFrente,
   resolverGolpe,
@@ -45,8 +42,7 @@ export function resolverAtaque(
 ): ResultadoDoAtaque {
   const vivos = inimigos.filter((inimigo) => inimigo.estado !== 'morto');
 
-  const alcance = golpe === 'charged' ? CHARGED_REACH : ATTACK_REACH;
-  const raio = golpe === 'charged' ? CHARGED_RADIUS : ATTACK_RADIUS;
+  const { alcance, raio } = areaDoGolpe(golpe);
 
   const alvos = alvosAtingidos(
     atacante,

@@ -12,6 +12,7 @@ import {
   DODGE_INVULN,
   STARTING_PROGRESS,
   addItem,
+  MERGULHO_VALIDO_MS,
   intervaloMinimoMs,
   proximoGolpe,
   acceptQuest,
@@ -80,6 +81,8 @@ export class PlayerSession {
   private readonly coletados = new Set<string>();
   private ultimoGolpe: AttackKind | null = null;
   private ultimoGolpeEm = 0;
+  /** Última vez que o jogador foi visto em mergulho; ver `MERGULHO_VALIDO_MS`. */
+  private mergulhoEm = Number.NEGATIVE_INFINITY;
 
   constructor(aceito: AcceptedMove, salvo?: JogadorSalvo) {
     this.aceito = aceito;
@@ -136,6 +139,14 @@ export class PlayerSession {
       if (agora - this.ultimoGolpeEm < minimo) return false;
     }
     return true;
+  }
+
+  marcarMergulho(agora: number): void {
+    this.mergulhoEm = agora;
+  }
+
+  mergulhouRecentemente(agora: number): boolean {
+    return agora - this.mergulhoEm <= MERGULHO_VALIDO_MS;
   }
 
   registrarGolpe(golpe: AttackKind, agora: number): void {

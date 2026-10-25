@@ -444,3 +444,17 @@ describe('coração pequeno: cura na hora, não vai para o inventário', () => {
     expect(sessao.progress.moedas).toBe(2);
   });
 });
+
+describe('mergulho (ataque no ar)', () => {
+  it('sem ter sido visto em mergulho, o golpe é recusado', () => {
+    const sessao = jogador();
+    expect(sessao.mergulhouRecentemente(10_000)).toBe(false);
+  });
+
+  it('visto em mergulho, vale por um tempo curto e depois expira', () => {
+    const sessao = jogador();
+    sessao.marcarMergulho(10_000);
+    expect(sessao.mergulhouRecentemente(10_500)).toBe(true);
+    expect(sessao.mergulhouRecentemente(12_000)).toBe(false);
+  });
+});

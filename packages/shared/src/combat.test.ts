@@ -10,6 +10,8 @@ import {
   CHARGED_REACH,
   COMBO_WINDOW_SECONDS,
   alvosAtingidos,
+  areaDoGolpe,
+  empurraoDoGolpe,
   aplicarDano,
   centroDoGolpe,
   danoDaArma,
@@ -281,5 +283,33 @@ describe('vida', () => {
   it('o chefe aguenta a soma das fases', () => {
     const chefe = getEnemy('boss1');
     expect(aplicarDano(chefe.hp, 54)).toBe(1);
+  });
+});
+
+describe('mergulho (ataque no ar)', () => {
+  it('tira mais que o golpe normal, arredondado para cima', () => {
+    expect(danoDoGolpe('graveto_reforcado', 'plunge')).toBe(2);
+    expect(danoDoGolpe('arma_nv2', 'plunge')).toBe(3);
+    expect(danoDoGolpe('graveto_reforcado', 'plunge')).toBeGreaterThan(
+      danoDoGolpe('graveto_reforcado', 'attack1'),
+    );
+  });
+
+  it('bate em volta de onde pousou, inclusive atrás', () => {
+    const { alcance, raio } = areaDoGolpe('plunge');
+    const origem = { x: 0, y: 0, z: 0 };
+    const alvos = [
+      { id: 'frente', x: 0, y: 0, z: 1.5 },
+      { id: 'atras', x: 0, y: 0, z: -1.5 },
+      { id: 'longe', x: 0, y: 0, z: 5 },
+    ];
+    const pegos = alvosAtingidos(origem, 0, alvos, alcance, raio).map((a) => a.id);
+    expect(pegos.sort()).toEqual(['atras', 'frente']);
+  });
+
+  it('empurra, mas menos que o carregado', () => {
+    expect(empurraoDoGolpe('plunge')).toBeGreaterThan(0);
+    expect(empurraoDoGolpe('plunge')).toBeLessThan(empurraoDoGolpe('charged'));
+    expect(empurraoDoGolpe('attack1')).toBe(0);
   });
 });

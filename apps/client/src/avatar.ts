@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { STATE_BLEND_SECONDS, wrapAngle, type CharacterState } from '@islabr/shared';
-import { criarArma, criarModelo, type ModeloAnimado } from './models.js';
+import { POSE_DO_MERGULHO_S, criarArma, criarModelo, type ModeloAnimado } from './models.js';
 
 /**
  * Boneco do jogo.
@@ -152,10 +152,10 @@ export class Avatar {
    * Com `reiniciar`, o estado toca do começo mesmo que já seja o atual: é o que
    * faz dois golpes iguais seguidos darem duas animações.
    */
-  animate(state: CharacterState, dt: number, reiniciar = false): void {
+  animate(state: CharacterState, dt: number, reiniciar = false, mergulhando = false): void {
     if (this.modelo) {
       this.modelo.tocar(state, STATE_BLEND_SECONDS, reiniciar);
-      this.modelo.avancar(dt);
+      this.modelo.avancar(dt, mergulhando ? POSE_DO_MERGULHO_S : undefined);
       return;
     }
     this.primitivo?.animar(state, dt);
@@ -233,6 +233,7 @@ const POSES: Record<CharacterState, Pose> = {
   attack2: { ...BASE, cadence: 0, armRaise: -1.6, lean: 0.25 },
   attack3: { ...BASE, cadence: 0, armRaise: -1.8, lean: 0.3 },
   charged: { ...BASE, cadence: 0, armRaise: -2.2, lean: -0.15, squash: 1.04 },
+  plunge: { ...BASE, cadence: 0, legSpread: 0.2, armRaise: -2.4, lean: 0.35, squash: 0.94 },
 };
 
 function limb(width: number, height: number, depth: number, material: THREE.Material): THREE.Mesh {

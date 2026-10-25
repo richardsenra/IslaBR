@@ -172,7 +172,7 @@ export interface LootPayload {
 
 /** C→S: golpe (1–3 ou carregado) e direção (SPEC §4). */
 export interface AttackPayload {
-  readonly golpe: 'attack1' | 'attack2' | 'attack3' | 'charged';
+  readonly golpe: 'attack1' | 'attack2' | 'attack3' | 'charged' | 'plunge';
   readonly yaw: number;
 }
 
@@ -182,7 +182,13 @@ export function parseAttackPayload(raw: unknown): AttackPayload | null {
   const golpe = data['golpe'];
   const yaw = data['yaw'];
   if (typeof yaw !== 'number' || !Number.isFinite(yaw)) return null;
-  if (golpe !== 'attack1' && golpe !== 'attack2' && golpe !== 'attack3' && golpe !== 'charged') {
+  if (
+    golpe !== 'attack1' &&
+    golpe !== 'attack2' &&
+    golpe !== 'attack3' &&
+    golpe !== 'charged' &&
+    golpe !== 'plunge'
+  ) {
     return null;
   }
   return { golpe, yaw };

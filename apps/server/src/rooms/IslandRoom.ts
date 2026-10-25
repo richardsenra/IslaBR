@@ -10,6 +10,7 @@ import {
   SERVER_TICK_MS,
   checkMove,
   empurrar,
+  empurraoDoGolpe,
   parseAttackPayload,
   parseInteractPayload,
   parseMovePayload,
@@ -284,6 +285,7 @@ export class IslandRoom extends Room<{ state: IslandState }> {
     player.yaw = claim.yaw;
     // Entrar em esquiva dá a invulnerabilidade curta; a recarga é do servidor.
     if (claim.state === 'dodge' && player.state !== 'dodge') session.tentarEsquivar(now);
+    if (claim.state === 'plunge') session.marcarMergulho(now);
 
     player.state = claim.state;
     player.seq = claim.seq;
@@ -343,6 +345,7 @@ export class IslandRoom extends Room<{ state: IslandState }> {
 
     const payload = parseAttackPayload(raw);
     if (!payload) return;
+    if (payload.golpe === 'plunge' && !session.mergulhouRecentemente(this.now())) return;
     if (!session.podeAtacar(this.now(), payload.golpe)) return;
     session.registrarGolpe(payload.golpe, this.now());
 
@@ -360,9 +363,10 @@ export class IslandRoom extends Room<{ state: IslandState }> {
     );
 
     for (const acerto of resultado.acertos) {
-      // O carregado joga para longe quem sobreviveu a ele.
-      if (payload.golpe === 'charged' && acerto.dano > 0 && !acerto.morreu) {
-        const novo = empurrar(session.aceito, payload.yaw, acerto.inimigo, ARENA_COLLIDERS);
+      // O carregado e o mergulho jogam para longe quem sobreviveu a eles.
+      const forca = empurraoDoGolpe(payload.golpe);
+      if (forca > 0 && acerto.dano > 0 && !acerto.morreu) {
+        const novo = empurrar(session.aceito, payload.yaw, acerto.inimigo, ARENA_COLLIDERS, forca);
         acerto.inimigo.x = novo.x;
         acerto.inimigo.z = novo.z;
       }

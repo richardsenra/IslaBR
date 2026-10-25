@@ -146,12 +146,22 @@ let golpePendente: { golpe: AttackKind; enviarEm: number } | null = null;
 let golpesNaFila = 0;
 /** Se um golpe carregado completou e está esperando a janela abrir. */
 let carregarNaFila = false;
+/** Ataque no ar: o personagem despenca com a espada até o chão. */
+let mergulhando = false;
+let mergulhoDesde = 0;
+/** Desde quando está no ar, para o mergulho só valer num pulo de verdade. */
+let noArDesde: number | null = null;
+/** Tempo no ar, em ms, antes de um clique virar mergulho em vez de golpe. */
+const MERGULHO_APOS_MS = 120;
+/** Trava de segurança: nenhum mergulho dura mais que isto. */
+const MERGULHO_MAX_MS = 3000;
 
 const AVANCO_DO_GOLPE: Readonly<Record<AttackKind, number>> = {
   attack1: 0.35,
   attack2: 0.3,
   attack3: 0.5,
   charged: 0.25,
+  plunge: 0,
 };
 
 let golpeAnimado = 0;
@@ -270,6 +280,7 @@ joinIsland({
     golpeAtual = null;
     golpesNaFila = 0;
     carregarNaFila = false;
+    mergulhando = false;
     machucadoAte = 0;
     lentoAte = 0;
     efeitos.piscarVermelho(performance.now(), 600);
@@ -311,6 +322,33 @@ let accumulator = 0;
 let sendTimer = 0;
 let fps = 60;
 let desenhos = 0;
+
+/** Começa o ataque no ar: o personagem despenca com a espada para baixo. */
+function iniciarMergulho(agora: number): void {
+  mergulhando = true;
+  mergulhoDesde = agora;
+  golpePendente = null;
+  golpeAtual = 'plunge';
+  golpeInicio = agora;
+  golpeAte = Number.POSITIVE_INFINITY;
+  yawDoGolpe = local.current.yaw;
+  golpeGatilho += 1;
+}
+
+/** Pousou (ou estourou o tempo): bate no chão, em área, e o servidor decide o dano. */
+function aterrissar(agora: number): void {
+  mergulhando = false;
+  golpeAte = agora + duracaoDoGolpe('plunge') * 1000;
+  golpeLiberadoEm = agora + recargaDoGolpeMs('plunge') + 20;
+  ultimoGolpe = 'plunge';
+  ultimoGolpeEm = agora;
+
+  const p = local.current;
+  if (!p.onGround) return;
+  connection?.attack({ golpe: 'plunge', yaw: yawDoGolpe });
+  rastros.golpe('plunge', p.x, p.y, p.z, yawDoGolpe);
+  efeitos.tremer(0.22, 0.3);
+}
 
 /** Dispara o golpe: anima, registra a cadência e avisa o servidor. */
 function dispararGolpe(solto: 'normal' | 'charged', agora: number): void {
@@ -410,6 +448,7 @@ renderer.setAnimationLoop((now) => {
       jump,
       dodge,
       speedScale: lento ? ESCALA_LENTA : 1,
+      plunge: mergulhando,
     });
     accumulator -= STEP_SECONDS;
     jump = false;
@@ -417,6 +456,10 @@ renderer.setAnimationLoop((now) => {
   }
 
   const player = local.current;
+
+  if (player.onGround) noArDesde = null;
+  else noArDesde ??= now;
+  if (mergulhando && (player.onGround || now - mergulhoDesde > MERGULHO_MAX_MS)) aterrissar(now);
 
   // Chegou o instante do impacto: o servidor é avisado e o rastro aparece.
   // (Processado ANTES de disparar o próximo golpe da fila para nunca sobrescrever golpePendente!)
@@ -431,7 +474,17 @@ renderer.setAnimationLoop((now) => {
   }
 
   // Se a janela de recarga abriu e há golpes na fila, dispara o próximo automaticamente!
-  if (now >= golpeLiberadoEm && golpePendente === null) {
+  if (mergulhando) {
+    golpesNaFila = 0;
+    carregarNaFila = false;
+  }
+  const noAr = noArDesde !== null && now - noArDesde > MERGULHO_APOS_MS;
+  if (!mergulhando && noAr && now >= golpeLiberadoEm && (golpesNaFila > 0 || carregarNaFila)) {
+    // Clicou com o personagem no ar: em vez do combo, o mergulho.
+    golpesNaFila = 0;
+    carregarNaFila = false;
+    iniciarMergulho(now);
+  } else if (!mergulhando && now >= golpeLiberadoEm && golpePendente === null) {
     if (carregarNaFila) {
       carregarNaFila = false;
       dispararGolpe('charged', now);
@@ -505,7 +558,7 @@ renderer.setAnimationLoop((now) => {
   localAvatar.setOpacidade(opacidadeLocal);
 
   localAvatar.place(player.x, player.y, player.z, yawVisual);
-  localAvatar.animate(estadoVisual, dtAnim, golpeAnimado !== gatilhoVisual);
+  localAvatar.animate(estadoVisual, dtAnim, golpeAnimado !== gatilhoVisual, mergulhando);
   golpeAnimado = gatilhoVisual;
 
   follow.update(player.x, player.y, player.z, ARENA_COLLIDERS, dt);

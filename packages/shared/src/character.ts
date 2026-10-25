@@ -9,6 +9,7 @@ export const CHARACTER_STATES = [
   'attack2',
   'attack3',
   'charged',
+  'plunge',
   'dodge',
   'hurt',
   'dead',
@@ -17,7 +18,7 @@ export const CHARACTER_STATES = [
 export type CharacterState = (typeof CHARACTER_STATES)[number];
 
 /** Estados de ataque, implementados no M3. */
-export type AttackState = 'attack1' | 'attack2' | 'attack3' | 'charged';
+export type AttackState = 'attack1' | 'attack2' | 'attack3' | 'charged' | 'plunge';
 
 /** Transições de 0,1–0,2 s (SPEC §6): o cliente mistura as poses neste tempo. */
 export const STATE_BLEND_SECONDS = 0.15;

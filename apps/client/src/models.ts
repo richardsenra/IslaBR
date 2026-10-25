@@ -76,7 +76,16 @@ const CLIP_BY_STATE: Readonly<Record<CharacterState, readonly string[]>> = {
   // O carregado não toca clipe próprio: o main troca entre os três golpes normais
   // em sequência rápida (rajada). Este é só o reserva, para o mapa ficar completo.
   charged: ['Melee_1H_Attack_Chop', 'Idle_A'],
+  // Mergulho: o golpe de cima com salto, segurado no alto durante a descida.
+  plunge: ['Melee_1H_Attack_Jump_Chop', 'Melee_1H_Attack_Chop', 'Idle_A'],
 };
+
+/**
+ * Instante do clipe do mergulho em que o personagem fica parado no ar, com a
+ * espada erguida, até pousar. Daí o clipe segue e a lâmina desce no chão. Se a
+ * pose não parecer a certa, é este número que se mexe.
+ */
+export const POSE_DO_MERGULHO_S = 0.55;
 
 /**
  * Em que instante do clipe a lâmina acerta, em segundos. Medido nos próprios
@@ -124,6 +133,7 @@ const ONCE: ReadonlySet<CharacterState> = new Set<CharacterState>([
   'attack2',
   'attack3',
   'charged',
+  'plunge',
 ]);
 
 const loader = new GLTFLoader();
@@ -192,7 +202,8 @@ export interface ModeloAnimado {
    * estado toca do começo: dois golpes iguais seguidos precisam de dois swings.
    */
   tocar(estado: CharacterState, mistura: number, reiniciar?: boolean): void;
-  avancar(dt: number): void;
+  /** Com `segurarEm`, o clipe em curso não passa desse instante, em segundos. */
+  avancar(dt: number, segurarEm?: number): void;
   descartar(): void;
 }
 
@@ -241,8 +252,9 @@ export function criarModelo(nome: string): ModeloAnimado | null {
       if (atual && atual !== proxima) proxima.crossFadeFrom(atual, mistura, false);
       atual = proxima;
     },
-    avancar(dt) {
+    avancar(dt, segurarEm) {
       mixer.update(dt);
+      if (segurarEm !== undefined && atual && atual.time > segurarEm) atual.time = segurarEm;
     },
     descartar() {
       mixer.stopAllAction();

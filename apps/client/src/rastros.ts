@@ -21,6 +21,7 @@ const COR: Readonly<Record<AttackKind, THREE.Color>> = {
   attack2: new THREE.Color('#7dd3fc'),
   attack3: new THREE.Color('#fde047'), // Amarelo ouro
   charged: new THREE.Color('#fb923c'), // Laranja fogo intenso
+  plunge: new THREE.Color('#fbbf24'), // Âmbar da pancada no chão
 };
 
 const ALTURA = 1.05;
@@ -192,6 +193,16 @@ export class Rastros {
         });
         return;
 
+      case 'plunge': {
+        // Pancada no chão: só a onda de choque, junto aos pés.
+        const pes = this._centro
+          .clone()
+          .setY(y + 0.06)
+          .addScaledVector(this._frente, -A_FRENTE);
+        this.spawnOnda('plunge', pes, 2.4);
+        return;
+      }
+
       case 'charged': {
         // Fecho da rajada: o corte vertical e a onda de choque em 360° no chão.
         // Os dois primeiros cortes saem durante a rajada, em attack1 e attack2.
@@ -276,7 +287,7 @@ export class Rastros {
     });
   }
 
-  private spawnOnda(tipo: AttackKind, chao: THREE.Vector3): void {
+  private spawnOnda(tipo: AttackKind, chao: THREE.Vector3, ate = 2.9): void {
     const { raiz, malha, uniforms } = this.criarInstancia(tipo, this.geoOnda, true);
     raiz.position.copy(chao);
     malha.rotation.x = -Math.PI / 2;
@@ -288,7 +299,7 @@ export class Rastros {
       idade: 0,
       vida: 0.42,
       de: 0.35,
-      ate: 2.9,
+      ate,
       varrida: 0,
     });
   }

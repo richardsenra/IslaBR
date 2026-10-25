@@ -326,3 +326,40 @@ describe('lentidão (gosma do sapo)', () => {
     expect(Math.hypot(dodging.vx, dodging.vz)).toBeCloseTo(DODGE_SPEED, 6);
   });
 });
+
+describe('mergulho (ataque no ar)', () => {
+  const noAr = (): PlayerPhysics => ({ ...spawnPhysics(0, 5, 0), onGround: false });
+
+  it('despenca bem mais rápido que uma queda normal', () => {
+    let livre = noAr();
+    let mergulho = noAr();
+    for (let i = 0; i < 10; i += 1) {
+      livre = stepPlayer(livre, input({}, i), FLOOR);
+      mergulho = stepPlayer(mergulho, input({ plunge: true }, i), FLOOR);
+    }
+    expect(mergulho.vy).toBeLessThan(livre.vy - 10);
+    expect(mergulho.y).toBeLessThan(livre.y);
+  });
+
+  it('quase não anda de lado enquanto desce', () => {
+    const normal = stepPlayer(noAr(), input({ moveX: 1 }), FLOOR);
+    const mergulho = stepPlayer(noAr(), input({ moveX: 1, plunge: true }), FLOOR);
+    expect(mergulho.vx).toBeCloseTo(normal.vx * 0.25, 6);
+  });
+
+  it('no chão não faz nada: o personagem anda como sempre', () => {
+    let chao = spawnPhysics(0, 0, 0);
+    for (let i = 0; i < 30; i += 1) chao = stepPlayer(chao, input({}, i), FLOOR);
+    expect(chao.onGround).toBe(true);
+    const andando = stepPlayer(chao, input({ moveX: 1, plunge: true }), FLOOR);
+    expect(andando.vx).toBeCloseTo(MOVE_SPEED, 6);
+  });
+
+  it('chega ao chão e pousa', () => {
+    let p = noAr();
+    for (let i = 0; i < 120 && !p.onGround; i += 1)
+      p = stepPlayer(p, input({ plunge: true }, i), FLOOR);
+    expect(p.onGround).toBe(true);
+    expect(p.y).toBeCloseTo(0, 1);
+  });
+});
