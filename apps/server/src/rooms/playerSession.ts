@@ -44,6 +44,8 @@ const FOLGA_DE_REDE_MS = 60;
 
 /** Carência depois de apanhar, para não levar dois golpes no mesmo instante. */
 const INVULNERAVEL_APOS_DANO = 0.6;
+/** Invulnerabilidade ao levantar depois de cair, em segundos. */
+const INVULNERAVEL_AO_LEVANTAR = 2;
 /** Tempo caído antes de voltar com os corações cheios. */
 const RENASCER_SEGUNDOS = 3;
 import type { JogadorSalvo } from '../store/index.js';
@@ -144,8 +146,15 @@ export class PlayerSession {
     return proximoGolpe(this.ultimoGolpe, (agora - this.ultimoGolpeEm) / 1000);
   }
 
-  /** Passa o tempo: invulnerabilidade e volta à vida. */
-  passar(dt: number): void {
+  /**
+   * Passa o tempo: invulnerabilidade, corações emprestados e volta à vida.
+   * Devolve `true` quando os corações mudaram de um jeito que o cliente precisa
+   * saber (levantou, ou o efeito da Poção Heróica acabou): o cliente só descobre
+   * a vida pela mensagem de inventário, então sem isso ele seguiria achando que
+   * o jogador está caído.
+   */
+  passar(dt: number): boolean {
+    let mudou = false;
     this.invulneravelAte = Math.max(0, this.invulneravelAte - dt);
 
     // Os corações da Poção Heróica são emprestados: passado o tempo, o que
@@ -155,13 +164,18 @@ export class PlayerSession {
       if (this.temporariosRestantes === 0 && this.progress.coracoes > this.progress.coracoesMax) {
         this.progress = { ...this.progress, coracoes: this.progress.coracoesMax };
         this.sujo = true;
+        mudou = true;
       }
     }
-    if (this.vivo || this.renascerEm <= 0) return;
+    if (this.vivo || this.renascerEm <= 0) return mudou;
     this.renascerEm -= dt;
-    if (this.renascerEm > 0) return;
+    if (this.renascerEm > 0) return mudou;
     this.progress = { ...this.progress, coracoes: this.progress.coracoesMax };
+    // Levanta no mesmo lugar, no meio de quem o derrubou: uns segundos de
+    // invulnerabilidade evitam cair de novo antes de conseguir reagir.
+    this.invulneravelAte = INVULNERAVEL_AO_LEVANTAR;
     this.sujo = true;
+    return true;
   }
 
   /** Dano já decidido pelo servidor. Devolve quanto realmente entrou. */

@@ -68,6 +68,34 @@ describe('cair e voltar', () => {
     expect(sessao.vivo).toBe(false);
   });
 
+  it('avisa quando levanta, para o cliente saber que a vida voltou', () => {
+    const sessao = jogador();
+    sessao.levarDano(3, 0);
+
+    // Enquanto está caído, nada mudou que o cliente precise saber.
+    expect(sessao.passar(1)).toBe(false);
+    expect(sessao.passar(1)).toBe(false);
+    // No instante em que levanta, sim.
+    expect(sessao.passar(1.5)).toBe(true);
+    expect(sessao.vivo).toBe(true);
+    // E depois disso, de novo nada.
+    expect(sessao.passar(0.05)).toBe(false);
+  });
+
+  it('levanta invulnerável, para não cair de novo no meio de quem o derrubou', () => {
+    const sessao = jogador();
+    sessao.levarDano(3, 0);
+    sessao.passar(4);
+
+    expect(sessao.vivo).toBe(true);
+    expect(sessao.invulneravel).toBe(true);
+    expect(sessao.levarDano(1, 0)).toBe(0);
+
+    // Passada a invulnerabilidade, volta a levar dano.
+    sessao.passar(2.1);
+    expect(sessao.levarDano(1, 0)).toBe(1);
+  });
+
   it('levanta com os corações cheios depois de alguns segundos', () => {
     const sessao = jogador();
     sessao.levarDano(3, 0);
@@ -349,6 +377,14 @@ describe('Poção Heróica: corações emprestados (SPEC §7.7, proposta)', () =
     expect(sessao.progress.coracoes).toBe(5);
     sessao.passar(2);
     expect(sessao.progress.coracoes).toBe(3);
+  });
+
+  it('avisa o cliente quando os corações emprestados acabam', () => {
+    const sessao = ferido(3, { pocao_heroica: 1 });
+    sessao.usarItem('pocao_heroica');
+    expect(sessao.passar(30)).toBe(false);
+    expect(sessao.passar(31)).toBe(true);
+    expect(sessao.passar(1)).toBe(false);
   });
 
   it('o fim do efeito não tira vida de quem já tinha perdido os emprestados', () => {

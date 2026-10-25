@@ -138,7 +138,13 @@ export class IslandRoom extends Room<{ state: IslandState }> {
     this.cuidarDoRenascimento(dt);
 
     for (const [sessionId, session] of this.sessions) {
-      session.passar(dt);
+      // Levantar (ou perder os corações emprestados) muda a vida sem que o
+      // jogador tenha feito nada: o cliente é avisado aqui.
+      if (session.passar(dt)) {
+        this.clients
+          .find((candidato) => candidato.sessionId === sessionId)
+          ?.send(MSG.inventoryUpdate, session.inventario);
+      }
       const estado = this.state.players.get(sessionId);
       if (estado) {
         estado.coracoes = session.progress.coracoes;
@@ -256,6 +262,23 @@ export class IslandRoom extends Room<{ state: IslandState }> {
     if (!claim) return;
 
     const now = this.now();
+
+    // Caído, o jogador não anda. Pequenos ajustes de posição passam (a queda, o
+    // arredondamento); sair do lugar, não.
+    if (!session.vivo) {
+      const saiu = Math.hypot(claim.x - session.aceito.x, claim.z - session.aceito.z);
+      if (saiu > CAIDO_TOLERANCIA_M) {
+        client.send(MSG.moveCorrection, {
+          seq: session.aceito.seq,
+          x: session.aceito.x,
+          y: session.aceito.y,
+          z: session.aceito.z,
+          reason: 'caido',
+        } satisfies MoveCorrectionPayload);
+        return;
+      }
+    }
+
     const check = checkMove(session.aceito, claim, now, ARENA_COLLIDERS);
     if (!check.ok) {
       const correction: MoveCorrectionPayload = {
@@ -467,6 +490,9 @@ export class IslandRoom extends Room<{ state: IslandState }> {
     client.send(MSG.inventoryUpdate, session.inventario);
   }
 }
+
+/** Quanto o jogador caído pode se mexer sem ser puxado de volta, em metros. */
+const CAIDO_TOLERANCIA_M = 0.25;
 
 /** O token vem das opções de entrada do cliente; nada mais é aceito. */
 function tokenDe(options: unknown): string | null {

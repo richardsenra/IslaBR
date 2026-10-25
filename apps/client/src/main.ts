@@ -362,15 +362,16 @@ renderer.setAnimationLoop((now) => {
   const andar = moveDirectionFromCamera(axes.forward, axes.strafe, follow.yaw);
   // Até o impacto o golpe empurra o personagem para a frente (o rumo da câmera),
   // somado ao que o jogador já está andando; a física limita ao máximo de corrida.
-  const direction = { x: andar.x, z: andar.z };
+  // Caído, o jogador não anda, não pula e não esquiva; o servidor também não deixa.
+  const direction = caido ? { x: 0, z: 0 } : { x: andar.x, z: andar.z };
   if (golpeAtual && now < golpeInicio + impactoDoGolpe(golpeAtual) * 1000) {
     const avanco = AVANCO_DO_GOLPE[golpeAtual];
     direction.x += Math.sin(follow.yaw) * avanco;
     direction.z += Math.cos(follow.yaw) * avanco;
   }
-  let jump = input.consumeJump();
-  let dodge = input.consumeDodge();
-  const interagir = input.consumeInteract();
+  let jump = input.consumeJump() && !caido;
+  let dodge = input.consumeDodge() && !caido;
+  const interagir = input.consumeInteract() && !caido;
 
   // Inventário: I abre e fecha; com ele aberto, 1 a 9 usam as primeiras casas.
   if (input.consumeInventory() && inventario.alternar()) {

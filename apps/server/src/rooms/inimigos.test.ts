@@ -4,6 +4,7 @@ import { getEnemy } from '@islabr/content';
 import { ARENA_ENEMIES, MSG, ROOM, type NoticePayload, type StatusPayload } from '@islabr/shared';
 import { createGameServer } from '../app.js';
 import type { IslandRoom } from './IslandRoom.js';
+import type { PlayerSession } from './playerSession.js';
 import { andarPara, ate, chegarNaM04, escutar, type Sequencia } from './testHelpers.js';
 
 describe('inimigos na sala', () => {
@@ -103,6 +104,70 @@ describe('inimigos na sala', () => {
     expect(caixa.inventarios.at(-1)?.coracoes).toBeGreaterThanOrEqual(2.5);
     expect(sala.state.players.get(client.sessionId)?.coracoes).toBeGreaterThanOrEqual(2.5);
   }, 120_000);
+
+  it('quem cai não anda, levanta depois de alguns segundos, e o cliente é avisado', async () => {
+    const sala = await colyseus.createRoom<IslandRoom>(ROOM.island);
+    const client = await colyseus.connectTo(sala, { token: `caido_${Date.now()}_a` });
+    const caixa = escutar(client);
+    const seq: Sequencia = { n: 0 };
+    await sala.waitForNextPatch();
+
+    // Derruba o jogador como um bicho derrubaria: pela sessão no servidor. O
+    // mapa é privado da sala; o teste só o lê para provocar a queda.
+    const sessoes = (sala as unknown as { sessions: Map<string, PlayerSession> }).sessions;
+    const sessao = sessoes.get(client.sessionId);
+    if (!sessao) throw new Error('sessão do jogador não encontrada');
+    sessao.levarDano(99, Date.now());
+    client.send(MSG.ready, {});
+    await ate(() => caixa.inventarios.at(-1)?.coracoes === 0, 'o cliente saber que caiu');
+
+    // Caído, uma tentativa de andar é puxada de volta.
+    const antes = sala.state.players.get(client.sessionId);
+    const [x0, z0] = [antes?.x ?? 0, antes?.z ?? 0];
+    seq.n += 1;
+    client.send(MSG.move, {
+      seq: seq.n,
+      x: x0 + 2,
+      y: 0,
+      z: z0,
+      vx: 5,
+      vy: 0,
+      vz: 0,
+      yaw: 0,
+      state: 'run',
+    });
+    await ate(() => caixa.correcoes.length > 0, 'a correção por estar caído');
+    expect(caixa.correcoes[0]?.reason).toBe('caido');
+    expect(sala.state.players.get(client.sessionId)?.x).toBeCloseTo(x0, 3);
+
+    // Passados os segundos de queda, o servidor levanta o jogador E AVISA o cliente.
+    // (Era este aviso que faltava: o cliente ficava caído para sempre.)
+    await ate(
+      () => (caixa.inventarios.at(-1)?.coracoes ?? 0) > 0,
+      'o cliente ser avisado de que levantou',
+      8000,
+    );
+    expect(caixa.inventarios.at(-1)?.coracoes).toBe(3);
+
+    // De pé, anda de novo.
+    seq.n += 1;
+    client.send(MSG.move, {
+      seq: seq.n,
+      x: x0 + 1,
+      y: 0,
+      z: z0,
+      vx: 5,
+      vy: 0,
+      vz: 0,
+      yaw: 0,
+      state: 'run',
+    });
+    await ate(
+      () => sala.state.players.get(client.sessionId)?.seq === seq.n,
+      'andar depois de levantar',
+    );
+    expect(sala.state.players.get(client.sessionId)?.x).toBeCloseTo(x0 + 1, 2);
+  }, 30_000);
 
   it('use_item com pacote torto ou item inventado é ignorado sem derrubar a sala', async () => {
     const sala = await colyseus.createRoom<IslandRoom>(ROOM.island);
