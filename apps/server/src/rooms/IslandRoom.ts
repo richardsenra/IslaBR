@@ -15,6 +15,7 @@ import {
   parseUseItemPayload,
   spotById,
   type MoveCorrectionPayload,
+  type RespawnPayload,
   type Saque,
   type Sorteio,
   type StatusPayload,
@@ -263,22 +264,6 @@ export class IslandRoom extends Room<{ state: IslandState }> {
 
     const now = this.now();
 
-    // Caído, o jogador não anda. Pequenos ajustes de posição passam (a queda, o
-    // arredondamento); sair do lugar, não.
-    if (!session.vivo) {
-      const saiu = Math.hypot(claim.x - session.aceito.x, claim.z - session.aceito.z);
-      if (saiu > CAIDO_TOLERANCIA_M) {
-        client.send(MSG.moveCorrection, {
-          seq: session.aceito.seq,
-          x: session.aceito.x,
-          y: session.aceito.y,
-          z: session.aceito.z,
-          reason: 'caido',
-        } satisfies MoveCorrectionPayload);
-        return;
-      }
-    }
-
     const check = checkMove(session.aceito, claim, now, ARENA_COLLIDERS);
     if (!check.ok) {
       const correction: MoveCorrectionPayload = {
@@ -487,12 +472,49 @@ export class IslandRoom extends Room<{ state: IslandState }> {
       morreu: !session.vivo,
       euLevei: false,
     });
+    if (!session.vivo) {
+      this.renascer(client, session);
+      return;
+    }
     client.send(MSG.inventoryUpdate, session.inventario);
   }
-}
 
-/** Quanto o jogador caído pode se mexer sem ser puxado de volta, em metros. */
-const CAIDO_TOLERANCIA_M = 0.25;
+  /**
+   * Sem corações, o jogador renasce na hora no ponto de partida, com a vida
+   * cheia. Não há fase deitado: morrer é voltar ao começo.
+   */
+  private renascer(client: Client, session: PlayerSession): void {
+    session.renascer();
+
+    // O servidor muda a posição aceita junto, senão o primeiro passo depois do
+    // renascer pareceria um teleporte e seria recusado.
+    session.aceito = {
+      seq: session.aceito.seq,
+      x: ARENA_SPAWN.x,
+      y: ARENA_SPAWN.y,
+      z: ARENA_SPAWN.z,
+      atMs: this.now(),
+    };
+    const estado = this.state.players.get(client.sessionId);
+    if (estado) {
+      estado.x = ARENA_SPAWN.x;
+      estado.y = ARENA_SPAWN.y;
+      estado.z = ARENA_SPAWN.z;
+      estado.yaw = ARENA_SPAWN.yaw;
+      estado.coracoes = session.progress.coracoes;
+    }
+
+    const volta: RespawnPayload = {
+      x: ARENA_SPAWN.x,
+      y: ARENA_SPAWN.y,
+      z: ARENA_SPAWN.z,
+      yaw: ARENA_SPAWN.yaw,
+    };
+    client.send(MSG.respawn, volta);
+    client.send(MSG.inventoryUpdate, session.inventario);
+    void this.salvar(session);
+  }
+}
 
 /** O token vem das opções de entrada do cliente; nada mais é aceito. */
 function tokenDe(options: unknown): string | null {

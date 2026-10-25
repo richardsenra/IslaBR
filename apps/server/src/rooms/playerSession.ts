@@ -44,10 +44,8 @@ const FOLGA_DE_REDE_MS = 60;
 
 /** Carência depois de apanhar, para não levar dois golpes no mesmo instante. */
 const INVULNERAVEL_APOS_DANO = 0.6;
-/** Invulnerabilidade ao levantar depois de cair, em segundos. */
-const INVULNERAVEL_AO_LEVANTAR = 2;
-/** Tempo caído antes de voltar com os corações cheios. */
-const RENASCER_SEGUNDOS = 3;
+/** Invulnerabilidade ao renascer, em segundos. */
+const INVULNERAVEL_AO_RENASCER = 2;
 import type { JogadorSalvo } from '../store/index.js';
 
 const quests = content.quests;
@@ -75,7 +73,6 @@ export class PlayerSession {
 
   /** Enquanto maior que zero, o jogador não leva dano (SPEC §6). */
   private invulneravelAte = 0;
-  private renascerEm = 0;
   private esquivaLiberadaEm = 0;
   /** Segundos que faltam para os corações temporários da Poção Heróica sumirem. */
   private temporariosRestantes = 0;
@@ -87,7 +84,12 @@ export class PlayerSession {
   constructor(aceito: AcceptedMove, salvo?: JogadorSalvo) {
     this.aceito = aceito;
     this.playerId = salvo?.id ?? '';
-    this.progress = salvo?.progress ?? STARTING_PROGRESS;
+    const carregado = salvo?.progress ?? STARTING_PROGRESS;
+    // Quem foi salvo sem corações (de quando cair era uma fase, ou de um
+    // encerramento no meio de uma queda) volta com a vida cheia, em vez de
+    // nascer morto para sempre.
+    this.progress =
+      carregado.coracoes > 0 ? carregado : { ...carregado, coracoes: carregado.coracoesMax };
     this.book = salvo?.book ?? {};
   }
 
@@ -167,15 +169,20 @@ export class PlayerSession {
         mudou = true;
       }
     }
-    if (this.vivo || this.renascerEm <= 0) return mudou;
-    this.renascerEm -= dt;
-    if (this.renascerEm > 0) return mudou;
+    return mudou;
+  }
+
+  /**
+   * Morreu e renasce na hora, com a vida cheia (SPEC §6: não há fase deitado).
+   * Quem chama também move o jogador para o ponto de volta. Os corações
+   * emprestados somem, e uns segundos de invulnerabilidade evitam cair de novo
+   * antes de conseguir reagir.
+   */
+  renascer(): void {
     this.progress = { ...this.progress, coracoes: this.progress.coracoesMax };
-    // Levanta no mesmo lugar, no meio de quem o derrubou: uns segundos de
-    // invulnerabilidade evitam cair de novo antes de conseguir reagir.
-    this.invulneravelAte = INVULNERAVEL_AO_LEVANTAR;
+    this.temporariosRestantes = 0;
+    this.invulneravelAte = INVULNERAVEL_AO_RENASCER;
     this.sujo = true;
-    return true;
   }
 
   /** Dano já decidido pelo servidor. Devolve quanto realmente entrou. */
@@ -194,7 +201,6 @@ export class PlayerSession {
     // Carência depois de apanhar, para não levar dois golpes no mesmo instante.
     this.invulneravelAte = INVULNERAVEL_APOS_DANO;
     this.sujo = true;
-    if (!this.vivo) this.renascerEm = RENASCER_SEGUNDOS;
     void agora;
     return sofrido;
   }
@@ -258,7 +264,6 @@ export class PlayerSession {
     const def = itemsById.get(id);
     const efeito = def?.efeito;
     if (!def || def.tipo !== 'consumivel' || !efeito) return { usado: false, recusa: 'nao-usavel' };
-    if (!this.vivo) return { usado: false, recusa: 'caido' };
 
     const temporarios = efeito.coracoes_temporarios ?? 0;
     // "Esse item cura?" é pergunta do item; "quanto cura agora?" depende da vida.

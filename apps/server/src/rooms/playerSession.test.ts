@@ -60,34 +60,28 @@ describe('dano no jogador', () => {
   });
 });
 
-describe('cair e voltar', () => {
-  it('sem corações o jogador cai', () => {
+describe('morrer e renascer (SPEC §6: sem fase deitado)', () => {
+  it('sem corações o jogador morreu, e fica assim até a sala o fazer renascer', () => {
     const sessao = jogador();
     expect(sessao.vivo).toBe(true);
     sessao.levarDano(3, 0);
     expect(sessao.vivo).toBe(false);
   });
 
-  it('avisa quando levanta, para o cliente saber que a vida voltou', () => {
+  it('renasce na hora com os corações cheios', () => {
     const sessao = jogador();
     sessao.levarDano(3, 0);
-
-    // Enquanto está caído, nada mudou que o cliente precise saber.
-    expect(sessao.passar(1)).toBe(false);
-    expect(sessao.passar(1)).toBe(false);
-    // No instante em que levanta, sim.
-    expect(sessao.passar(1.5)).toBe(true);
+    sessao.renascer();
     expect(sessao.vivo).toBe(true);
-    // E depois disso, de novo nada.
-    expect(sessao.passar(0.05)).toBe(false);
+    expect(sessao.progress.coracoes).toBe(sessao.progress.coracoesMax);
+    expect(sessao.sujo).toBe(true);
   });
 
-  it('levanta invulnerável, para não cair de novo no meio de quem o derrubou', () => {
+  it('renasce invulnerável, para não morrer de novo antes de conseguir reagir', () => {
     const sessao = jogador();
     sessao.levarDano(3, 0);
-    sessao.passar(4);
+    sessao.renascer();
 
-    expect(sessao.vivo).toBe(true);
     expect(sessao.invulneravel).toBe(true);
     expect(sessao.levarDano(1, 0)).toBe(0);
 
@@ -96,24 +90,38 @@ describe('cair e voltar', () => {
     expect(sessao.levarDano(1, 0)).toBe(1);
   });
 
-  it('levanta com os corações cheios depois de alguns segundos', () => {
-    const sessao = jogador();
-    sessao.levarDano(3, 0);
-
-    sessao.passar(1);
-    expect(sessao.vivo).toBe(false);
-
-    sessao.passar(2.5);
-    expect(sessao.vivo).toBe(true);
-    expect(sessao.progress.coracoes).toBe(sessao.progress.coracoesMax);
-  });
-
   it('volta com o máximo novo, depois do quarto coração da m06', () => {
     const quatro: PlayerProgress = { ...STARTING_PROGRESS, coracoes: 4, coracoesMax: 4 };
     const sessao = jogador(quatro);
     sessao.levarDano(4, 0);
-    sessao.passar(5);
+    sessao.renascer();
     expect(sessao.progress.coracoes).toBe(4);
+  });
+
+  it('morrer com a Poção Heróica não leva os corações emprestados para a vida nova', () => {
+    const sessao = ferido(3, { pocao_heroica: 1 });
+    sessao.usarItem('pocao_heroica');
+    expect(sessao.progress.coracoes).toBe(5);
+    sessao.levarDano(99, 0);
+    sessao.renascer();
+    expect(sessao.progress.coracoes).toBe(3);
+    // E o relógio dos emprestados não segue rodando para tirar vida depois.
+    sessao.passar(120);
+    expect(sessao.progress.coracoes).toBe(3);
+  });
+
+  it('quem foi salvo com zero corações volta com a vida cheia, em vez de nascer morto', () => {
+    // O bug do F5: a queda salvava 0 corações, e ao recarregar o jogador
+    // nascia caído para sempre.
+    const salvo: PlayerProgress = { ...STARTING_PROGRESS, coracoes: 0, coracoesMax: 4 };
+    const sessao = jogador(salvo);
+    expect(sessao.vivo).toBe(true);
+    expect(sessao.progress.coracoes).toBe(4);
+  });
+
+  it('quem foi salvo ferido, mas vivo, continua ferido', () => {
+    const sessao = jogador({ ...STARTING_PROGRESS, coracoes: 1.5 });
+    expect(sessao.progress.coracoes).toBe(1.5);
   });
 });
 
@@ -345,12 +353,6 @@ describe('usar item (SPEC §4: use_item)', () => {
     const sessao = ferido(1, {});
     expect(sessao.usarItem('item_que_nao_existe')).toEqual({ usado: false, recusa: 'nao-tem' });
     expect(sessao.usarItem('')).toEqual({ usado: false, recusa: 'nao-tem' });
-  });
-
-  it('quem está caído não usa poção', () => {
-    const sessao = ferido(3, { pocao_grande: 1 });
-    sessao.levarDano(3, 0);
-    expect(sessao.usarItem('pocao_grande')).toEqual({ usado: false, recusa: 'caido' });
   });
 
   it('gastar a última poção deixa zero, sem ficar negativo', () => {

@@ -66,7 +66,6 @@ const dialogo = new DialogueBox(
   byId('dialogo-rodape'),
 );
 const efeitos = new Effects(byId('numeros'), byId('vermelho'));
-const avisoEl = byId('aviso');
 const noticeEl = byId('notice');
 const gosmaEl = byId('gosma');
 const cargaEl = byId('carga');
@@ -171,7 +170,6 @@ let golpeAnimado = 0;
 let ultimoGolpe: AttackKind | null = null;
 let ultimoGolpeEm = 0;
 let machucadoAte = 0;
-let caido = false;
 /** Opacidade atual do boneco local; sobe e desce suave, sem piscar. */
 let opacidadeLocal = 1;
 
@@ -284,9 +282,18 @@ joinIsland({
     // A arma na mão é a melhor do inventário: a mesma regra que o servidor usa
     // para decidir o dano.
     localAvatar.equipar(melhorArma(inventory.itens));
-    caido = inventory.coracoes <= 0;
-    avisoEl.hidden = !caido;
-    if (caido) avisoEl.textContent = ui.caiu;
+  },
+  onRespawn: (volta) => {
+    // Morreu e renasceu: a predição vai para o ponto de volta, sem arrastar os
+    // comandos de onde caiu, e o que estava em curso é cancelado.
+    local.teleport(volta.x, volta.y, volta.z, volta.yaw);
+    follow.yaw = volta.yaw;
+    golpePendente = null;
+    golpeAtual = null;
+    machucadoAte = 0;
+    lentoAte = 0;
+    efeitos.piscarVermelho(performance.now(), 600);
+    mostrarNotice(ui.caiu);
   },
   onStatus: (status) => {
     // A gosma deixa o jogador lento; quanto, e por quanto tempo, o servidor diz.
@@ -330,7 +337,7 @@ let desenhos = 0;
 
 /** Dispara o golpe: anima, registra a cadência e avisa o servidor. */
 function atacar(solto: 'normal' | 'charged', agora: number): void {
-  if (!connection || caido || dialogo.aberta || agora < golpeLiberadoEm) return;
+  if (!connection || dialogo.aberta || agora < golpeLiberadoEm) return;
 
   const golpe: AttackKind =
     solto === 'charged' ? 'charged' : proximoGolpe(ultimoGolpe, (agora - ultimoGolpeEm) / 1000);
@@ -362,16 +369,15 @@ renderer.setAnimationLoop((now) => {
   const andar = moveDirectionFromCamera(axes.forward, axes.strafe, follow.yaw);
   // Até o impacto o golpe empurra o personagem para a frente (o rumo da câmera),
   // somado ao que o jogador já está andando; a física limita ao máximo de corrida.
-  // Caído, o jogador não anda, não pula e não esquiva; o servidor também não deixa.
-  const direction = caido ? { x: 0, z: 0 } : { x: andar.x, z: andar.z };
+  const direction = { x: andar.x, z: andar.z };
   if (golpeAtual && now < golpeInicio + impactoDoGolpe(golpeAtual) * 1000) {
     const avanco = AVANCO_DO_GOLPE[golpeAtual];
     direction.x += Math.sin(follow.yaw) * avanco;
     direction.z += Math.cos(follow.yaw) * avanco;
   }
-  let jump = input.consumeJump() && !caido;
-  let dodge = input.consumeDodge() && !caido;
-  const interagir = input.consumeInteract() && !caido;
+  let jump = input.consumeJump();
+  let dodge = input.consumeDodge();
+  const interagir = input.consumeInteract();
 
   // Inventário: I abre e fecha; com ele aberto, 1 a 9 usam as primeiras casas.
   if (input.consumeInventory() && inventario.alternar()) {
@@ -411,7 +417,7 @@ renderer.setAnimationLoop((now) => {
   if (golpePendente && now >= golpePendente.enviarEm) {
     const { golpe } = golpePendente;
     golpePendente = null;
-    if (connection && !caido) {
+    if (connection) {
       connection.attack({ golpe, yaw: follow.yaw });
       rastros.golpe(golpe, player.x, player.y, player.z, follow.yaw);
       // O carregado cai com força no chão: a câmera sente.
@@ -435,11 +441,10 @@ renderer.setAnimationLoop((now) => {
     }
   }
 
-  // O que o boneco faz na tela, por prioridade: caído, machucado, esquiva,
-  // golpe e, por fim, o que a física diz.
+  // O que o boneco faz na tela, por prioridade: machucado, esquiva, golpe e,
+  // por fim, o que a física diz.
   let estadoVisual: CharacterState = player.state;
-  if (caido) estadoVisual = 'dead';
-  else if (now < machucadoAte) estadoVisual = 'hurt';
+  if (now < machucadoAte) estadoVisual = 'hurt';
   else if (player.state === 'dodge') estadoVisual = 'dodge';
   else if (golpeAtual) estadoVisual = golpeAtual;
   const yawVisual = batendo && golpeAtual ? follow.yaw : player.yaw;

@@ -14,6 +14,7 @@ import {
   type MovePayload,
   type NoticePayload,
   type QuestUpdatePayload,
+  type RespawnPayload,
   type StatusPayload,
 } from '@islabr/shared';
 
@@ -92,6 +93,7 @@ export interface IslandHandlers {
   onLoot(loot: LootPayload): void;
   onStatus(status: StatusPayload): void;
   onNotice(notice: NoticePayload): void;
+  onRespawn(volta: RespawnPayload): void;
   onDisconnect(): void;
 }
 
@@ -224,6 +226,12 @@ export async function joinIsland(handlers: IslandHandlers): Promise<IslandConnec
   room.onMessage(MSG.status, (status: StatusPayload) => {
     afterLag(() => {
       handlers.onStatus(status);
+    });
+  });
+
+  room.onMessage(MSG.respawn, (volta: RespawnPayload) => {
+    afterLag(() => {
+      handlers.onRespawn(volta);
     });
   });
 

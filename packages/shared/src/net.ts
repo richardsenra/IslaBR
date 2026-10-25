@@ -47,6 +47,8 @@ export const MSG = {
   status: 'status',
   /** S→C: o servidor recusou uma ação e diz por quê (poção com a vida cheia). */
   notice: 'notice',
+  /** S→C: o jogador morreu e renasceu; manda o ponto de volta (SPEC §6). */
+  respawn: 'respawn',
   buy: 'buy',
   craft: 'craft',
   chat: 'chat',
@@ -221,9 +223,21 @@ export interface StatusPayload {
   readonly origem: string;
 }
 
-export type NoticeCode = 'nao-tem' | 'nao-usavel' | 'vida-cheia' | 'caido';
+export type NoticeCode = 'nao-tem' | 'nao-usavel' | 'vida-cheia';
 
 /** S→C: motivo de uma ação recusada, para o cliente mostrar em português. */
 export interface NoticePayload {
   readonly codigo: NoticeCode;
+}
+
+/**
+ * S→C: o jogador ficou sem corações e renasceu. A vida volta cheia na hora e o
+ * jogador reaparece neste ponto; o cliente precisa teleportar a predição, senão
+ * continuaria simulando de onde caiu e o servidor o puxaria de volta aos poucos.
+ */
+export interface RespawnPayload {
+  readonly x: number;
+  readonly y: number;
+  readonly z: number;
+  readonly yaw: number;
 }

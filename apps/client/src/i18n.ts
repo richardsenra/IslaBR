@@ -3,13 +3,12 @@ const ptBR = {
   connecting: 'Conectando…',
   loading: 'Carregando os modelos…',
   disconnected: 'Desconectado',
-  caiu: 'Você caiu! Levantando em instantes…',
+  caiu: 'Você caiu! Voltando ao ponto de partida.',
   /** Por que o servidor recusou usar um item. */
   avisos: {
     'nao-tem': 'Você não tem esse item.',
     'nao-usavel': 'Esse item não se usa assim.',
     'vida-cheia': 'Sua vida já está cheia.',
-    caido: 'Você não consegue usar isso caído.',
   } as const,
   playerCount: (n: number) => (n === 1 ? '1 jogador' : `${n} jogadores`),
   offline: 'Sozinho (sem servidor)',

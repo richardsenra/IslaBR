@@ -1,10 +1,17 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { boot, type ColyseusTestServer } from '@colyseus/testing';
 import { getEnemy } from '@islabr/content';
-import { ARENA_ENEMIES, MSG, ROOM, type NoticePayload, type StatusPayload } from '@islabr/shared';
+import {
+  ARENA_ENEMIES,
+  ARENA_SPAWN,
+  MSG,
+  ROOM,
+  type NoticePayload,
+  type RespawnPayload,
+  type StatusPayload,
+} from '@islabr/shared';
 import { createGameServer } from '../app.js';
 import type { IslandRoom } from './IslandRoom.js';
-import type { PlayerSession } from './playerSession.js';
 import { andarPara, ate, chegarNaM04, escutar, type Sequencia } from './testHelpers.js';
 
 describe('inimigos na sala', () => {
@@ -105,57 +112,55 @@ describe('inimigos na sala', () => {
     expect(sala.state.players.get(client.sessionId)?.coracoes).toBeGreaterThanOrEqual(2.5);
   }, 120_000);
 
-  it('quem cai não anda, levanta depois de alguns segundos, e o cliente é avisado', async () => {
+  it('quem fica sem corações renasce na hora no ponto de partida, com a vida cheia', async () => {
     const sala = await colyseus.createRoom<IslandRoom>(ROOM.island);
-    const client = await colyseus.connectTo(sala, { token: `caido_${Date.now()}_a` });
+    const client = await colyseus.connectTo(sala, { token: `renasce_${Date.now()}_a` });
     const caixa = escutar(client);
+    const voltas: RespawnPayload[] = [];
+    client.onMessage(MSG.respawn, (m: RespawnPayload) => voltas.push(m));
     const seq: Sequencia = { n: 0 };
     await sala.waitForNextPatch();
 
-    // Derruba o jogador como um bicho derrubaria: pela sessão no servidor. O
-    // mapa é privado da sala; o teste só o lê para provocar a queda.
-    const sessoes = (sala as unknown as { sessions: Map<string, PlayerSession> }).sessions;
-    const sessao = sessoes.get(client.sessionId);
-    if (!sessao) throw new Error('sessão do jogador não encontrada');
-    sessao.levarDano(99, Date.now());
-    client.send(MSG.ready, {});
-    await ate(() => caixa.inventarios.at(-1)?.coracoes === 0, 'o cliente saber que caiu');
+    // Anda um pouco para longe do ponto de partida.
+    await andarPara(sala, client, 8, 8, seq, 'longe do ponto de partida');
+    expect(sala.state.players.get(client.sessionId)?.x ?? 0).toBeGreaterThan(5);
 
-    // Caído, uma tentativa de andar é puxada de volta.
-    const antes = sala.state.players.get(client.sessionId);
-    const [x0, z0] = [antes?.x ?? 0, antes?.z ?? 0];
-    seq.n += 1;
-    client.send(MSG.move, {
-      seq: seq.n,
-      x: x0 + 2,
-      y: 0,
-      z: z0,
-      vx: 5,
-      vy: 0,
-      vz: 0,
-      yaw: 0,
-      state: 'run',
-    });
-    await ate(() => caixa.correcoes.length > 0, 'a correção por estar caído');
-    expect(caixa.correcoes[0]?.reason).toBe('caido');
-    expect(sala.state.players.get(client.sessionId)?.x).toBeCloseTo(x0, 3);
-
-    // Passados os segundos de queda, o servidor levanta o jogador E AVISA o cliente.
-    // (Era este aviso que faltava: o cliente ficava caído para sempre.)
-    await ate(
-      () => (caixa.inventarios.at(-1)?.coracoes ?? 0) > 0,
-      'o cliente ser avisado de que levantou',
-      8000,
+    // Derruba o jogador como um bicho derrubaria. As duas peças são privadas da
+    // sala; o teste só as usa para provocar a morte, que o jogo causa pelo dano.
+    const sessao = sala['sessions'].get(client.sessionId);
+    const servidorClient = sala.clients.find(
+      (candidato) => candidato.sessionId === client.sessionId,
     );
-    expect(caixa.inventarios.at(-1)?.coracoes).toBe(3);
+    if (!sessao || !servidorClient) throw new Error('jogador não encontrado na sala');
+    sala['machucar'](servidorClient, sessao, 99, 'teste');
 
-    // De pé, anda de novo.
+    // O servidor manda o ponto de volta, e a vida já chega cheia.
+    await ate(() => voltas.length > 0, 'a mensagem de renascer');
+    expect(voltas[0]).toMatchObject({ x: ARENA_SPAWN.x, z: ARENA_SPAWN.z });
+    await ate(() => caixa.inventarios.at(-1)?.coracoes === 3, 'a vida cheia chegar ao cliente');
+
+    // Na sala, o jogador já está no ponto de partida e vivo.
+    const estado = sala.state.players.get(client.sessionId);
+    expect(estado?.x).toBeCloseTo(ARENA_SPAWN.x, 3);
+    expect(estado?.z).toBeCloseTo(ARENA_SPAWN.z, 3);
+    expect(estado?.coracoes).toBe(3);
+    expect(sessao.vivo).toBe(true);
+
+    // O que vai para o banco é a vida cheia: recarregar a página não o deixa
+    // morto (o bug do F5).
+    expect(sessao.paraSalvar().coracoes).toBe(3);
+
+    // Renasce invulnerável: o primeiro dano logo depois não entra.
+    sala['machucar'](servidorClient, sessao, 1, 'teste');
+    expect(sessao.progress.coracoes).toBe(3);
+
+    // E anda normalmente a partir dali, sem ser puxado de volta.
     seq.n += 1;
     client.send(MSG.move, {
       seq: seq.n,
-      x: x0 + 1,
+      x: ARENA_SPAWN.x + 1,
       y: 0,
-      z: z0,
+      z: ARENA_SPAWN.z,
       vx: 5,
       vy: 0,
       vz: 0,
@@ -164,9 +169,9 @@ describe('inimigos na sala', () => {
     });
     await ate(
       () => sala.state.players.get(client.sessionId)?.seq === seq.n,
-      'andar depois de levantar',
+      'andar depois de renascer',
     );
-    expect(sala.state.players.get(client.sessionId)?.x).toBeCloseTo(x0 + 1, 2);
+    expect(caixa.correcoes).toEqual([]);
   }, 30_000);
 
   it('use_item com pacote torto ou item inventado é ignorado sem derrubar a sala', async () => {

@@ -8,7 +8,7 @@
  */
 
 import type { Box } from './collision.js';
-import { stepPlayer, type MoveInput, type PlayerPhysics } from './movement.js';
+import { spawnPhysics, stepPlayer, type MoveInput, type PlayerPhysics } from './movement.js';
 import type { MoveCorrectionPayload, MovePayload } from './net.js';
 
 interface HistoryEntry {
@@ -56,6 +56,16 @@ export class PredictedPlayer {
       this.history.splice(0, this.history.length - this.maxHistory);
     }
     return this.physics;
+  }
+
+  /**
+   * Põe o jogador num ponto, sem velocidade e sem histórico. É o renascer: os
+   * comandos antigos pertencem ao lugar de onde ele saiu, e reaplicá-los a
+   * partir do ponto novo o arrastaria para longe dele.
+   */
+  teleport(x: number, y: number, z: number, yaw: number): void {
+    this.physics = spawnPhysics(x, y, z, yaw);
+    this.history = [];
   }
 
   toMovePayload(): MovePayload {
