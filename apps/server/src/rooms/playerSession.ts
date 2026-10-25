@@ -21,7 +21,8 @@ import {
   availableQuests,
   canAccept,
   itemCount,
-  melhorArma,
+  armaEmUso,
+  ehArma,
   openChest,
   questProgress,
   type AcceptedMove,
@@ -98,7 +99,7 @@ export class PlayerSession {
 
   /** Arma na mão: a melhor que o jogador tiver (SPEC §7.7). */
   get arma(): string | null {
-    return melhorArma(this.progress.itens);
+    return armaEmUso(this.progress.itens, this.progress.armaEquipada);
   }
 
   /**
@@ -138,6 +139,14 @@ export class PlayerSession {
       const minimo = intervaloMinimoMs(this.ultimoGolpe, golpe) - FOLGA_DE_REDE_MS;
       if (agora - this.ultimoGolpeEm < minimo) return false;
     }
+    return true;
+  }
+
+  /** Escolhe a arma da mão. Só vale arma que o jogador tem. */
+  equipar(itemId: string): boolean {
+    if (!ehArma(itemId) || (this.progress.itens[itemId] ?? 0) <= 0) return false;
+    this.progress = { ...this.progress, armaEquipada: itemId };
+    this.sujo = true;
     return true;
   }
 
@@ -323,6 +332,7 @@ export class PlayerSession {
       coracoesMax: this.progress.coracoesMax,
       itens: this.progress.itens,
       insignias: this.progress.insignias.length,
+      armaEquipada: this.arma,
     };
   }
 

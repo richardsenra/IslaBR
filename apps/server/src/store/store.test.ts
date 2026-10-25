@@ -14,6 +14,7 @@ const PROGRESSO: PlayerProgress = {
   itens: { graveto_reforcado: 1, pocao_pequena: 2 },
   insignias: ['b01'],
   bausAbertos: ['c01'],
+  armaEquipada: 'graveto_reforcado',
 };
 
 const LIVRO: QuestBook = {

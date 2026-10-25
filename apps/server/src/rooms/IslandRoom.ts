@@ -14,6 +14,7 @@ import {
   empurrar,
   empurraoDoGolpe,
   parseAttackPayload,
+  parseEquipPayload,
   parseInteractPayload,
   parseMovePayload,
   parseUseItemPayload,
@@ -83,6 +84,9 @@ export class IslandRoom extends Room<{ state: IslandState }> {
     });
     this.onMessage(MSG.useItem, (client, raw: unknown) => {
       this.onUseItem(client, raw);
+    });
+    this.onMessage(MSG.equip, (client, raw: unknown) => {
+      this.onEquip(client, raw);
     });
     this.onMessage(MSG.ready, (client) => {
       this.enviarSituacao(client);
@@ -414,6 +418,20 @@ export class IslandRoom extends Room<{ state: IslandState }> {
     }
 
     estado.coracoes = session.progress.coracoes;
+    client.send(MSG.inventoryUpdate, session.inventario);
+    void this.salvar(session);
+  }
+
+  /** Trocar a arma da mão: o servidor confere se é arma e se o jogador a tem. */
+  private onEquip(client: Client, raw: unknown): void {
+    const session = this.sessions.get(client.sessionId);
+    const estado = this.state.players.get(client.sessionId);
+    if (!session || !estado) return;
+
+    const payload = parseEquipPayload(raw);
+    if (!payload || !session.equipar(payload.item)) return;
+
+    estado.arma = session.arma ?? '';
     client.send(MSG.inventoryUpdate, session.inventario);
     void this.salvar(session);
   }

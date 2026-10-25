@@ -18,6 +18,8 @@ export interface PlayerProgress {
   readonly insignias: readonly string[];
   /** Baús que este jogador já abriu; a abertura é por jogador (SPEC §4). */
   readonly bausAbertos: readonly string[];
+  /** Arma que o jogador escolheu; `null` usa a melhor que ele tiver. */
+  readonly armaEquipada: string | null;
 }
 
 /** Começa com 3 corações (SPEC §5). */
@@ -33,6 +35,7 @@ export const STARTING_PROGRESS: PlayerProgress = {
   itens: {},
   insignias: [],
   bausAbertos: [],
+  armaEquipada: null,
 };
 
 /** O que o jogador acabou de ganhar, para a mensagem `loot`. */

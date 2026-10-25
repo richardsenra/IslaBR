@@ -90,6 +90,22 @@ export function melhorArma(itens: Readonly<Record<string, number>>): string | nu
   return melhor;
 }
 
+/**
+ * Arma na mão: a que o jogador escolheu, se ainda a tem; senão, a melhor. Se a
+ * escolhida sair do inventário, volta sozinho para a melhor.
+ */
+export function armaEmUso(
+  itens: Readonly<Record<string, number>>,
+  equipada: string | null,
+): string | null {
+  if (equipada !== null && ehArma(equipada) && (itens[equipada] ?? 0) > 0) return equipada;
+  return melhorArma(itens);
+}
+
+export function ehArma(itemId: string): boolean {
+  return Object.hasOwn(WEAPON_DAMAGE, itemId);
+}
+
 export function danoDaArma(arma: string | null): number {
   if (!arma) return 0;
   return WEAPON_DAMAGE[arma] ?? 0;

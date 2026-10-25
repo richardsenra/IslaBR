@@ -56,8 +56,10 @@ const ptBR = {
       guardado: 'Não pode ser vendido nem descartado',
     },
     usar: 'Usar',
+    equipar: 'Equipar',
+    naMao: 'Na mão',
     semNada: 'Você ainda não tem nada.',
-    dica: 'Passe o mouse num item para ver o que ele faz. Dois cliques usam.',
+    dica: 'Passe o mouse num item para ver o que ele faz. Dois cliques usam ou equipam.',
   },
   menu: {
     titulo: 'Pausa',

@@ -35,6 +35,8 @@ export const progress = pgTable('progress', {
   hearts: real('hearts').notNull().default(3),
   coins: integer('coins').notNull().default(0),
   gems: integer('gems').notNull().default(0),
+  /** Arma escolhida pelo jogador; nula usa a melhor que ele tiver. */
+  equippedWeapon: text('equipped_weapon'),
 });
 
 export const inventory = pgTable(

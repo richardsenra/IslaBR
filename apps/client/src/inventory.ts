@@ -108,6 +108,8 @@ export class InventoryPanel {
   /** Item sob o mouse: o detalhe mostra este enquanto o mouse estiver em cima. */
   private sobOMouse: string | null = null;
   private aviso: string | null = null;
+  /** Arma na mão agora, como o servidor diz. */
+  private equipada: string | null = null;
 
   constructor(
     private readonly raiz: HTMLElement,
@@ -115,6 +117,7 @@ export class InventoryPanel {
     private readonly grade: HTMLElement,
     private readonly detalhe: HTMLElement,
     private readonly aoUsar: (itemId: string) => void,
+    private readonly aoEquipar: (itemId: string) => void,
   ) {
     this.raiz.hidden = true;
     this.grade.style.setProperty('--colunas', String(COLUNAS));
@@ -135,8 +138,9 @@ export class InventoryPanel {
     this.raiz.hidden = true;
   }
 
-  atualizar(itens: Readonly<Record<string, number>>): void {
+  atualizar(itens: Readonly<Record<string, number>>, equipada: string | null): void {
     this.pilhas = pilhasDe(itens);
+    this.equipada = equipada;
     // Acabou o item que estava selecionado: a seleção vai embora junto.
     if (this.selecionado && !this.pilhas.some((pilha) => pilha.item.id === this.selecionado)) {
       this.selecionado = null;
@@ -192,12 +196,14 @@ export class InventoryPanel {
       casa.style.setProperty('--cor', COR_POR_TIPO[item.tipo]);
       casa.classList.toggle('selecionada', item.id === this.selecionado);
       casa.classList.toggle('usavel', usavel(item));
+      casa.classList.toggle('equipada', item.id === this.equipada);
       casa.setAttribute('aria-label', item.nome);
 
       const icone = el('span', 'casa-icone');
       icone.innerHTML = ICONE_DO_TIPO[item.tipo];
       casa.appendChild(icone);
       if (qtd > 1) casa.appendChild(el('span', 'qtd', String(qtd)));
+      if (item.id === this.equipada) casa.appendChild(el('span', 'marca-equipada', 'E'));
 
       casa.addEventListener('click', () => {
         this.selecionado = item.id;
@@ -207,6 +213,7 @@ export class InventoryPanel {
       // Dois cliques usam direto, sem passar pelo botão.
       casa.addEventListener('dblclick', () => {
         if (usavel(item)) this.aoUsar(item.id);
+        else if (item.tipo === 'arma') this.aoEquipar(item.id);
       });
       casa.addEventListener('mouseenter', () => {
         this.sobOMouse = item.id;
@@ -255,6 +262,17 @@ export class InventoryPanel {
 
     const selecionado = item.id === this.selecionado;
     if (this.aviso && selecionado) this.detalhe.appendChild(el('p', 'detalhe-aviso', this.aviso));
+
+    if (item.tipo === 'arma') {
+      if (item.id === this.equipada) {
+        this.detalhe.appendChild(el('p', 'detalhe-equipada', t.naMao));
+      } else if (selecionado) {
+        const equipar = el('button', 'botao botao-principal', t.equipar);
+        equipar.type = 'button';
+        equipar.addEventListener('click', () => this.aoEquipar(item.id));
+        this.detalhe.appendChild(equipar);
+      }
+    }
 
     if (usavel(item) && selecionado) {
       const usar = el('button', 'botao botao-principal', t.usar);

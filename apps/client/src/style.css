@@ -838,3 +838,25 @@ kbd {
     0 1px 0 #000,
     0 0 3px #000;
 }
+
+/* Arma na mão: marca no canto da casa e no detalhe. */
+
+.marca-equipada {
+  position: absolute;
+  top: 2px;
+  left: 3px;
+  min-width: 14px;
+  padding: 0 3px;
+  border-radius: 5px;
+  background: var(--destaque);
+  color: #2a1e00;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 14px;
+}
+
+.detalhe-equipada {
+  margin: 8px 0 0;
+  color: var(--destaque);
+  font-weight: 800;
+}

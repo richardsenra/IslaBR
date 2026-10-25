@@ -11,6 +11,7 @@ import {
   COMBO_WINDOW_SECONDS,
   alvosAtingidos,
   areaDoGolpe,
+  armaEmUso,
   empurraoDoGolpe,
   aplicarDano,
   centroDoGolpe,
@@ -311,5 +312,25 @@ describe('mergulho (ataque no ar)', () => {
     expect(empurraoDoGolpe('plunge')).toBeGreaterThan(0);
     expect(empurraoDoGolpe('plunge')).toBeLessThan(empurraoDoGolpe('charged'));
     expect(empurraoDoGolpe('attack1')).toBe(0);
+  });
+});
+
+describe('arma na mão', () => {
+  const ambas = { graveto_reforcado: 1, arma_nv2: 1 };
+
+  it('sem escolha, usa a melhor que tiver', () => {
+    expect(armaEmUso(ambas, null)).toBe('arma_nv2');
+  });
+
+  it('a escolhida vale, mesmo sendo a mais fraca', () => {
+    expect(armaEmUso(ambas, 'graveto_reforcado')).toBe('graveto_reforcado');
+  });
+
+  it('se a escolhida saiu do inventário, volta para a melhor', () => {
+    expect(armaEmUso({ arma_nv2: 1 }, 'graveto_reforcado')).toBe('arma_nv2');
+  });
+
+  it('item que não é arma não fica na mão', () => {
+    expect(armaEmUso({ ...ambas, pocao_pequena: 2 }, 'pocao_pequena')).toBe('arma_nv2');
   });
 });

@@ -43,6 +43,8 @@ export const MSG = {
   interact: 'interact',
   dialogueChoice: 'dialogue_choice',
   useItem: 'use_item',
+  /** C→S: escolher a arma da mão. */
+  equip: 'equip',
   /** S→C: efeito de estado no jogador (lento pela gosma). */
   status: 'status',
   /** S→C: o servidor recusou uma ação e diz por quê (poção com a vida cheia). */
@@ -162,6 +164,8 @@ export interface InventoryUpdatePayload {
   readonly itens: Readonly<Record<string, number>>;
   /** Quantas insígnias da ilha o jogador já achou (SPEC §6, HUD). */
   readonly insignias: number;
+  /** Arma na mão agora: a escolhida, ou a melhor se não escolheu. */
+  readonly armaEquipada: string | null;
 }
 
 /** S→C: o que acabou de entrar no inventário (SPEC §4). */
@@ -222,6 +226,15 @@ export function parseUseItemPayload(raw: unknown): UseItemPayload | null {
   const item = (raw as Record<string, unknown>)['item'];
   if (typeof item !== 'string' || item.length === 0 || item.length > 64) return null;
   return { item };
+}
+
+/** C→S: equipar uma arma do inventário. */
+export interface EquipPayload {
+  readonly item: string;
+}
+
+export function parseEquipPayload(raw: unknown): EquipPayload | null {
+  return parseUseItemPayload(raw);
 }
 
 /** S→C: um efeito de estado que o servidor aplicou no jogador. */

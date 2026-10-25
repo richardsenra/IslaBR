@@ -106,6 +106,7 @@ export interface IslandConnection {
   attack(payload: AttackPayload): void;
   /** Usar item do inventário; o servidor confere e responde. */
   useItem(item: string): void;
+  equip(item: string): void;
   leave(): void;
 }
 
@@ -274,6 +275,11 @@ export async function joinIsland(handlers: IslandHandlers): Promise<IslandConnec
     useItem: (item) => {
       afterLag(() => {
         room.send(MSG.useItem, { item });
+      });
+    },
+    equip: (item) => {
+      afterLag(() => {
+        room.send(MSG.equip, { item });
       });
     },
     leave: () => {

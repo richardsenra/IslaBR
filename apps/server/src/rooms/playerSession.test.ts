@@ -458,3 +458,27 @@ describe('mergulho (ataque no ar)', () => {
     expect(sessao.podeMergulhar(12_000)).toBe(false);
   });
 });
+
+describe('equipar arma', () => {
+  const comAsDuas: PlayerProgress = {
+    ...STARTING_PROGRESS,
+    itens: { graveto_reforcado: 1, arma_nv2: 1, pocao_pequena: 1 },
+  };
+
+  it('troca a arma da mão e marca para salvar', () => {
+    const sessao = jogador(comAsDuas);
+    expect(sessao.arma).toBe('arma_nv2');
+    expect(sessao.equipar('graveto_reforcado')).toBe(true);
+    expect(sessao.arma).toBe('graveto_reforcado');
+    expect(sessao.inventario.armaEquipada).toBe('graveto_reforcado');
+    expect(sessao.sujo).toBe(true);
+    expect(sessao.paraSalvar().armaEquipada).toBe('graveto_reforcado');
+  });
+
+  it('não equipa o que não é arma nem o que o jogador não tem', () => {
+    const sessao = jogador({ ...STARTING_PROGRESS, itens: { graveto_reforcado: 1 } });
+    expect(sessao.equipar('pocao_pequena')).toBe(false);
+    expect(sessao.equipar('arma_nv2')).toBe(false);
+    expect(sessao.arma).toBe('graveto_reforcado');
+  });
+});

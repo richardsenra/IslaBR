@@ -10,7 +10,6 @@ import {
   alturaAcimaDoChao,
   duracaoDoGolpe,
   impactoDoGolpe,
-  melhorArma,
   moveDirectionFromCamera,
   nearestSpot,
   playerColor,
@@ -99,6 +98,9 @@ const inventario = new InventoryPanel(
   byId('inventario-detalhe'),
   (itemId) => {
     connection?.useItem(itemId);
+  },
+  (itemId) => {
+    connection?.equip(itemId);
   },
 );
 
@@ -333,9 +335,9 @@ joinIsland({
   },
   onInventory: (inventory) => {
     hud.setCarteira(inventory);
-    inventario.atualizar(inventory.itens);
+    inventario.atualizar(inventory.itens, inventory.armaEquipada);
     atalhos.atualizar(inventory.itens);
-    localAvatar.equipar(melhorArma(inventory.itens));
+    localAvatar.equipar(inventory.armaEquipada);
   },
   onRespawn: (volta) => {
     local.teleport(volta.x, volta.y, volta.z, volta.yaw);

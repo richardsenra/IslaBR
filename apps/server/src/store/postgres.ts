@@ -95,6 +95,7 @@ export class PostgresStore implements PlayerStore {
         itens: inventario,
         insignias: insignias.map((linha) => linha.badgeId),
         bausAbertos: baus.map((linha) => linha.chestId),
+        armaEquipada: linhaProgresso.equippedWeapon,
       },
       book,
     };
@@ -109,6 +110,7 @@ export class PostgresStore implements PlayerStore {
           gems: progress.joias,
           hearts: progress.coracoes,
           heartsMax: progress.coracoesMax,
+          equippedWeapon: progress.armaEquipada,
         })
         .where(eq(progressTable.playerId, id));
 
