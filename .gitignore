@@ -5,3 +5,5 @@ coverage/
 *.log
 .DS_Store
 .vite/
+temporario/
+apps/client/public/models/teste/
