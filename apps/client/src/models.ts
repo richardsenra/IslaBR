@@ -195,13 +195,64 @@ export function temModelo(nome: string): boolean {
   return templates.has(nome);
 }
 
+/**
+ * Ossos do tronco para cima no esqueleto do KayKit, com os pontos já tirados
+ * pelo carregador (ver `OSSO_DA_MAO` no avatar). O resto (raiz, quadril e
+ * pernas) é a metade de baixo.
+ */
+const OSSOS_DE_CIMA: ReadonlySet<string> = new Set([
+  'spine',
+  'chest',
+  'head',
+  'upperarml',
+  'lowerarml',
+  'wristl',
+  'handl',
+  'handslotl',
+  'upperarmr',
+  'lowerarmr',
+  'wristr',
+  'handr',
+  'handslotr',
+]);
+
+type Metade = 'cima' | 'baixo';
+
+const metades = new Map<string, THREE.AnimationClip>();
+
+/**
+ * O clipe só com as trilhas de uma metade do corpo. As duas metades têm a
+ * duração do original, para tocarem juntas sem escorregar uma da outra.
+ */
+function metadeDo(clip: THREE.AnimationClip, metade: Metade): THREE.AnimationClip {
+  const chave = `${clip.name}#${metade}`;
+  const pronta = metades.get(chave);
+  if (pronta) return pronta;
+  const trilhas = clip.tracks.filter((trilha) => {
+    const osso = trilha.name.slice(0, trilha.name.lastIndexOf('.'));
+    return OSSOS_DE_CIMA.has(osso) === (metade === 'cima');
+  });
+  const nova = new THREE.AnimationClip(chave, clip.duration, trilhas);
+  metades.set(chave, nova);
+  return nova;
+}
+
 export interface ModeloAnimado {
   readonly raiz: THREE.Object3D;
   /**
    * Troca o clipe com mistura de 0,1–0,2 s (SPEC §6). Com `reiniciar`, o mesmo
    * estado toca do começo: dois golpes iguais seguidos precisam de dois swings.
+   *
+   * Com `pernas`, o corpo se divide: do tronco para cima toca `estado` e as
+   * pernas tocam `pernas`. É o golpe dado correndo: sem isto o golpe trava as
+   * pernas e o personagem desliza pelo chão.
    */
-  tocar(estado: CharacterState, mistura: number, reiniciar?: boolean): void;
+  tocar(
+    estado: CharacterState,
+    mistura: number,
+    reiniciar?: boolean,
+    pernas?: CharacterState,
+  ): void;
   /** Com `segurarEm`, o clipe em curso não passa desse instante, em segundos. */
   avancar(dt: number, segurarEm?: number): void;
   descartar(): void;
@@ -213,17 +264,25 @@ export function criarModelo(nome: string): ModeloAnimado | null {
 
   const raiz = cloneSkinned(template);
   const mixer = new THREE.AnimationMixer(raiz);
-  const acoes = new Map<CharacterState, THREE.AnimationAction>();
-  let atual: THREE.AnimationAction | null = null;
-  let estadoAtual: CharacterState | null = null;
+  const acoes = new Map<string, THREE.AnimationAction>();
 
-  const acaoDe = (estado: CharacterState): THREE.AnimationAction | null => {
-    const pronta = acoes.get(estado);
+  /** Cada metade do corpo é uma camada com o seu clipe atual. */
+  const camadas: Record<
+    Metade,
+    { acao: THREE.AnimationAction | null; estado: CharacterState | null }
+  > = {
+    cima: { acao: null, estado: null },
+    baixo: { acao: null, estado: null },
+  };
+
+  const acaoDe = (estado: CharacterState, metade: Metade): THREE.AnimationAction | null => {
+    const chave = `${estado}#${metade}`;
+    const pronta = acoes.get(chave);
     if (pronta) return pronta;
     for (const nomeClipe of CLIP_BY_STATE[estado]) {
       const clip = clips.get(nomeClipe);
       if (!clip) continue;
-      const acao = mixer.clipAction(clip, raiz);
+      const acao = mixer.clipAction(metadeDo(clip, metade), raiz);
       if (ONCE.has(estado)) {
         acao.setLoop(THREE.LoopOnce, 1);
         acao.clampWhenFinished = true;
@@ -235,26 +294,50 @@ export function criarModelo(nome: string): ModeloAnimado | null {
       } else if (duracao !== undefined && clip.duration > 0) {
         acao.setEffectiveTimeScale(clip.duration / duracao);
       }
-      acoes.set(estado, acao);
+      acoes.set(chave, acao);
       return acao;
     }
     return null;
   };
 
+  /** Troca o clipe de uma camada; devolve a ação nova, se trocou. */
+  const trocar = (
+    metade: Metade,
+    estado: CharacterState,
+    mistura: number,
+    reiniciar: boolean,
+  ): THREE.AnimationAction | null => {
+    const camada = camadas[metade];
+    if (estado === camada.estado && !reiniciar) return null;
+    const proxima = acaoDe(estado, metade);
+    if (!proxima) return null;
+    camada.estado = estado;
+    proxima.reset().play();
+    if (camada.acao && camada.acao !== proxima) proxima.crossFadeFrom(camada.acao, mistura, false);
+    camada.acao = proxima;
+    return proxima;
+  };
+
   return {
     raiz,
-    tocar(estado, mistura, reiniciar = false) {
-      if (estado === estadoAtual && !reiniciar) return;
-      const proxima = acaoDe(estado);
-      if (!proxima) return;
-      estadoAtual = estado;
-      proxima.reset().play();
-      if (atual && atual !== proxima) proxima.crossFadeFrom(atual, mistura, false);
-      atual = proxima;
+    tocar(estado, mistura, reiniciar = false, pernas) {
+      trocar('cima', estado, mistura, reiniciar);
+      // As pernas só recomeçam junto quando fazem o mesmo golpe que o tronco;
+      // correndo, recomeçar a corrida a cada golpe faria o passo engasgar.
+      const nova = trocar('baixo', pernas ?? estado, mistura, reiniciar && pernas === undefined);
+      // Parou de correr no meio do golpe: as pernas entram no golpe no mesmo
+      // ponto em que o tronco está, e não do começo.
+      const { cima } = camadas;
+      if (nova && !reiniciar && pernas === undefined && cima.acao && cima.estado === estado) {
+        nova.time = cima.acao.time;
+      }
     },
     avancar(dt, segurarEm) {
       mixer.update(dt);
-      if (segurarEm !== undefined && atual && atual.time > segurarEm) atual.time = segurarEm;
+      if (segurarEm === undefined) return;
+      for (const camada of Object.values(camadas)) {
+        if (camada.acao && camada.acao.time > segurarEm) camada.acao.time = segurarEm;
+      }
     },
     descartar() {
       mixer.stopAllAction();

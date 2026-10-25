@@ -152,9 +152,16 @@ export class Avatar {
    * Com `reiniciar`, o estado toca do começo mesmo que já seja o atual: é o que
    * faz dois golpes iguais seguidos darem duas animações.
    */
-  animate(state: CharacterState, dt: number, reiniciar = false, mergulhando = false): void {
+  /** `pernas`: o que as pernas fazem enquanto o tronco golpeia (ver `ModeloAnimado`). */
+  animate(
+    state: CharacterState,
+    dt: number,
+    reiniciar = false,
+    mergulhando = false,
+    pernas?: CharacterState,
+  ): void {
     if (this.modelo) {
-      this.modelo.tocar(state, STATE_BLEND_SECONDS, reiniciar);
+      this.modelo.tocar(state, STATE_BLEND_SECONDS, reiniciar, pernas);
       this.modelo.avancar(dt, mergulhando ? POSE_DO_MERGULHO_S : undefined);
       return;
     }

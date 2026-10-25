@@ -196,6 +196,32 @@ scene.add(localAvatar.root);
 interface RemoteAvatar {
   readonly avatar: Avatar;
   readonly buffer: SnapshotBuffer;
+  /** Onde estava no quadro anterior, para saber se está andando. */
+  ultimoX: number;
+  ultimoZ: number;
+}
+
+/** Golpes que o tronco dá enquanto as pernas fazem outra coisa. */
+const GOLPES_DE_TRONCO: ReadonlySet<CharacterState> = new Set<CharacterState>([
+  'attack1',
+  'attack2',
+  'attack3',
+  'charged',
+]);
+/** O que as pernas podem fazer durante um golpe: correr, subir e cair. */
+const PERNAS_EM_MOVIMENTO: ReadonlySet<CharacterState> = new Set<CharacterState>([
+  'run',
+  'jump',
+  'fall',
+]);
+
+/**
+ * Golpe dado andando ou no ar: as pernas seguem o corpo em vez de travar na
+ * pose do golpe, que fazia o personagem deslizar pelo chão. Parado, `undefined`:
+ * o golpe toca no corpo todo, com o passo de apoio das pernas.
+ */
+function pernasDoGolpe(estado: CharacterState, corpo: CharacterState): CharacterState | undefined {
+  return GOLPES_DE_TRONCO.has(estado) && PERNAS_EM_MOVIMENTO.has(corpo) ? corpo : undefined;
 }
 
 const remotes = new Map<string, RemoteAvatar>();
@@ -259,7 +285,7 @@ function onPatch(
       const modelo = modeloDoJogador(player.colorIndex);
       const avatar = new Avatar({ modelo, cor: playerColor(player.colorIndex) });
       scene.add(avatar.root);
-      remote = { avatar, buffer: new SnapshotBuffer() };
+      remote = { avatar, buffer: new SnapshotBuffer(), ultimoX: player.x, ultimoZ: player.z };
       remotes.set(player.sessionId, remote);
     }
     remote.avatar.equipar(player.arma === '' ? null : player.arma);
@@ -632,7 +658,13 @@ renderer.setAnimationLoop((now) => {
   localAvatar.setOpacidade(opacidadeLocal);
 
   localAvatar.place(player.x, player.y, player.z, yawVisual);
-  localAvatar.animate(estadoVisual, dtAnim, golpeAnimado !== gatilhoVisual, mergulhando);
+  localAvatar.animate(
+    estadoVisual,
+    dtAnim,
+    golpeAnimado !== gatilhoVisual,
+    mergulhando,
+    pernasDoGolpe(estadoVisual, player.state),
+  );
   golpeAnimado = gatilhoVisual;
 
   follow.update(player.x, player.y, player.z, ARENA_COLLIDERS, dt);
@@ -645,7 +677,18 @@ renderer.setAnimationLoop((now) => {
     const pose = remote.buffer.sample(now);
     if (!pose) continue;
     remote.avatar.place(pose.x, pose.y, pose.z, pose.yaw);
-    remote.avatar.animate(pose.state, dtAnim);
+    // Do outro jogador só chega a pose; se ele andou desde o último quadro, as
+    // pernas correm enquanto ele golpeia.
+    const andou = Math.hypot(pose.x - remote.ultimoX, pose.z - remote.ultimoZ) > 0.01;
+    remote.ultimoX = pose.x;
+    remote.ultimoZ = pose.z;
+    remote.avatar.animate(
+      pose.state,
+      dtAnim,
+      false,
+      false,
+      pernasDoGolpe(pose.state, andou ? 'run' : 'idle'),
+    );
   }
 
   cargaEl.hidden = true;
