@@ -1,3 +1,17 @@
+/* Paleta da interface: painéis escuros e quentes, destaque em amarelo-sol. */
+:root {
+  --painel: rgb(28 24 40 / 92%);
+  --painel-claro: rgb(255 255 255 / 7%);
+  --borda: rgb(255 255 255 / 14%);
+  --texto: #fff8ec;
+  --texto-suave: rgb(255 248 236 / 65%);
+  --destaque: #ffd23f;
+  --destaque-escuro: #c99a12;
+  --perigo: #ff6b6b;
+  --sombra: 0 6px 0 rgb(0 0 0 / 25%), 0 12px 28px rgb(0 0 0 / 35%);
+  --raio: 16px;
+}
+
 html,
 body {
   margin: 0;
@@ -43,10 +57,10 @@ body {
 #help {
   position: fixed;
   bottom: 12px;
-  left: 12px;
   right: 12px;
   font-weight: 400;
-  text-align: center;
+  font-size: 12px;
+  opacity: 0.75;
 }
 
 #carteira {
@@ -294,4 +308,190 @@ body {
   opacity: 0;
   transition: opacity 0.3s ease-out;
   background: radial-gradient(ellipse at center, transparent 40%, rgb(120 200 60 / 45%) 100%);
+}
+
+/* Menu do Esc. */
+
+#menu {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgb(10 8 20 / 55%);
+  backdrop-filter: blur(4px);
+  color: var(--texto);
+  z-index: 10;
+}
+
+#menu[hidden] {
+  display: none;
+}
+
+.menu-painel {
+  width: min(460px, calc(100% - 32px));
+  padding: 22px 24px 24px;
+  border: 2px solid var(--borda);
+  border-radius: var(--raio);
+  background: var(--painel);
+  box-shadow: var(--sombra);
+}
+
+.menu-titulo {
+  margin: 0 0 14px;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--destaque);
+  text-shadow: 0 3px 0 rgb(0 0 0 / 35%);
+}
+
+.menu-abas {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.menu-aba,
+.aba {
+  flex: 1;
+  padding: 8px 10px;
+  border: 2px solid var(--borda);
+  border-radius: 10px;
+  background: var(--painel-claro);
+  color: var(--texto-suave);
+  font: inherit;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.menu-aba:hover,
+.aba:hover {
+  color: var(--texto);
+}
+
+.menu-aba.ativa,
+.aba.ativa {
+  border-color: var(--destaque);
+  background: rgb(255 210 63 / 14%);
+  color: var(--destaque);
+}
+
+.menu-secao[hidden] {
+  display: none;
+}
+
+.botao {
+  padding: 12px 18px;
+  border: none;
+  border-radius: 12px;
+  font: inherit;
+  font-weight: 800;
+  font-size: 17px;
+  cursor: pointer;
+}
+
+.botao-principal {
+  width: 100%;
+  background: var(--destaque);
+  color: #2a1e00;
+  box-shadow: 0 4px 0 var(--destaque-escuro);
+}
+
+.botao-principal:hover {
+  filter: brightness(1.06);
+}
+
+.botao-principal:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--destaque-escuro);
+}
+
+.menu-dica {
+  margin: 14px 0 0;
+  font-size: 13px;
+  color: var(--texto-suave);
+  text-align: center;
+}
+
+.menu-linha {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--borda);
+}
+
+.menu-linha:last-child {
+  border-bottom: none;
+}
+
+.menu-rotulo {
+  flex: 1;
+  font-weight: 600;
+}
+
+.menu-valor {
+  min-width: 52px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--destaque);
+  font-weight: 700;
+}
+
+.menu-linha input[type='range'] {
+  width: 140px;
+  accent-color: var(--destaque);
+}
+
+.menu-linha input[type='checkbox'] {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--destaque);
+}
+
+.menu-linha select {
+  padding: 6px 10px;
+  border: 2px solid var(--borda);
+  border-radius: 8px;
+  background: #2e2840;
+  color: var(--texto);
+  font: inherit;
+}
+
+.menu-controles {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px 16px;
+  margin: 0;
+  align-items: center;
+}
+
+.menu-controles dt {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+}
+
+.menu-controles dd {
+  margin: 0;
+  color: var(--texto-suave);
+}
+
+kbd {
+  padding: 2px 8px;
+  border: 1px solid var(--borda);
+  border-bottom-width: 3px;
+  border-radius: 6px;
+  background: var(--painel-claro);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+@media (max-width: 520px) {
+  .menu-linha input[type='range'] {
+    width: 100px;
+  }
 }

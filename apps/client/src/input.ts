@@ -44,6 +44,9 @@ export class InputReader {
   private queuedClicks = 0;
   /** Evita disparar mais de um charged no mesmo segurar de botão. */
   private chargedFired = false;
+  /** Preferências do menu: multiplicador do mouse e eixo vertical invertido. */
+  private sensibilidade = 1;
+  private inverterY = false;
 
   constructor(private readonly canvas: HTMLCanvasElement) {
     window.addEventListener('keydown', this.onKeyDown);
@@ -63,6 +66,16 @@ export class InputReader {
     this.canvas.removeEventListener('mousedown', this.onMouseDown);
     this.canvas.removeEventListener('mousemove', this.onMouseMove);
     this.canvas.removeEventListener('wheel', this.onWheel);
+  }
+
+  configurar(opcoes: { readonly sensibilidade: number; readonly inverterY: boolean }): void {
+    this.sensibilidade = opcoes.sensibilidade;
+    this.inverterY = opcoes.inverterY;
+  }
+
+  /** Esquece teclas seguradas e cliques na fila (ao abrir o menu, por exemplo). */
+  soltarTudo(): void {
+    this.onBlur();
   }
 
   /**
@@ -198,8 +211,9 @@ export class InputReader {
 
   private readonly onMouseMove = (event: MouseEvent): void => {
     if (document.pointerLockElement !== this.canvas) return;
-    this.lookYaw -= event.movementX * MOUSE_SENSITIVITY;
-    this.lookPitch += event.movementY * MOUSE_SENSITIVITY;
+    const escala = MOUSE_SENSITIVITY * this.sensibilidade;
+    this.lookYaw -= event.movementX * escala;
+    this.lookPitch += event.movementY * escala * (this.inverterY ? -1 : 1);
   };
 
   private readonly onWheel = (event: WheelEvent): void => {

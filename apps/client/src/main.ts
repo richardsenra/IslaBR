@@ -39,7 +39,9 @@ import {
   type NetEnemy,
   type NetPlayer,
 } from './network.js';
+import { PauseMenu } from './menu.js';
 import { createStage } from './scene.js';
+import { carregarConfiguracoes, pixelRatioDa, type Configuracoes } from './settings.js';
 import { Spots } from './spots.js';
 import { createArena } from './world.js';
 
@@ -98,6 +100,61 @@ const inventario = new InventoryPanel(
 );
 
 const { scene, camera, renderer } = createStage(canvas);
+
+let config = carregarConfiguracoes();
+const debugEl = byId('debug');
+function aplicarConfiguracoes(nova: Configuracoes): void {
+  config = nova;
+  input.configurar(nova);
+  debugEl.hidden = !nova.mostrarDebug;
+  renderer.setPixelRatio(pixelRatioDa(nova.qualidade, window.devicePixelRatio));
+}
+
+/**
+ * O navegador solta o mouse capturado no Esc, e aí o menu abre. Quando quem
+ * solta é o próprio jogo (abrir o inventário), o menu não deve abrir.
+ */
+let soltandoDePropósito = false;
+let soltouEm = 0;
+function soltarPonteiro(): void {
+  if (document.pointerLockElement !== canvas) return;
+  soltandoDePropósito = true;
+  document.exitPointerLock();
+}
+function capturarPonteiro(): void {
+  // Logo depois de um Esc o navegador recusa capturar de novo; o próximo clique
+  // no jogo captura.
+  canvas.requestPointerLock()?.catch(() => undefined);
+}
+
+const menu = new PauseMenu(byId('menu'), config, aplicarConfiguracoes, () => {
+  menu.fechar();
+  capturarPonteiro();
+});
+
+document.addEventListener('pointerlockchange', () => {
+  if (document.pointerLockElement === canvas) return;
+  soltouEm = performance.now();
+  if (soltandoDePropósito) {
+    soltandoDePropósito = false;
+    return;
+  }
+  if (!inventario.aberto) menu.abrir();
+});
+
+window.addEventListener('keydown', (event) => {
+  if (event.code !== 'Escape' || event.repeat) return;
+  // O mesmo Esc que soltou o mouse já abriu o menu; não fecha de novo.
+  if (performance.now() - soltouEm < 300) return;
+  if (menu.aberto) {
+    menu.fechar();
+    capturarPonteiro();
+  } else if (inventario.aberto) {
+    inventario.alternar();
+  } else {
+    menu.abrir();
+  }
+});
 scene.add(createArena());
 
 hud.setStatus(ui.loading);
@@ -117,6 +174,7 @@ const rastros = new Rastros();
 scene.add(rastros.group);
 
 const input = new InputReader(canvas);
+aplicarConfiguracoes(config);
 const follow = new ThirdPersonCamera(camera, ARENA_SPAWN.yaw);
 
 const local = new PredictedPlayer(
@@ -410,12 +468,21 @@ renderer.setAnimationLoop((now) => {
     }
   }
 
+  // Com o menu aberto o jogo não lê teclado nem mouse: o mundo segue, o
+  // personagem fica parado.
+  if (menu.aberto) {
+    input.soltarTudo();
+    direction.x = 0;
+    direction.z = 0;
+  }
+
   let jump = input.consumeJump();
   let dodge = input.consumeDodge();
   const interagir = input.consumeInteract();
 
   if (input.consumeInventory() && inventario.alternar()) {
-    document.exitPointerLock();
+    // O cursor precisa voltar para dar para clicar nos itens.
+    soltarPonteiro();
   }
   if (inventario.aberto) {
     for (let casa = 0; casa < 9; casa += 1) {
