@@ -160,6 +160,8 @@ export interface InventoryUpdatePayload {
   readonly coracoes: number;
   readonly coracoesMax: number;
   readonly itens: Readonly<Record<string, number>>;
+  /** Quantas insígnias da ilha o jogador já achou (SPEC §6, HUD). */
+  readonly insignias: number;
 }
 
 /** S→C: o que acabou de entrar no inventário (SPEC §4). */

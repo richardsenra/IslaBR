@@ -57,6 +57,7 @@ const hud = new Hud(
     players: byId('players'),
     debug: byId('debug'),
     help: byId('help'),
+    coracoes: byId('coracoes'),
     carteira: byId('carteira'),
     objetivo: byId('objetivo'),
     loot: byId('loot'),

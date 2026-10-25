@@ -322,6 +322,7 @@ export class PlayerSession {
       coracoes: this.progress.coracoes,
       coracoesMax: this.progress.coracoesMax,
       itens: this.progress.itens,
+      insignias: this.progress.insignias.length,
     };
   }
 

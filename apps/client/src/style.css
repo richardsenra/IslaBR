@@ -63,30 +63,6 @@ body {
   opacity: 0.75;
 }
 
-#carteira {
-  position: fixed;
-  top: 12px;
-  left: 12px;
-  font-size: 18px;
-  letter-spacing: 2px;
-}
-
-#objetivo {
-  position: fixed;
-  top: 54px;
-  left: 12px;
-  max-width: 320px;
-  background: rgb(0 0 0 / 55%);
-  border-left: 4px solid #ffd23f;
-}
-
-#loot {
-  position: fixed;
-  top: 100px;
-  left: 12px;
-  background: rgb(26 90 42 / 85%);
-}
-
 #dialogo {
   position: fixed;
   left: 50%;
@@ -288,18 +264,6 @@ body {
   opacity: 0.9;
 }
 
-#notice {
-  position: fixed;
-  top: 30%;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgb(60 60 90 / 90%);
-}
-
-#notice[hidden] {
-  display: none;
-}
-
 /* Gosma do sapo: a tela esverdeia enquanto o jogador está lento. */
 #gosma {
   position: fixed;
@@ -494,4 +458,220 @@ kbd {
   .menu-linha input[type='range'] {
     width: 100px;
   }
+}
+
+/* HUD do jogador: corações, carteira, objetivo e loot, no canto superior esquerdo. */
+
+#status-jogador {
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  max-width: 330px;
+  color: var(--texto);
+  pointer-events: none;
+}
+
+#coracoes {
+  display: flex;
+  gap: 3px;
+  filter: drop-shadow(0 3px 0 rgb(0 0 0 / 25%));
+}
+
+.coracao {
+  width: 34px;
+  height: 34px;
+}
+
+.coracao svg {
+  width: 100%;
+  height: 100%;
+}
+
+.coracao.vazio .cheio {
+  display: none;
+}
+
+.coracao.meio .cheio {
+  clip-path: inset(0 50% 0 0);
+}
+
+/* Corações emprestados da Poção Heróica: dourados. */
+.coracao.extra .cheio path:first-child {
+  fill: #ffcf33;
+}
+
+#coracoes.perdeu {
+  animation: tremer-coracoes 0.35s ease-out;
+}
+
+@keyframes tremer-coracoes {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-5px) rotate(-2deg);
+  }
+  45% {
+    transform: translateX(4px) rotate(1.5deg);
+  }
+  70% {
+    transform: translateX(-2px);
+  }
+}
+
+#carteira {
+  display: flex;
+  gap: 6px;
+}
+
+.contador {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 12px 3px 4px;
+  border: 2px solid var(--borda);
+  border-radius: 999px;
+  background: var(--painel);
+  box-shadow: 0 3px 0 rgb(0 0 0 / 25%);
+  font-weight: 800;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.icone {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  flex: none;
+}
+
+.icone svg {
+  width: 100%;
+  height: 100%;
+}
+
+#objetivo {
+  position: relative;
+  min-width: 220px;
+  padding: 10px 14px 12px;
+  border: 2px solid var(--borda);
+  border-left: 5px solid var(--destaque);
+  border-radius: 12px;
+  background: var(--painel);
+  box-shadow: 0 3px 0 rgb(0 0 0 / 25%);
+}
+
+#objetivo[hidden],
+#loot[hidden] {
+  display: none;
+}
+
+.objetivo-rotulo {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--destaque);
+}
+
+.objetivo-titulo {
+  margin-top: 2px;
+  font-weight: 800;
+  font-size: 15px;
+}
+
+.objetivo-texto {
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--texto-suave);
+}
+
+.objetivo-barra {
+  height: 6px;
+  margin-top: 8px;
+  margin-right: 44px;
+  border-radius: 3px;
+  background: rgb(255 255 255 / 12%);
+  overflow: hidden;
+}
+
+.objetivo-barra-cheia {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--destaque);
+  transition: width 0.3s ease-out;
+}
+
+.objetivo-conta {
+  position: absolute;
+  right: 14px;
+  bottom: 7px;
+  font-size: 12px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+#loot {
+  padding: 8px 14px 10px;
+  border: 2px solid rgb(123 211 79 / 55%);
+  border-radius: 12px;
+  background: rgb(22 52 30 / 92%);
+  box-shadow: 0 3px 0 rgb(0 0 0 / 25%);
+}
+
+#loot.entrando {
+  animation: entrar-loot 0.25s ease-out;
+}
+
+@keyframes entrar-loot {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+}
+
+.loot-titulo {
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #9be37a;
+}
+
+.loot-linha {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0;
+  font-weight: 700;
+}
+
+.loot-linha .icone {
+  width: 20px;
+  height: 20px;
+}
+
+#notice {
+  position: fixed;
+  top: 28%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 18px;
+  border: 2px solid var(--borda);
+  border-radius: 12px;
+  background: var(--painel);
+  box-shadow: var(--sombra);
+  color: var(--texto);
+  font-size: 16px;
+}
+
+#notice[hidden] {
+  display: none;
 }

@@ -13,6 +13,17 @@ const ptBR = {
   playerCount: (n: number) => (n === 1 ? '1 jogador' : `${n} jogadores`),
   offline: 'Sozinho (sem servidor)',
   controls: 'Esc menu e controles · I inventário',
+  hud: {
+    missao: 'Missão',
+    moedas: 'Moedas',
+    joias: 'Joias',
+    insignias: 'Insígnias da ilha',
+    recebeu: 'Você recebeu',
+    qtdMoedas: (n: number) => (n === 1 ? '1 moeda' : `${n} moedas`),
+    qtdJoias: (n: number) => (n === 1 ? '1 joia' : `${n} joias`),
+    coracoes: (atual: number, max: number) =>
+      `${String(atual).replace('.', ',')} de ${max} corações`,
+  },
   menu: {
     titulo: 'Pausa',
     abaJogo: 'Jogo',
