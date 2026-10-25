@@ -39,6 +39,7 @@ import {
   type NetEnemy,
   type NetPlayer,
 } from './network.js';
+import { CASAS_DA_BARRA, Hotbar } from './hotbar.js';
 import { PauseMenu } from './menu.js';
 import { createStage } from './scene.js';
 import { carregarConfiguracoes, pixelRatioDa, type Configuracoes } from './settings.js';
@@ -100,6 +101,10 @@ const inventario = new InventoryPanel(
     connection?.useItem(itemId);
   },
 );
+
+const atalhos = new Hotbar(byId('atalhos'), (itemId) => {
+  connection?.useItem(itemId);
+});
 
 const { scene, camera, renderer } = createStage(canvas);
 
@@ -329,6 +334,7 @@ joinIsland({
   onInventory: (inventory) => {
     hud.setCarteira(inventory);
     inventario.atualizar(inventory.itens);
+    atalhos.atualizar(inventory.itens);
     localAvatar.equipar(melhorArma(inventory.itens));
   },
   onRespawn: (volta) => {
@@ -485,6 +491,9 @@ renderer.setAnimationLoop((now) => {
   if (input.consumeInventory() && inventario.alternar()) {
     // O cursor precisa voltar para dar para clicar nos itens.
     soltarPonteiro();
+  }
+  for (let casa = 0; casa < CASAS_DA_BARRA; casa += 1) {
+    if (input.consumeKey(`Digit${casa + 1}`)) atalhos.usar(casa);
   }
   const lento = now < lentoAte;
   gosmaEl.style.opacity = lento ? '1' : '0';
