@@ -1,52 +1,52 @@
 {
-"nara_ocioso": {
-  "npc": "npc_nara",
-  "caixas": [
-    "Pisa devagar nesse cais. Tem tábua solta aqui que já derrubou marinheiro mais experiente que você.",
-    "Se veio atrás de trabalho, pode falar comigo. Sempre tem alguma coisa precisando de atenção por aqui.",
-    "Já conferiu seu equipamento? Um bom marinheiro sabe que é melhor se preparar antes de partir."
-  ]
-},
-"bento_ocioso": {
-  "npc": "npc_bento",
-  "caixas": [
-    "Essa ilha tem bicho pra tudo. Caranguejo, mosquito, sapo e gente que não sabe cuidar da própria horta.",
-    "Na loja aqui do lado tem poção, quando eu lembro de repor. Minha memória anda ótima, só esqueço onde deixo as coisas.",
-    "Se estiver com fome, procure alguma fruta madura. Só não mexa nas da minha horta sem pedir!"
-  ]
-},
-"iracema_ocioso": {
-  "npc": "npc_iracema",
-  "caixas": [
-    "Cheiro forte? É o chá. Ou o caldeirão. Um dos dois. Ainda estou aperfeiçoando a receita.",
-    "Se você se machucar, volta aqui na varanda que eu dou conta. Só não me apareça com uma mordida de caranguejo e diga que foi uma batalha épica.",
-    "Estou tentando aperfeiçoar uma mistura de ervas. Se sair fumaça roxa do caldeirão, não se preocupe... provavelmente é normal."
-  ]
-},
-"calango_ocioso": {
-  "npc": "npc_calango",
-  "caixas": [
-    "Eu sou mago formado, viu? Só não me pergunta onde está o diploma. A última vez que o vi, ele estava embaixo de uma panela.",
-    "A bancada é logo ali. Mexa nela com cuidado, ela range. Não é assombração, é só uma perna bamba. Provavelmente.",
-    "Estou tentando inventar uma poção que deixe o cabelo crescer mais rápido. Até agora, só consegui fazer crescer uma sobrancelha."
-  ]
-},
-"tito_ocioso": {
-  "npc": "npc_tito",
-  "caixas": [
-    "Peixe aqui não morde mais. Quer dizer, alguns mordem. Mas eu sou rápido o suficiente para não deixar isso acontecer duas vezes!",
-    "Eu fico nessa pedra. Vista boa e, se vier bicho, eu corro primeiro. Estratégia de sobrevivência.",
-    "Um dia ainda vou pescar um peixe tão grande que vou precisar de uma carroça para levar para casa. Pode anotar!"
-  ]
-},
-"anselmo_ocioso": {
-  "npc": "npc_anselmo",
-  "caixas": [
-    "Fóssil é jornal velho da natureza. E eu leio tudo. Infelizmente, a natureza não tem uma seção de classificados.",
-    "Fique por aqui na entrada. Lá dentro ainda é molhado demais para minhas anotações.",
-    "Estou catalogando minhas descobertas. Já perdi três lápis, duas folhas e quase perdi a paciência. A pesquisa científica exige sacrifícios."
-  ]
-},
+  "nara_ocioso": {
+    "npc": "npc_nara",
+    "caixas": [
+      "Pisa devagar nesse cais. Tem tábua solta aqui que já derrubou marinheiro mais experiente que você.",
+      "Se veio atrás de trabalho, pode falar comigo. Sempre tem alguma coisa precisando de atenção por aqui.",
+      "Já conferiu seu equipamento? Um bom marinheiro sabe que é melhor se preparar antes de partir."
+    ]
+  },
+  "bento_ocioso": {
+    "npc": "npc_bento",
+    "caixas": [
+      "Essa ilha tem bicho pra tudo. Caranguejo, mosquito, sapo e gente que não sabe cuidar da própria horta.",
+      "Na loja aqui do lado tem poção, quando eu lembro de repor. Minha memória anda ótima, só esqueço onde deixo as coisas.",
+      "Se estiver com fome, procure alguma fruta madura. Só não mexa nas da minha horta sem pedir!"
+    ]
+  },
+  "iracema_ocioso": {
+    "npc": "npc_iracema",
+    "caixas": [
+      "Cheiro forte? É o chá. Ou o caldeirão. Um dos dois. Ainda estou aperfeiçoando a receita.",
+      "Se você se machucar, volta aqui na varanda que eu dou conta. Só não me apareça com uma mordida de caranguejo e diga que foi uma batalha épica.",
+      "Estou tentando aperfeiçoar uma mistura de ervas. Se sair fumaça roxa do caldeirão, não se preocupe... provavelmente é normal."
+    ]
+  },
+  "calango_ocioso": {
+    "npc": "npc_calango",
+    "caixas": [
+      "Eu sou mago formado, viu? Só não me pergunta onde está o diploma. A última vez que o vi, ele estava embaixo de uma panela.",
+      "A bancada é logo ali. Mexa nela com cuidado, ela range. Não é assombração, é só uma perna bamba. Provavelmente.",
+      "Estou tentando inventar uma poção que deixe o cabelo crescer mais rápido. Até agora, só consegui fazer crescer uma sobrancelha."
+    ]
+  },
+  "tito_ocioso": {
+    "npc": "npc_tito",
+    "caixas": [
+      "Peixe aqui não morde mais. Quer dizer, alguns mordem. Mas eu sou rápido o suficiente para não deixar isso acontecer duas vezes!",
+      "Eu fico nessa pedra. Vista boa e, se vier bicho, eu corro primeiro. Estratégia de sobrevivência.",
+      "Um dia ainda vou pescar um peixe tão grande que vou precisar de uma carroça para levar para casa. Pode anotar!"
+    ]
+  },
+  "anselmo_ocioso": {
+    "npc": "npc_anselmo",
+    "caixas": [
+      "Fóssil é jornal velho da natureza. E eu leio tudo. Infelizmente, a natureza não tem uma seção de classificados.",
+      "Fique por aqui na entrada. Lá dentro ainda é molhado demais para minhas anotações.",
+      "Estou catalogando minhas descobertas. Já perdi três lápis, duas folhas e quase perdi a paciência. A pesquisa científica exige sacrifícios."
+    ]
+  },
 
   "nara_m01_intro": {
     "npc": "npc_nara",
