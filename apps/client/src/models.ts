@@ -73,8 +73,9 @@ const CLIP_BY_STATE: Readonly<Record<CharacterState, readonly string[]>> = {
   attack1: ['Melee_1H_Attack_Slice_Diagonal', 'Idle_A'],
   attack2: ['Melee_1H_Attack_Slice_Horizontal', 'Idle_A'],
   attack3: ['Melee_1H_Attack_Chop', 'Idle_A'],
-  // Carregado: salto com golpe de cima, em vez do giro, que não passava peso.
-  charged: ['Melee_1H_Attack_Jump_Chop', 'Idle_A'],
+  // O carregado não toca clipe próprio: o main troca entre os três golpes normais
+  // em sequência rápida (rajada). Este é só o reserva, para o mapa ficar completo.
+  charged: ['Melee_1H_Attack_Chop', 'Idle_A'],
 };
 
 /**
@@ -91,7 +92,7 @@ const IMPACTO_NO_CLIPE: Readonly<Partial<Record<CharacterState, number>>> = {
   attack1: 0.42,
   attack2: 0.28,
   attack3: 0.62,
-  charged: 0.75,
+  charged: 0.62,
 };
 
 /** Quanto a esquiva deve durar na tela: esta, sim, cabe inteira. */

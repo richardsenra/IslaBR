@@ -2,6 +2,8 @@ import { getEnemy } from '@islabr/content';
 import {
   ATTACK_RADIUS,
   ATTACK_REACH,
+  CHARGED_RADIUS,
+  CHARGED_REACH,
   alvosAtingidos,
   danoNoJogador,
   golpeDeFrente,
@@ -12,12 +14,6 @@ import {
   type Sorteio,
 } from '@islabr/shared';
 import { levarGolpe, type EnemyRuntime } from './enemyAI.js';
-
-/**
- * Resolve um golpe do jogador contra os inimigos da sala (SPEC §4: o servidor
- * é a autoridade de dano e drop). Separado da sala para dar para testar sem
- * subir servidor.
- */
 
 export interface AcertoNoInimigo {
   readonly inimigo: EnemyRuntime;
@@ -48,12 +44,16 @@ export function resolverAtaque(
   sorteio: Sorteio,
 ): ResultadoDoAtaque {
   const vivos = inimigos.filter((inimigo) => inimigo.estado !== 'morto');
+
+  const alcance = golpe === 'charged' ? CHARGED_REACH : ATTACK_REACH;
+  const raio = golpe === 'charged' ? CHARGED_RADIUS : ATTACK_RADIUS;
+
   const alvos = alvosAtingidos(
     atacante,
     atacante.yaw,
     vivos.map((inimigo) => ({ id: inimigo.id, x: inimigo.x, y: inimigo.y, z: inimigo.z })),
-    ATTACK_REACH,
-    ATTACK_RADIUS,
+    alcance,
+    raio,
   );
 
   const acertos: AcertoNoInimigo[] = [];

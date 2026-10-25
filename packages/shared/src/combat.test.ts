@@ -1,8 +1,13 @@
 import { describe, expect, it } from 'vitest';
+import { boxFromCenter } from './collision.js';
 import { getEnemy, getItem } from '@islabr/content';
 import {
+  ATTACK_RADIUS,
   ATTACK_REACH,
+  CHARGED_KNOCKBACK,
   CHARGED_MULTIPLIER,
+  CHARGED_RADIUS,
+  CHARGED_REACH,
   COMBO_WINDOW_SECONDS,
   alvosAtingidos,
   aplicarDano,
@@ -11,6 +16,7 @@ import {
   danoDoGolpe,
   danoNoJogador,
   dentroDaEsfera,
+  empurrar,
   melhorArma,
   golpeDeFrente,
   proximoGolpe,
@@ -126,6 +132,55 @@ describe('esfera de acerto', () => {
     const centro = centroDoGolpe(origem, 0);
     expect(dentroDaEsfera(centro, { x: 0, y: 0, z: 1.6 }, 0.9)).toBe(true);
     expect(dentroDaEsfera(centro, { x: 0, y: 4, z: 1.6 }, 0.9)).toBe(false);
+  });
+});
+
+describe('alcance generoso do golpe', () => {
+  const origem = { x: 0, y: 0, z: 0 };
+
+  it('no chão o raio perdoa mira torta, mas a altura continua honesta', () => {
+    const centro = centroDoGolpe(origem, 0);
+    // Lado a lado, quase na borda do raio.
+    expect(
+      dentroDaEsfera(centro, { x: ATTACK_RADIUS - 0.1, y: 0, z: centro.z }, ATTACK_RADIUS),
+    ).toBe(true);
+    // O mosquito orbita a 1,9 m: quem está no chão não o alcança.
+    expect(dentroDaEsfera(centro, { x: 0, y: 1.9, z: centro.z }, ATTACK_RADIUS)).toBe(false);
+  });
+
+  it('o carregado pega em volta do jogador, inclusive quem está atrás', () => {
+    const alvos = [
+      { id: 'frente', x: 0, y: 0, z: 2 },
+      { id: 'atras', x: 0, y: 0, z: -2 },
+      { id: 'longe', x: 0, y: 0, z: 6 },
+    ];
+    const pegos = alvosAtingidos(origem, 0, alvos, CHARGED_REACH, CHARGED_RADIUS);
+    expect(pegos.map((a) => a.id).sort()).toEqual(['atras', 'frente']);
+    // O golpe normal não alcança quem está atrás.
+    expect(alvosAtingidos(origem, 0, alvos).map((a) => a.id)).not.toContain('atras');
+  });
+});
+
+describe('empurrão do golpe carregado', () => {
+  const nenhuma: never[] = [];
+
+  it('joga o alvo para longe do atacante, em linha reta', () => {
+    const fim = empurrar({ x: 0, y: 0, z: 0 }, 0, { x: 0, y: 0, z: 1 }, nenhuma);
+    expect(fim.x).toBeCloseTo(0, 6);
+    expect(fim.z).toBeCloseTo(1 + CHARGED_KNOCKBACK, 6);
+  });
+
+  it('colado no atacante, vai para onde o golpe aponta', () => {
+    const fim = empurrar({ x: 0, y: 0, z: 0 }, Math.PI / 2, { x: 0, y: 0, z: 0 }, nenhuma);
+    expect(fim.x).toBeCloseTo(CHARGED_KNOCKBACK, 6);
+    expect(fim.z).toBeCloseTo(0, 6);
+  });
+
+  it('a parede segura o alvo: ele não atravessa', () => {
+    const parede = boxFromCenter(0, 1, 4, 10, 2, 1);
+    const fim = empurrar({ x: 0, y: 0, z: 0 }, 0, { x: 0, y: 0, z: 1 }, [parede]);
+    expect(fim.z).toBeLessThan(4 - 0.5);
+    expect(fim.z).toBeGreaterThan(1);
   });
 });
 

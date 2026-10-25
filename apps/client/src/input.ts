@@ -26,7 +26,7 @@ const KEY_TURN_SPEED = 2.2;
 /** Tecla que ataca sem precisar do mouse capturado. */
 const ATTACK_KEY = 'KeyJ';
 
-/** Como o botão de ataque foi solto: toque rápido ou segurado até carregar. */
+/** Como o botão de ataque foi acionado: toque rápido ou segurado até carregar. */
 export type AttackRelease = 'normal' | 'charged';
 
 export class InputReader {
@@ -40,7 +40,10 @@ export class InputReader {
 
   /** Instante em que o ataque começou a ser segurado, em ms. */
   private holdStart: number | null = null;
-  private released: AttackRelease | null = null;
+  /** Fila de cliques rápidos dados pelo jogador. */
+  private queuedClicks = 0;
+  /** Evita disparar mais de um charged no mesmo segurar de botão. */
+  private chargedFired = false;
 
   constructor(private readonly canvas: HTMLCanvasElement) {
     window.addEventListener('keydown', this.onKeyDown);
@@ -63,31 +66,52 @@ export class InputReader {
   }
 
   /**
-   * O golpe sai quando o botão é solto: é o único jeito de distinguir o toque
-   * do golpe carregado (SPEC §6: segurar 0,6 s). Devolve uma vez por soltura.
+   * Consome um ataque da fila:
+   * - Se o botão estiver segurado por >= CHARGE_SECONDS, devolve 'charged'.
+   * - Se houver cliques na fila, devolve 'normal' (1 por chamada).
    */
   consumeAttack(): AttackRelease | null {
-    const solto = this.released;
-    this.released = null;
-    return solto;
+    if (this.holdStart !== null && !this.chargedFired) {
+      const segundos = (performance.now() - this.holdStart) / 1000;
+      if (segundos >= CHARGE_SECONDS) {
+        this.chargedFired = true;
+        this.queuedClicks = 0;
+        return 'charged';
+      }
+    }
+
+    if (this.queuedClicks > 0) {
+      this.queuedClicks -= 1;
+      return 'normal';
+    }
+
+    return null;
   }
 
   /** De 0 a 1 enquanto o ataque está sendo segurado; `null` se não está. */
   chargeProgress(): number | null {
-    if (this.holdStart === null) return null;
+    if (this.holdStart === null || this.chargedFired) return null;
     const segundos = (performance.now() - this.holdStart) / 1000;
     return Math.min(segundos / CHARGE_SECONDS, 1);
   }
 
   private beginAttack(): void {
-    this.holdStart ??= performance.now();
+    this.holdStart = performance.now();
+    this.chargedFired = false;
+    // Empilha o clique imediatamente (até 3 cliques para o combo completo)
+    this.queuedClicks = Math.min(this.queuedClicks + 1, 3);
   }
 
   private endAttack(): void {
     if (this.holdStart === null) return;
     const segundos = (performance.now() - this.holdStart) / 1000;
+    const jaSaiuCharged = this.chargedFired;
     this.holdStart = null;
-    this.released = segundos >= CHARGE_SECONDS ? 'charged' : 'normal';
+    this.chargedFired = false;
+
+    if (!jaSaiuCharged && segundos >= CHARGE_SECONDS) {
+      this.queuedClicks = 0;
+    }
   }
 
   readAxes(): InputAxes {
@@ -130,8 +154,6 @@ export class InputReader {
     const agora = performance.now();
     const dt = Math.min((agora - this.ultimaLeitura) / 1000, 0.1);
     this.ultimaLeitura = agora;
-    // Q gira para a esquerda e E para a direita; o mouse para a direita diminui
-    // o yaw, então E também diminui.
     const giro = (this.pressed.has('KeyQ') ? 1 : 0) - (this.pressed.has('KeyE') ? 1 : 0);
     this.lookYaw += giro * KEY_TURN_SPEED * dt;
 
@@ -157,14 +179,13 @@ export class InputReader {
   private readonly onBlur = (): void => {
     this.pressed.clear();
     this.tapped.clear();
-    // Perder o foco no meio da carga cancela o golpe, em vez de soltá-lo.
     this.holdStart = null;
-    this.released = null;
+    this.queuedClicks = 0;
+    this.chargedFired = false;
   };
 
   private readonly onMouseDown = (event: MouseEvent): void => {
     if (document.pointerLockElement !== this.canvas) {
-      // O primeiro clique só captura o mouse; ele não vira golpe.
       void this.canvas.requestPointerLock();
       return;
     }
@@ -177,7 +198,6 @@ export class InputReader {
 
   private readonly onMouseMove = (event: MouseEvent): void => {
     if (document.pointerLockElement !== this.canvas) return;
-    // Mouse para a direita gira a vista para a direita, que é -X no mundo.
     this.lookYaw -= event.movementX * MOUSE_SENSITIVITY;
     this.lookPitch += event.movementY * MOUSE_SENSITIVITY;
   };

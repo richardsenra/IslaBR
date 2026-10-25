@@ -9,6 +9,7 @@ import {
   MSG,
   SERVER_TICK_MS,
   checkMove,
+  empurrar,
   parseAttackPayload,
   parseInteractPayload,
   parseMovePayload,
@@ -359,6 +360,13 @@ export class IslandRoom extends Room<{ state: IslandState }> {
     );
 
     for (const acerto of resultado.acertos) {
+      // O carregado joga para longe quem sobreviveu a ele.
+      if (payload.golpe === 'charged' && acerto.dano > 0 && !acerto.morreu) {
+        const novo = empurrar(session.aceito, payload.yaw, acerto.inimigo, ARENA_COLLIDERS);
+        acerto.inimigo.x = novo.x;
+        acerto.inimigo.z = novo.z;
+      }
+
       this.espelhar(acerto.inimigo);
       this.broadcast(MSG.damage, {
         alvo: acerto.inimigo.id,

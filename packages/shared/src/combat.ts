@@ -9,6 +9,7 @@
  */
 
 import type { AttackState } from './character.js';
+import type { Box } from './collision.js';
 
 /** Segurar o ataque por este tempo vira golpe carregado (SPEC §6). */
 export const CHARGE_SECONDS = 0.6;
@@ -36,10 +37,16 @@ export const GOLPE_TEMPOS: Readonly<Record<AttackKind, { duracao: number; impact
 /** Congelamento na hora do acerto, em ms (SPEC §6). */
 export const HIT_STOP_MS = 60;
 
-/** Alcance do golpe, do centro do jogador para a frente. */
-export const ATTACK_REACH = 1.3;
-/** Raio da esfera de acerto. */
-export const ATTACK_RADIUS = 1.0;
+/** Alcance do golpe, mais perto do corpo para nunca errar inimigo colado. */
+export const ATTACK_REACH = 0.95;
+/** Raio da esfera de acerto mais generoso (estilo hack-and-slash / Genshin). */
+export const ATTACK_RADIUS = 1.85;
+
+/** No ataque carregado, o golpe pega numa área grande ao redor do jogador. */
+export const CHARGED_REACH = 0.35;
+export const CHARGED_RADIUS = 2.8;
+/** Distância (em metros) que o ataque carregado joga o inimigo para trás. */
+export const CHARGED_KNOCKBACK = 4.5;
 
 /** Dano do golpe carregado, em múltiplos do golpe normal (proposta). */
 export const CHARGED_MULTIPLIER = 2;
@@ -106,7 +113,7 @@ export function impactoDoGolpe(golpe: AttackKind): number {
  * Cliente e servidor usam esta mesma conta: o cliente não manda golpe que o
  * servidor ia recusar, e o servidor não deixa passar golpe mais rápido.
  */
-export const ATTACK_COOLDOWN_FACTOR = 0.8;
+export const ATTACK_COOLDOWN_FACTOR = 0.72;
 
 /** Quanto esperar, em ms, até o próximo golpe depois deste. */
 export function recargaDoGolpeMs(golpe: AttackKind): number {
@@ -158,11 +165,19 @@ export function centroDoGolpe(origem: Ponto, yaw: number, alcance = ATTACK_REACH
   };
 }
 
+/**
+ * Faixa vertical do golpe, em metros acima e abaixo do centro. O raio generoso
+ * vale só no plano do chão; na altura a conta é honesta, para o mosquito que
+ * orbita no alto (SPEC §7.6) continuar fora do alcance de quem está no chão.
+ */
+export const ALCANCE_VERTICAL = 1.4;
+
 export function dentroDaEsfera(centro: Ponto, alvo: Ponto, raio: number): boolean {
   const dx = alvo.x - centro.x;
   const dy = alvo.y + 0.5 - centro.y;
   const dz = alvo.z - centro.z;
-  return dx * dx + dy * dy + dz * dz <= raio * raio;
+  if (Math.abs(dy) > ALCANCE_VERTICAL) return false;
+  return dx * dx + dz * dz <= raio * raio;
 }
 
 export interface AlvoDeGolpe extends Ponto {
@@ -186,6 +201,49 @@ export function alvosAtingidos(
         (a.z - centro.z) ** 2 -
         ((b.x - centro.x) ** 2 + (b.z - centro.z) ** 2),
     );
+}
+
+/** Folga entre o centro do inimigo e a parede em que o empurrão para. */
+const FOLGA_DA_PAREDE = 0.5;
+const PASSOS_DO_EMPURRAO = 6;
+
+/**
+ * Para onde o golpe carregado joga o alvo: em linha reta, para longe do
+ * atacante, andando em passos para não atravessar as paredes da arena. Se o
+ * alvo está colado no atacante, vai para onde o golpe aponta.
+ */
+export function empurrar(
+  atacante: Ponto,
+  yaw: number,
+  alvo: Ponto,
+  colisores: readonly Box[],
+  forca = CHARGED_KNOCKBACK,
+): { x: number; z: number } {
+  const dx = alvo.x - atacante.x;
+  const dz = alvo.z - atacante.z;
+  const dist = Math.hypot(dx, dz);
+  const dirX = dist > 0.05 ? dx / dist : Math.sin(yaw);
+  const dirZ = dist > 0.05 ? dz / dist : Math.cos(yaw);
+
+  const passo = forca / PASSOS_DO_EMPURRAO;
+  let x = alvo.x;
+  let z = alvo.z;
+  for (let i = 0; i < PASSOS_DO_EMPURRAO; i += 1) {
+    const candX = x + dirX * passo;
+    const candZ = z + dirZ * passo;
+    const bateu = colisores.some(
+      (c) =>
+        candX >= c.minX - FOLGA_DA_PAREDE &&
+        candX <= c.maxX + FOLGA_DA_PAREDE &&
+        candZ >= c.minZ - FOLGA_DA_PAREDE &&
+        candZ <= c.maxZ + FOLGA_DA_PAREDE &&
+        alvo.y < c.maxY,
+    );
+    if (bateu) break;
+    x = candX;
+    z = candZ;
+  }
+  return { x, z };
 }
 
 /** O golpe veio de frente para o inimigo? Usado pelo caranguejo espinhoso. */

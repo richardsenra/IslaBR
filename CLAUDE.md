@@ -20,4 +20,4 @@ Jogo 3D online em cartoon colorido (three.js no cliente, Node + Colyseus no serv
 - Não use nomes, arte ou textos do MilMo. Use placeholders ou assets CC0 até haver arte própria.
 - Faça commits pequenos, um por tarefa, com mensagem descrevendo o porquê.
 - Ao fim de cada milestone, rode os critérios de aceite da seção 9 do `SPEC.md` e diga o que passou e o que não passou.
-- Se algo na spec estiver ambíguo ou em conflito, pergunte antes de decidir, a menos que esteja marcado como "(proposta)".
+- Se algo na spec estiver ambíguo ou em conflito, pergunte antes de decidir, a menos que esteja marcado como "(proposta)".                                          
