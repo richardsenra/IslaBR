@@ -11,6 +11,8 @@ import {
   MAX_STEP_SECONDS,
   MOVE_SPEED,
   PLAYER_RADIUS,
+  PLUNGE_MIN_HEIGHT,
+  alturaAcimaDoChao,
   lerpAngle,
   moveDirectionFromCamera,
   spawnPhysics,
@@ -361,5 +363,25 @@ describe('mergulho (ataque no ar)', () => {
       p = stepPlayer(p, input({ plunge: true }, i), FLOOR);
     expect(p.onGround).toBe(true);
     expect(p.y).toBeCloseTo(0, 1);
+  });
+});
+
+describe('altura para mergulhar', () => {
+  const caixa = boxFromCenter(5, 1.2, 0, 2, 2.4, 2);
+  const mundo: readonly Box[] = [...FLOOR, caixa];
+
+  it('mede até o chão logo abaixo, inclusive em cima de uma caixa', () => {
+    expect(alturaAcimaDoChao(0, 1, 0, mundo)).toBeCloseTo(1, 6);
+    expect(alturaAcimaDoChao(5, 3, 0, mundo)).toBeCloseTo(0.6, 6);
+  });
+
+  it('o pulo comum não chega à altura do mergulho', () => {
+    const apice = (JUMP_SPEED * JUMP_SPEED) / (2 * GRAVITY);
+    expect(apice).toBeLessThan(PLUNGE_MIN_HEIGHT);
+  });
+
+  it('pular do alto de uma caixa chega', () => {
+    // Saiu da caixa de 2,4 m e já está sobre o chão.
+    expect(alturaAcimaDoChao(3, 2.4, 0, mundo)).toBeGreaterThanOrEqual(PLUNGE_MIN_HEIGHT);
   });
 });

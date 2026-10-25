@@ -3,11 +3,13 @@ import {
   ARENA_COLLIDERS,
   ARENA_ENEMIES,
   ARENA_SPAWN,
+  PLUNGE_MIN_HEIGHT,
   ENEMY_RESPAWN_SECONDS,
   INTERACT_RADIUS,
   ISLAND_MAX_PLAYERS,
   MSG,
   SERVER_TICK_MS,
+  alturaAcimaDoChao,
   checkMove,
   empurrar,
   empurraoDoGolpe,
@@ -285,7 +287,11 @@ export class IslandRoom extends Room<{ state: IslandState }> {
     player.yaw = claim.yaw;
     // Entrar em esquiva dá a invulnerabilidade curta; a recarga é do servidor.
     if (claim.state === 'dodge' && player.state !== 'dodge') session.tentarEsquivar(now);
-    if (claim.state === 'plunge') session.marcarMergulho(now);
+    // O mergulho só vale caindo de alto; a folga cobre o pacote que chega já
+    // com o jogador descendo.
+    if (alturaAcimaDoChao(claim.x, claim.y, claim.z, ARENA_COLLIDERS) >= PLUNGE_MIN_HEIGHT - 0.3) {
+      session.marcarAlto(now);
+    }
 
     player.state = claim.state;
     player.seq = claim.seq;
@@ -345,7 +351,7 @@ export class IslandRoom extends Room<{ state: IslandState }> {
 
     const payload = parseAttackPayload(raw);
     if (!payload) return;
-    if (payload.golpe === 'plunge' && !session.mergulhouRecentemente(this.now())) return;
+    if (payload.golpe === 'plunge' && !session.podeMergulhar(this.now())) return;
     if (!session.podeAtacar(this.now(), payload.golpe)) return;
     session.registrarGolpe(payload.golpe, this.now());
 

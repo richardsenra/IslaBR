@@ -29,6 +29,12 @@ export const MAX_FALL_SPEED = 25;
 export const PLUNGE_SPEED = 20;
 /** Fração do controle horizontal que sobra durante o mergulho. */
 export const PLUNGE_AIR_CONTROL = 0.25;
+/**
+ * Altura mínima acima do chão para o clique virar mergulho. O pulo comum chega
+ * a ~1,36 m, então nele o clique continua sendo o combo; o mergulho é para
+ * quem pula de uma caixa alta ou de uma plataforma.
+ */
+export const PLUNGE_MIN_HEIGHT = 2;
 
 export const DODGE_SPEED = 11;
 export const DODGE_DURATION = 0.35;
@@ -137,6 +143,21 @@ export function playerBox(physics: Pick<PlayerPhysics, 'x' | 'y' | 'z' | 'dodgeT
 }
 
 /** Um passo de simulação. Puro: devolve um estado novo. */
+/**
+ * Distância dos pés até o chão logo abaixo: o topo mais alto de uma caixa sob
+ * o corpo. Sem nada embaixo, infinito.
+ */
+export function alturaAcimaDoChao(x: number, y: number, z: number, boxes: readonly Box[]): number {
+  let chao = Number.NEGATIVE_INFINITY;
+  for (const box of boxes) {
+    if (box.maxY > y + 0.01 || box.maxY <= chao) continue;
+    if (x + PLAYER_RADIUS <= box.minX || x - PLAYER_RADIUS >= box.maxX) continue;
+    if (z + PLAYER_RADIUS <= box.minZ || z - PLAYER_RADIUS >= box.maxZ) continue;
+    chao = box.maxY;
+  }
+  return y - chao;
+}
+
 export function stepPlayer(
   prev: PlayerPhysics,
   input: MoveInput,

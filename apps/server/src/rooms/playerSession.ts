@@ -81,8 +81,8 @@ export class PlayerSession {
   private readonly coletados = new Set<string>();
   private ultimoGolpe: AttackKind | null = null;
   private ultimoGolpeEm = 0;
-  /** Última vez que o jogador foi visto em mergulho; ver `MERGULHO_VALIDO_MS`. */
-  private mergulhoEm = Number.NEGATIVE_INFINITY;
+  /** Última vez que o jogador foi visto alto o bastante para mergulhar. */
+  private altoEm = Number.NEGATIVE_INFINITY;
 
   constructor(aceito: AcceptedMove, salvo?: JogadorSalvo) {
     this.aceito = aceito;
@@ -141,12 +141,13 @@ export class PlayerSession {
     return true;
   }
 
-  marcarMergulho(agora: number): void {
-    this.mergulhoEm = agora;
+  marcarAlto(agora: number): void {
+    this.altoEm = agora;
   }
 
-  mergulhouRecentemente(agora: number): boolean {
-    return agora - this.mergulhoEm <= MERGULHO_VALIDO_MS;
+  /** Esteve alto há pouco: o mergulho que chegar agora é de verdade. */
+  podeMergulhar(agora: number): boolean {
+    return agora - this.altoEm <= MERGULHO_VALIDO_MS;
   }
 
   registrarGolpe(golpe: AttackKind, agora: number): void {

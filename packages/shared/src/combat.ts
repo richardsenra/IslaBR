@@ -60,8 +60,9 @@ export const PLUNGE_RADIUS = 2.2;
 /** Empurrão do mergulho, menor que o do carregado. */
 export const PLUNGE_KNOCKBACK = 1.5;
 /**
- * Quanto tempo o servidor aceita um mergulho depois de ver o jogador em
- * mergulho. Sem isto qualquer cliente mandaria o golpe de dano maior de pé.
+ * Quanto tempo o servidor aceita um mergulho depois de ver o jogador alto o
+ * bastante para mergulhar. Sem isto qualquer cliente mandaria o golpe de dano
+ * maior de pé, ou num pulo comum.
  */
 export const MERGULHO_VALIDO_MS = 1500;
 

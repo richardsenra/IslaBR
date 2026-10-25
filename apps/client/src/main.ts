@@ -2,10 +2,12 @@ import * as THREE from 'three';
 import {
   ARENA_COLLIDERS,
   ARENA_SPAWN,
+  PLUNGE_MIN_HEIGHT,
   CLIENT_STEP_MS,
   MOVE_SEND_MS,
   PredictedPlayer,
   SnapshotBuffer,
+  alturaAcimaDoChao,
   duracaoDoGolpe,
   impactoDoGolpe,
   melhorArma,
@@ -149,10 +151,6 @@ let carregarNaFila = false;
 /** Ataque no ar: o personagem despenca com a espada até o chão. */
 let mergulhando = false;
 let mergulhoDesde = 0;
-/** Desde quando está no ar, para o mergulho só valer num pulo de verdade. */
-let noArDesde: number | null = null;
-/** Tempo no ar, em ms, antes de um clique virar mergulho em vez de golpe. */
-const MERGULHO_APOS_MS = 120;
 /** Trava de segurança: nenhum mergulho dura mais que isto. */
 const MERGULHO_MAX_MS = 3000;
 
@@ -457,8 +455,6 @@ renderer.setAnimationLoop((now) => {
 
   const player = local.current;
 
-  if (player.onGround) noArDesde = null;
-  else noArDesde ??= now;
   if (mergulhando && (player.onGround || now - mergulhoDesde > MERGULHO_MAX_MS)) aterrissar(now);
 
   // Chegou o instante do impacto: o servidor é avisado e o rastro aparece.
@@ -478,8 +474,11 @@ renderer.setAnimationLoop((now) => {
     golpesNaFila = 0;
     carregarNaFila = false;
   }
-  const noAr = noArDesde !== null && now - noArDesde > MERGULHO_APOS_MS;
-  if (!mergulhando && noAr && now >= golpeLiberadoEm && (golpesNaFila > 0 || carregarNaFila)) {
+  // Só mergulha quem está alto: num pulo comum o clique segue sendo o combo.
+  const alto =
+    !player.onGround &&
+    alturaAcimaDoChao(player.x, player.y, player.z, ARENA_COLLIDERS) >= PLUNGE_MIN_HEIGHT;
+  if (!mergulhando && alto && now >= golpeLiberadoEm && (golpesNaFila > 0 || carregarNaFila)) {
     // Clicou com o personagem no ar: em vez do combo, o mergulho.
     golpesNaFila = 0;
     carregarNaFila = false;
