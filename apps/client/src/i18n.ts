@@ -24,6 +24,41 @@ const ptBR = {
     coracoes: (atual: number, max: number) =>
       `${String(atual).replace('.', ',')} de ${max} corações`,
   },
+  inventario: {
+    titulo: 'Inventário',
+    dicaTitulo: 'I fecha',
+    abas: {
+      todos: 'Tudo',
+      equipamento: 'Equip.',
+      consumiveis: 'Poções',
+      materiais: 'Materiais',
+      missao: 'Missão',
+    },
+    tipos: {
+      arma: 'Arma',
+      armadura: 'Armadura',
+      equipamento: 'Equipamento',
+      consumivel: 'Consumível',
+      ingrediente: 'Ingrediente',
+      chave: 'Chave',
+      missao: 'Item de missão',
+      receita: 'Receita',
+    },
+    efeitos: {
+      dano: (n: number) => `Tira ${n} por golpe`,
+      cura: (n: number) =>
+        n === 1 ? 'Cura 1 coração' : `Cura ${String(n).replace('.', ',')} corações`,
+      curaTudo: 'Cura todos os corações',
+      temporarios: (n: number, segundos?: number) =>
+        `+${n} corações extras${segundos ? ` por ${segundos} s` : ''}`,
+      reduz: 'Diminui o dano que você leva',
+      receita: 'Ensina uma receita',
+      guardado: 'Não pode ser vendido nem descartado',
+    },
+    usar: 'Usar',
+    semNada: 'Você ainda não tem nada.',
+    dica: 'Passe o mouse num item para ver o que ele faz. Dois cliques usam.',
+  },
   menu: {
     titulo: 'Pausa',
     abaJogo: 'Jogo',

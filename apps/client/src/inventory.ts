@@ -1,4 +1,6 @@
 import { itemsById, type Item } from '@islabr/content';
+import { ui } from './i18n.js';
+import { ICONE_DO_TIPO } from './icones.js';
 
 /**
  * Inventário em grade simples com empilhamento (SPEC §6). Os nomes e as
@@ -6,7 +8,7 @@ import { itemsById, type Item } from '@islabr/content';
  * este painel só mostra e pede ("usar o item X").
  */
 
-/** Cor do quadrado de cada tipo, no lugar de um ícone de verdade. */
+/** Cor de fundo da casa de cada tipo, atrás do ícone. */
 const COR_POR_TIPO: Readonly<Record<Item['tipo'], string>> = {
   arma: '#b8b8c8',
   armadura: '#8a9bb0',
@@ -59,18 +61,64 @@ export function usavel(item: Item): boolean {
   return item.tipo === 'consumivel' && item.efeito !== undefined;
 }
 
+/** Abas do painel: cada uma junta alguns tipos de item. */
+type Aba = 'todos' | 'equipamento' | 'consumiveis' | 'materiais' | 'missao';
+
+const TIPOS_DA_ABA: Readonly<Record<Exclude<Aba, 'todos'>, readonly Item['tipo'][]>> = {
+  equipamento: ['arma', 'armadura', 'equipamento'],
+  consumiveis: ['consumivel'],
+  materiais: ['ingrediente', 'receita'],
+  missao: ['chave', 'missao'],
+};
+
+const ABAS: readonly Aba[] = ['todos', 'equipamento', 'consumiveis', 'materiais', 'missao'];
+
+/** O que o item faz, em frases curtas, a partir do efeito no conteúdo. */
+export function efeitosDe(item: Item): string[] {
+  const t = ui.inventario.efeitos;
+  const e = item.efeito;
+  const linhas: string[] = [];
+  if (e?.dano !== undefined) linhas.push(t.dano(e.dano));
+  if (e?.cura_tudo) linhas.push(t.curaTudo);
+  else if (e?.cura_coracoes !== undefined) linhas.push(t.cura(e.cura_coracoes));
+  if (e?.coracoes_temporarios !== undefined) {
+    linhas.push(t.temporarios(e.coracoes_temporarios, e.duracao_s));
+  }
+  if (e?.reduz_dano !== undefined) linhas.push(t.reduz);
+  if (e?.ensina_receita !== undefined) linhas.push(t.receita);
+  if (!item.vendavel && !item.descartavel) linhas.push(t.guardado);
+  return linhas;
+}
+
+function el<K extends keyof HTMLElementTagNameMap>(
+  tag: K,
+  classe: string,
+  texto?: string,
+): HTMLElementTagNameMap[K] {
+  const elemento = document.createElement(tag);
+  if (classe) elemento.className = classe;
+  if (texto !== undefined) elemento.textContent = texto;
+  return elemento;
+}
+
 export class InventoryPanel {
   private pilhas: Pilha[] = [];
   private selecionado: string | null = null;
+  private aba: Aba = 'todos';
+  /** Item sob o mouse: o detalhe mostra este enquanto o mouse estiver em cima. */
+  private sobOMouse: string | null = null;
+  private aviso: string | null = null;
 
   constructor(
     private readonly raiz: HTMLElement,
+    private readonly abas: HTMLElement,
     private readonly grade: HTMLElement,
     private readonly detalhe: HTMLElement,
     private readonly aoUsar: (itemId: string) => void,
   ) {
     this.raiz.hidden = true;
     this.grade.style.setProperty('--colunas', String(COLUNAS));
+    this.montarAbas();
     this.desenhar();
   }
 
@@ -96,39 +144,43 @@ export class InventoryPanel {
     this.desenhar();
   }
 
-  /** Mostra um aviso curto no rodapé do painel (por exemplo, "vida cheia"). */
+  /** Mostra um aviso curto no painel (por exemplo, "vida cheia"). */
   avisar(texto: string): void {
-    this.detalhe.textContent = texto;
+    this.aviso = texto;
+    this.desenharDetalhe();
   }
 
-  /** Usa o item da casa `indice` (as teclas 1 a 9), se for usável. */
-  usarCasa(indice: number): void {
-    const pilha = this.pilhas[indice];
-    if (pilha) this.escolher(pilha);
+  private visiveis(): Pilha[] {
+    if (this.aba === 'todos') return this.pilhas;
+    const tipos = TIPOS_DA_ABA[this.aba];
+    return this.pilhas.filter((pilha) => tipos.includes(pilha.item.tipo));
   }
 
-  private escolher(pilha: Pilha): void {
-    this.selecionado = pilha.item.id;
-    if (usavel(pilha.item)) {
-      this.aoUsar(pilha.item.id);
-    } else {
-      this.mostrarDetalhe(pilha);
+  private montarAbas(): void {
+    this.abas.replaceChildren();
+    for (const aba of ABAS) {
+      const botao = el('button', 'aba', ui.inventario.abas[aba]);
+      botao.type = 'button';
+      botao.dataset['aba'] = aba;
+      botao.addEventListener('click', () => {
+        this.aba = aba;
+        this.desenhar();
+      });
+      this.abas.appendChild(botao);
     }
-    this.desenhar();
-  }
-
-  private mostrarDetalhe(pilha: Pilha): void {
-    this.detalhe.textContent = `${pilha.item.nome}: ${pilha.item.descricao}`;
   }
 
   private desenhar(): void {
-    this.grade.replaceChildren();
+    for (const botao of this.abas.querySelectorAll<HTMLElement>('.aba')) {
+      botao.classList.toggle('ativa', botao.dataset['aba'] === this.aba);
+    }
 
+    this.grade.replaceChildren();
+    const visiveis = this.visiveis();
     for (let i = 0; i < CASAS; i += 1) {
-      const casa = document.createElement('button');
+      const casa = el('button', 'casa');
       casa.type = 'button';
-      casa.className = 'casa';
-      const pilha = this.pilhas[i];
+      const pilha = visiveis[i];
 
       if (!pilha) {
         casa.disabled = true;
@@ -137,38 +189,78 @@ export class InventoryPanel {
       }
 
       const { item, qtd } = pilha;
-      casa.title = `${item.nome}: ${item.descricao}`;
       casa.style.setProperty('--cor', COR_POR_TIPO[item.tipo]);
       casa.classList.toggle('selecionada', item.id === this.selecionado);
       casa.classList.toggle('usavel', usavel(item));
+      casa.setAttribute('aria-label', item.nome);
 
-      const sigla = document.createElement('span');
-      sigla.className = 'sigla';
-      sigla.textContent = item.nome.slice(0, 2).toUpperCase();
-      casa.appendChild(sigla);
-
-      if (i < 9) {
-        const atalho = document.createElement('span');
-        atalho.className = 'atalho';
-        atalho.textContent = String(i + 1);
-        casa.appendChild(atalho);
-      }
-      if (qtd > 1) {
-        const quantidade = document.createElement('span');
-        quantidade.className = 'qtd';
-        quantidade.textContent = String(qtd);
-        casa.appendChild(quantidade);
-      }
+      const icone = el('span', 'casa-icone');
+      icone.innerHTML = ICONE_DO_TIPO[item.tipo];
+      casa.appendChild(icone);
+      if (qtd > 1) casa.appendChild(el('span', 'qtd', String(qtd)));
 
       casa.addEventListener('click', () => {
-        this.escolher(pilha);
+        this.selecionado = item.id;
+        this.aviso = null;
+        this.desenhar();
+      });
+      // Dois cliques usam direto, sem passar pelo botão.
+      casa.addEventListener('dblclick', () => {
+        if (usavel(item)) this.aoUsar(item.id);
+      });
+      casa.addEventListener('mouseenter', () => {
+        this.sobOMouse = item.id;
+        this.desenharDetalhe();
+      });
+      casa.addEventListener('mouseleave', () => {
+        if (this.sobOMouse === item.id) this.sobOMouse = null;
+        this.desenharDetalhe();
       });
       this.grade.appendChild(casa);
     }
+    this.desenharDetalhe();
+  }
 
-    const escolhida = this.pilhas.find((pilha) => pilha.item.id === this.selecionado);
-    if (escolhida) this.mostrarDetalhe(escolhida);
-    else if (this.pilhas.length === 0) this.detalhe.textContent = 'Você ainda não tem nada.';
-    else this.detalhe.textContent = 'Passe o mouse ou clique num item para ver o que ele faz.';
+  private desenharDetalhe(): void {
+    const t = ui.inventario;
+    const id = this.sobOMouse ?? this.selecionado;
+    const pilha = this.pilhas.find((p) => p.item.id === id);
+    this.detalhe.replaceChildren();
+
+    if (!pilha) {
+      const texto = this.aviso ?? (this.pilhas.length === 0 ? t.semNada : t.dica);
+      this.detalhe.appendChild(el('p', 'detalhe-vazio', texto));
+      return;
+    }
+
+    const { item, qtd } = pilha;
+    const topo = el('div', 'detalhe-topo');
+    const icone = el('span', 'detalhe-icone');
+    icone.style.setProperty('--cor', COR_POR_TIPO[item.tipo]);
+    icone.innerHTML = ICONE_DO_TIPO[item.tipo];
+    const nomes = el('div', '');
+    nomes.append(
+      el('div', 'detalhe-nome', qtd > 1 ? `${item.nome} ×${qtd}` : item.nome),
+      el('div', 'detalhe-tipo', t.tipos[item.tipo]),
+    );
+    topo.append(icone, nomes);
+    this.detalhe.append(topo, el('p', 'detalhe-descricao', item.descricao));
+
+    const efeitos = efeitosDe(item);
+    if (efeitos.length > 0) {
+      const lista = el('ul', 'detalhe-efeitos');
+      for (const efeito of efeitos) lista.appendChild(el('li', '', efeito));
+      this.detalhe.appendChild(lista);
+    }
+
+    const selecionado = item.id === this.selecionado;
+    if (this.aviso && selecionado) this.detalhe.appendChild(el('p', 'detalhe-aviso', this.aviso));
+
+    if (usavel(item) && selecionado) {
+      const usar = el('button', 'botao botao-principal', t.usar);
+      usar.type = 'button';
+      usar.addEventListener('click', () => this.aoUsar(item.id));
+      this.detalhe.appendChild(usar);
+    }
   }
 }

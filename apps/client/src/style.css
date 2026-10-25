@@ -170,18 +170,20 @@ body {
   background: #7bd34f;
 }
 
-/* Inventário (M3): grade simples com empilhamento. */
+/* Inventário: abas, grade com ícones e detalhe do item. */
 
 #inventario {
   position: fixed;
   top: 50%;
   right: 16px;
-  width: 310px;
+  width: 340px;
   transform: translateY(-50%);
-  padding: 14px;
-  border-radius: 14px;
-  background: rgb(18 18 28 / 88%);
-  color: #fff;
+  padding: 16px;
+  border: 2px solid var(--borda);
+  border-radius: var(--raio);
+  background: var(--painel);
+  box-shadow: var(--sombra);
+  color: var(--texto);
 }
 
 #inventario[hidden] {
@@ -193,14 +195,27 @@ body {
   justify-content: space-between;
   align-items: baseline;
   margin-bottom: 10px;
-  font-weight: 700;
-  font-size: 18px;
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--destaque);
 }
 
 #inventario-titulo span {
-  font-weight: 400;
+  font-weight: 600;
   font-size: 11px;
-  opacity: 0.65;
+  color: var(--texto-suave);
+}
+
+#inventario-abas {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+#inventario-abas .aba {
+  padding: 5px 4px;
+  font-size: 12px;
+  border-radius: 8px;
 }
 
 #inventario-grade {
@@ -213,55 +228,128 @@ body {
   position: relative;
   aspect-ratio: 1;
   padding: 0;
-  border: 2px solid rgb(255 255 255 / 12%);
-  border-radius: 8px;
-  background: rgb(255 255 255 / 6%);
-  color: #14141c;
-  font-weight: 800;
+  border: 2px solid var(--borda);
+  border-radius: 10px;
+  background: var(--painel-claro);
+  cursor: pointer;
+}
+
+.casa:disabled {
   cursor: default;
 }
 
 .casa:not(:disabled) {
-  background: var(--cor, #888);
-  border-color: rgb(0 0 0 / 35%);
+  background:
+    radial-gradient(circle at 50% 40%, rgb(255 255 255 / 22%), transparent 70%),
+    color-mix(in srgb, var(--cor, #888) 35%, #2a2438);
+  border-color: color-mix(in srgb, var(--cor, #888) 55%, transparent);
 }
 
-.casa.usavel {
-  cursor: pointer;
+.casa:not(:disabled):hover {
+  transform: translateY(-2px);
+  border-color: var(--texto);
 }
 
-.casa.usavel:hover,
 .casa.selecionada {
-  border-color: #fff;
+  border-color: var(--destaque) !important;
+  box-shadow: 0 0 0 2px rgb(255 210 63 / 35%);
 }
 
-.casa .sigla {
-  font-size: 16px;
-}
-
-.casa .atalho {
+.casa-icone {
   position: absolute;
-  top: 2px;
-  left: 4px;
-  font-size: 10px;
-  opacity: 0.7;
+  inset: 14%;
+  display: flex;
+}
+
+.casa-icone svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 2px 0 rgb(0 0 0 / 30%));
 }
 
 .casa .qtd {
   position: absolute;
-  right: 4px;
-  bottom: 2px;
+  right: 3px;
+  bottom: 1px;
   font-size: 12px;
+  font-weight: 800;
   color: #fff;
-  text-shadow: 0 1px 2px rgb(0 0 0 / 80%);
+  text-shadow:
+    0 1px 0 #000,
+    0 0 3px #000;
 }
 
 #inventario-detalhe {
-  min-height: 3.2em;
-  margin-top: 10px;
+  min-height: 120px;
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--painel-claro);
   font-size: 13px;
-  line-height: 1.35;
-  opacity: 0.9;
+  line-height: 1.4;
+}
+
+.detalhe-vazio {
+  margin: 0;
+  color: var(--texto-suave);
+}
+
+.detalhe-topo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.detalhe-icone {
+  display: flex;
+  width: 44px;
+  height: 44px;
+  padding: 6px;
+  flex: none;
+  box-sizing: border-box;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--cor, #888) 35%, #2a2438);
+}
+
+.detalhe-icone svg {
+  width: 100%;
+  height: 100%;
+}
+
+.detalhe-nome {
+  font-weight: 800;
+  font-size: 15px;
+}
+
+.detalhe-tipo {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+
+.detalhe-descricao {
+  margin: 8px 0 0;
+}
+
+.detalhe-efeitos {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  color: #9be37a;
+  font-weight: 600;
+}
+
+.detalhe-aviso {
+  margin: 8px 0 0;
+  color: var(--perigo);
+  font-weight: 700;
+}
+
+#inventario-detalhe .botao {
+  margin-top: 10px;
+  padding: 8px 14px;
+  font-size: 15px;
 }
 
 /* Gosma do sapo: a tela esverdeia enquanto o jogador está lento. */

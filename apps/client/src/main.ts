@@ -93,6 +93,7 @@ function mostrarNotice(texto: string): void {
 
 const inventario = new InventoryPanel(
   byId('inventario'),
+  byId('inventario-abas'),
   byId('inventario-grade'),
   byId('inventario-detalhe'),
   (itemId) => {
@@ -484,11 +485,6 @@ renderer.setAnimationLoop((now) => {
   if (input.consumeInventory() && inventario.alternar()) {
     // O cursor precisa voltar para dar para clicar nos itens.
     soltarPonteiro();
-  }
-  if (inventario.aberto) {
-    for (let casa = 0; casa < 9; casa += 1) {
-      if (input.consumeKey(`Digit${casa + 1}`)) inventario.usarCasa(casa);
-    }
   }
   const lento = now < lentoAte;
   gosmaEl.style.opacity = lento ? '1' : '0';
