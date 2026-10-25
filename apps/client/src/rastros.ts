@@ -203,24 +203,11 @@ export class Rastros {
         return;
       }
 
-      case 'charged': {
-        // Fecho da rajada: o corte vertical e a onda de choque em 360° no chão.
-        // Os dois primeiros cortes saem durante a rajada, em attack1 e attack2.
-        this.spawnSlash('charged', this._centro, yaw, {
-          roll: Math.PI * 0.5,
-          pitch: -0.2,
-          escala: 1.85,
-          vida: 0.34,
-          varrida: 6.5,
-        });
-
-        const chao = this._centro
-          .clone()
-          .setY(y + 0.06)
-          .addScaledVector(this._frente, -0.5);
-        this.spawnOnda('charged', chao);
+      case 'charged':
+        // Fecho da rajada: o mesmo corte de cima do terceiro golpe, sem onda nem
+        // brilho extra. Os dois primeiros cortes saem durante a rajada.
+        this.golpe('attack3', x, y, z, yaw);
         return;
-      }
     }
   }
 
