@@ -2,6 +2,7 @@ import { Room, type Client } from '@colyseus/core';
 import {
   ARENA_COLLIDERS,
   ARENA_ENEMIES,
+  ARENA_TREES,
   ARENA_SPAWN,
   PLUNGE_MIN_HEIGHT,
   ENEMY_RESPAWN_SECONDS,
@@ -27,6 +28,8 @@ import {
 } from '@islabr/shared';
 import { getEnemy } from '@islabr/content';
 import { EnemyState } from './EnemyState.js';
+import { TreeState } from './TreeState.js';
+import { criarArvore, cortar, passarOTempo, type ArvoreRuntime } from './arvores.js';
 import { resolverAtaque } from './combate.js';
 import {
   criarInimigo,
@@ -62,6 +65,8 @@ export class IslandRoom extends Room<{ state: IslandState }> {
   /** Inimigos vivos da instância; o estado replicado é o espelho deste. */
   private readonly inimigos = new Map<string, EnemyRuntime>();
   /** Inimigos derrotados esperando a hora de voltar. */
+  private readonly arvores = new Map<string, ArvoreRuntime>();
+
   private readonly renascendo = new Map<string, number>();
 
   /** Sorteio dos drops. Trocado nos testes por um de semente fixa. */
@@ -93,6 +98,7 @@ export class IslandRoom extends Room<{ state: IslandState }> {
     });
 
     this.povoarInimigos();
+    this.povoarArvores();
     // Tick de 20 Hz (SPEC §4).
     this.setSimulationInterval((deltaMs) => {
       this.tick(deltaMs / 1000);
@@ -114,6 +120,23 @@ export class IslandRoom extends Room<{ state: IslandState }> {
           hp: inimigo.hp,
           hpMax: inimigo.hp,
           estado: inimigo.estado,
+        }),
+      );
+    }
+  }
+
+  private povoarArvores(): void {
+    for (const spawn of ARENA_TREES) {
+      const arvore = criarArvore(spawn);
+      this.arvores.set(arvore.id, arvore);
+      this.state.arvores.set(
+        arvore.id,
+        new TreeState({
+          tipo: arvore.tipo,
+          x: arvore.x,
+          z: arvore.z,
+          golpes: arvore.golpes,
+          golpesMax: arvore.golpes,
         }),
       );
     }
@@ -145,6 +168,7 @@ export class IslandRoom extends Room<{ state: IslandState }> {
     }
 
     this.cuidarDoRenascimento(dt);
+    this.cuidarDasArvores(dt);
 
     for (const [sessionId, session] of this.sessions) {
       // Levantar (ou perder os corações emprestados) muda a vida sem que o
@@ -159,6 +183,14 @@ export class IslandRoom extends Room<{ state: IslandState }> {
         estado.coracoes = session.progress.coracoes;
         estado.arma = session.arma ?? '';
       }
+    }
+  }
+
+  /** Árvore derrubada volta em pé depois do tempo que o conteúdo diz. */
+  private cuidarDasArvores(dt: number): void {
+    for (const arvore of passarOTempo(this.arvores.values(), dt)) {
+      const estado = this.state.arvores.get(arvore.id);
+      if (estado) estado.golpes = arvore.golpes;
     }
   }
 
@@ -359,6 +391,8 @@ export class IslandRoom extends Room<{ state: IslandState }> {
     if (!session.podeAtacar(this.now(), payload.golpe)) return;
     session.registrarGolpe(payload.golpe, this.now());
 
+    this.tentarCortar(client, session, payload.yaw);
+
     const resultado = resolverAtaque(
       {
         x: session.aceito.x,
@@ -434,6 +468,53 @@ export class IslandRoom extends Room<{ state: IslandState }> {
     estado.arma = session.arma ?? '';
     client.send(MSG.inventoryUpdate, session.inventario);
     void this.salvar(session);
+  }
+
+  /**
+   * O golpe acertou árvore? Só com machado na mão, e só a mais perto. A madeira
+   * é sorteada aqui, no servidor (SPEC §4).
+   */
+  private tentarCortar(client: Client, session: PlayerSession, yaw: number): void {
+    const acerto = cortar(
+      {
+        x: session.aceito.x,
+        y: session.aceito.y,
+        z: session.aceito.z,
+        yaw,
+        arma: session.arma,
+      },
+      [...this.arvores.values()],
+      this.sorteio,
+    );
+    if (!acerto) return;
+
+    const estado = this.state.arvores.get(acerto.arvore.id);
+    if (estado) estado.golpes = acerto.arvore.golpes;
+
+    // O mesmo `damage` dos bichos: o cliente já sabe mostrar número e acerto.
+    this.broadcast(MSG.damage, {
+      alvo: acerto.arvore.id,
+      valor: 1,
+      origem: client.sessionId,
+      x: acerto.arvore.x,
+      y: 1.2,
+      z: acerto.arvore.z,
+      morreu: acerto.caiu,
+      euLevei: false,
+    });
+
+    if (!acerto.caiu || !acerto.saque) return;
+    if (acerto.saque.moedas > 0 || acerto.saque.itens.length > 0) {
+      session.receber(acerto.saque);
+      client.send(MSG.loot, {
+        de: acerto.recurso.nome,
+        moedas: acerto.saque.moedas,
+        joias: 0,
+        itens: acerto.saque.itens,
+      });
+      client.send(MSG.inventoryUpdate, session.inventario);
+      void this.salvar(session);
+    }
   }
 
   /** Paga o saque e conta a morte para as missões. */

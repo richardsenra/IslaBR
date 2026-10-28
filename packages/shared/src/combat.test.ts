@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { boxFromCenter } from './collision.js';
-import { getEnemy, getItem } from '@islabr/content';
+import { rolarDropsDeRecurso, sorteioComSemente } from './drops.js';
+import { content, getEnemy, getItem, getResource } from '@islabr/content';
 import {
   ATTACK_RADIUS,
   ATTACK_REACH,
+  CHOP_RADIUS,
   CHARGED_KNOCKBACK,
   CHARGED_MULTIPLIER,
   CHARGED_RADIUS,
@@ -15,6 +17,7 @@ import {
   empurraoDoGolpe,
   aplicarDano,
   centroDoGolpe,
+  cortaMadeira,
   danoDaArma,
   danoDoGolpe,
   danoNoJogador,
@@ -332,5 +335,54 @@ describe('arma na mão', () => {
 
   it('item que não é arma não fica na mão', () => {
     expect(armaEmUso({ ...ambas, pocao_pequena: 2 }, 'pocao_pequena')).toBe('arma_nv2');
+  });
+});
+
+describe('machado e madeira', () => {
+  it('o machado corta árvore e o resto não', () => {
+    expect(cortaMadeira('machado')).toBe(true);
+    expect(cortaMadeira('arma_nv2')).toBe(false);
+    expect(cortaMadeira('graveto_reforcado')).toBe(false);
+    expect(cortaMadeira(null)).toBe(false);
+  });
+
+  it('a tabela de ferramentas concorda com o efeito do item no conteúdo', () => {
+    for (const item of content.items) {
+      expect(cortaMadeira(item.id), item.id).toBe(item.efeito?.corta_madeira === true);
+    }
+  });
+
+  it('o machado bate como o graveto: o jogador escolhe cortar ou lutar', () => {
+    expect(danoDaArma('machado')).toBe(1);
+    expect(danoDaArma('machado')).toBeLessThan(danoDaArma('arma_nv2'));
+    // Tendo as duas, a espada é a melhor: o machado só vai à mão se for equipado.
+    expect(melhorArma({ machado: 1, arma_nv2: 1 })).toBe('arma_nv2');
+    expect(armaEmUso({ machado: 1, arma_nv2: 1 }, 'machado')).toBe('machado');
+  });
+
+  it('o golpe na árvore tem menos perdão que o golpe no bicho', () => {
+    expect(CHOP_RADIUS).toBeLessThan(ATTACK_RADIUS);
+  });
+});
+
+describe('o que a árvore larga', () => {
+  const coqueiro = getResource('r01');
+
+  it('madeira sai sempre, e a conta não passa do que a tabela permite', () => {
+    const sorteio = sorteioComSemente(7);
+    for (let vez = 0; vez < 200; vez += 1) {
+      const saque = rolarDropsDeRecurso(coqueiro, sorteio);
+      const madeira = saque.itens.filter((item) => item === 'madeira').length;
+      expect(madeira).toBeGreaterThanOrEqual(2);
+      expect(madeira).toBeLessThanOrEqual(3);
+      expect(saque.moedas).toBe(0);
+    }
+  });
+
+  it('a árvore seca larga menos que o coqueiro', () => {
+    const sorteio = sorteioComSemente(3);
+    const seca = rolarDropsDeRecurso(getResource('r02'), sorteio);
+    expect(seca.itens).toEqual(['madeira']);
+    expect(getResource('r02').golpes).toBeLessThan(coqueiro.golpes);
   });
 });

@@ -11,6 +11,7 @@ import {
   itemId,
   npcId,
   questId,
+  resourceId,
   reward,
   spotId,
   systemUnlock,
@@ -252,8 +253,30 @@ export const itemSchema = z.strictObject({
       duracao_s: z.number().int().min(1).optional(),
       reduz_dano: hearts.optional(),
       ensina_receita: z.string().min(1).optional(),
+      /** Ferramenta que derruba árvore (SPEC §6 não prevê; é mecânica nova). */
+      corta_madeira: z.boolean().optional(),
     })
     .optional(),
+});
+
+/**
+ * Recurso do mundo que o jogador quebra com uma ferramenta e que larga material
+ * (árvore e madeira, por ora). Fica em conteúdo, como inimigo e baú: o servidor
+ * é quem conta os golpes e sorteia o que cai (SPEC §4).
+ */
+export const resourceSchema = z.strictObject({
+  id: resourceId,
+  nome: z.string().min(1),
+  /** Capacidade que o item na mão precisa ter para quebrar isto. */
+  exige: z.enum(['corta_madeira']),
+  /** Golpes da ferramenta até cair. */
+  golpes: z.number().int().min(1),
+  /** Segundos até voltar em pé. */
+  volta_s: z.number().int().min(1),
+  /** Raio do tronco, que também é o que bloqueia o jogador. */
+  raio: z.number().min(0.1),
+  altura: z.number().min(0.5),
+  drops: z.array(drop).min(1),
 });
 
 /** SPEC §7.7 */
@@ -307,6 +330,7 @@ export const chestsFile = z.array(chestSchema).min(1);
 export const badgesFile = z.array(badgeSchema).min(1);
 export const enemiesFile = z.array(enemySchema).min(1);
 export const itemsFile = z.array(itemSchema).min(1);
+export const resourcesFile = z.array(resourceSchema).min(1);
 export const recipesFile = z.array(recipeSchema).min(1);
 export const dialoguesFile = z.record(dialogueId, dialogueSchema);
 
@@ -317,6 +341,7 @@ export type Chest = z.infer<typeof chestSchema>;
 export type Badge = z.infer<typeof badgeSchema>;
 export type Enemy = z.infer<typeof enemySchema>;
 export type Item = z.infer<typeof itemSchema>;
+export type Resource = z.infer<typeof resourceSchema>;
 export type Recipe = z.infer<typeof recipeSchema>;
 export type Shop = z.infer<typeof shopSchema>;
 export type Dialogue = z.infer<typeof dialogueSchema>;

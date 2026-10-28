@@ -14,6 +14,7 @@ export const chestId = z.string().regex(/^c\d{2}$/, 'id de baú: c01 a c10');
 export const badgeId = z.string().regex(/^b\d{2}$/, 'id de insígnia: b01 a b08');
 export const enemyId = z.string().regex(/^(e\d{2}|mb\d|boss\d)$/, 'id de inimigo');
 export const itemId = z.string().regex(/^[a-z][a-z0-9_]*$/, 'id de item em snake_case');
+export const resourceId = z.string().regex(/^r\d{2}$/, 'id de recurso: r01 em diante');
 export const dialogueId = z.string().regex(/^[a-z][a-z0-9_]*$/, 'id de diálogo em snake_case');
 /** Pontos do mundo (checkpoints, portas, objetos de puzzle). */
 export const spotId = z.string().regex(/^[a-z][a-z0-9_]*$/, 'id de ponto em snake_case');

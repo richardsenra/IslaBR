@@ -73,7 +73,25 @@ export type AttackKind = AttackState;
 export const WEAPON_DAMAGE: Readonly<Record<string, number>> = {
   graveto_reforcado: 1,
   arma_nv2: 2,
+  machado: 1,
 };
+
+/**
+ * Ferramentas que derrubam árvore. É a mesma ideia da tabela de dano: o valor
+ * está no efeito do item em content, e o teste confere que as duas concordam.
+ */
+export const FERRAMENTAS_DE_MADEIRA: ReadonlySet<string> = new Set(['machado']);
+
+export function cortaMadeira(arma: string | null): boolean {
+  return arma !== null && FERRAMENTAS_DE_MADEIRA.has(arma);
+}
+
+/**
+ * Alcance do golpe numa árvore. O tronco é fino e fica parado, então o jogador
+ * precisa estar perto e de frente, com menos perdão que num bicho que corre.
+ */
+export const CHOP_REACH = 1;
+export const CHOP_RADIUS = 1.2;
 
 /**
  * A melhor arma que o jogador tem, ou `null`. Servidor e cliente usam esta

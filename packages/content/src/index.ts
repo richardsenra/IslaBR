@@ -13,6 +13,7 @@ import chestsData from '../data/chests.json' with { type: 'json' };
 import badgesData from '../data/badges.json' with { type: 'json' };
 import enemiesData from '../data/enemies.json' with { type: 'json' };
 import itemsData from '../data/items.json' with { type: 'json' };
+import resourcesData from '../data/resources.json' with { type: 'json' };
 import recipesData from '../data/recipes.json' with { type: 'json' };
 import shopData from '../data/shop.json' with { type: 'json' };
 import dialoguesData from '../data/dialogues.pt-BR.json' with { type: 'json' };
@@ -24,6 +25,7 @@ import {
   enemiesFile,
   itemsFile,
   npcsFile,
+  resourcesFile,
   questsFile,
   recipesFile,
   shopSchema,
@@ -36,6 +38,7 @@ import {
   type Npc,
   type Quest,
   type Recipe,
+  type Resource,
   type Shop,
   type Zone,
 } from './schemas/index.js';
@@ -51,6 +54,7 @@ export interface Content {
   readonly badges: readonly Badge[];
   readonly enemies: readonly Enemy[];
   readonly items: readonly Item[];
+  readonly resources: readonly Resource[];
   readonly recipes: readonly Recipe[];
   readonly shop: Shop;
   readonly dialogues: Readonly<Record<string, Dialogue>>;
@@ -79,6 +83,7 @@ export function loadContent(): Content {
     badges: parse('badges.json', badgesFile, badgesData),
     enemies: parse('enemies.json', enemiesFile, enemiesData),
     items: parse('items.json', itemsFile, itemsData),
+    resources: parse('resources.json', resourcesFile, resourcesData),
     recipes: parse('recipes.json', recipesFile, recipesData),
     shop: parse('shop.json', shopSchema, shopData),
     dialogues: parse('dialogues.pt-BR.json', dialoguesFile, dialoguesData),
@@ -99,6 +104,7 @@ export const chestsById = index(content.chests);
 export const badgesById = index(content.badges);
 export const enemiesById = index(content.enemies);
 export const itemsById = index(content.items);
+export const resourcesById = index(content.resources);
 export const recipesById = index(content.recipes);
 
 function required<T>(map: ReadonlyMap<string, T>, id: string, label: string): T {
@@ -114,6 +120,7 @@ export const getChest = (id: string): Chest => required(chestsById, id, 'baú');
 export const getBadge = (id: string): Badge => required(badgesById, id, 'insígnia');
 export const getEnemy = (id: string): Enemy => required(enemiesById, id, 'inimigo');
 export const getItem = (id: string): Item => required(itemsById, id, 'item');
+export const getResource = (id: string): Resource => required(resourcesById, id, 'recurso');
 export const getRecipe = (id: string): Recipe => required(recipesById, id, 'receita');
 
 export function getDialogue(id: string): Dialogue {

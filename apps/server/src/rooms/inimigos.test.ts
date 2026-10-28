@@ -1,9 +1,10 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { boot, type ColyseusTestServer } from '@colyseus/testing';
-import { getEnemy } from '@islabr/content';
+import { getEnemy, getResource } from '@islabr/content';
 import {
   ARENA_ENEMIES,
   ARENA_SPAWN,
+  ARENA_TREES,
   MSG,
   ROOM,
   type NoticePayload,
@@ -12,7 +13,7 @@ import {
 } from '@islabr/shared';
 import { createGameServer } from '../app.js';
 import type { IslandRoom } from './IslandRoom.js';
-import { andarPara, ate, chegarNaM04, escutar, type Sequencia } from './testHelpers.js';
+import { andarPara, ate, chegarNaM04, escutar, respirar, type Sequencia } from './testHelpers.js';
 
 describe('inimigos na sala', () => {
   let colyseus: ColyseusTestServer;
@@ -172,6 +173,73 @@ describe('inimigos na sala', () => {
       'andar depois de renascer',
     );
     expect(caixa.correcoes).toEqual([]);
+  }, 30_000);
+
+  it('machado derruba a árvore e a madeira entra no inventário', async () => {
+    const sala = await colyseus.createRoom<IslandRoom>(ROOM.island);
+    const client = await colyseus.connectTo(sala, { token: `lenhador_${Date.now()}` });
+    const caixa = escutar(client);
+    const seq: Sequencia = { n: 0 };
+    await sala.waitForNextPatch();
+
+    const arvore = ARENA_TREES[0];
+    if (!arvore) throw new Error('a arena precisa de pelo menos uma árvore');
+    const recurso = getResource(arvore.tipo);
+    expect(sala.state.arvores.size).toBe(ARENA_TREES.length);
+    expect(sala.state.arvores.get(arvore.id)?.golpes).toBe(recurso.golpes);
+
+    // O machado precisa estar na mão: o jogador não nasce com um.
+    const sessao = sala['sessions'].get(client.sessionId);
+    if (!sessao) throw new Error('jogador não encontrado na sala');
+    sessao.receber({ moedas: 0, itens: ['machado'] });
+    expect(sessao.equipar('machado')).toBe(true);
+
+    // Chega ao pé da árvore e bate de frente para ela.
+    await andarPara(sala, client, arvore.x, arvore.z - 1, seq, 'ao pé da árvore');
+    for (let golpe = 0; golpe < recurso.golpes; golpe += 1) {
+      client.send(MSG.attack, { golpe: 'attack1', yaw: 0 });
+      await ate(
+        () =>
+          (sala.state.arvores.get(arvore.id)?.golpes ?? recurso.golpes) ===
+          recurso.golpes - golpe - 1,
+        `a árvore perder o golpe ${golpe + 1}`,
+      );
+      // A cadência do servidor é a mesma do combate: espera a recarga.
+      await respirar(400);
+    }
+
+    // Caiu: golpes em zero e a madeira chega ao jogador.
+    expect(sala.state.arvores.get(arvore.id)?.golpes).toBe(0);
+    await ate(
+      () => caixa.loots.some((loot) => loot.itens.includes('madeira')),
+      'o loot de madeira',
+    );
+    await ate(
+      () => (caixa.inventarios.at(-1)?.itens['madeira'] ?? 0) > 0,
+      'a madeira no inventário',
+    );
+    expect(sessao.paraSalvar().itens['madeira']).toBeGreaterThan(0);
+  }, 30_000);
+
+  it('sem machado na mão, bater na árvore não dá madeira', async () => {
+    const sala = await colyseus.createRoom<IslandRoom>(ROOM.island);
+    const client = await colyseus.connectTo(sala, { token: `sem_machado_${Date.now()}` });
+    const caixa = escutar(client);
+    const seq: Sequencia = { n: 0 };
+    await sala.waitForNextPatch();
+
+    const arvore = ARENA_TREES[0];
+    if (!arvore) throw new Error('a arena precisa de pelo menos uma árvore');
+    const sessao = sala['sessions'].get(client.sessionId);
+    if (!sessao) throw new Error('jogador não encontrado na sala');
+    sessao.receber({ moedas: 0, itens: ['arma_nv2'] });
+
+    await andarPara(sala, client, arvore.x, arvore.z - 1, seq, 'ao pé da árvore');
+    client.send(MSG.attack, { golpe: 'attack1', yaw: 0 });
+    await respirar(300);
+
+    expect(sala.state.arvores.get(arvore.id)?.golpes).toBe(getResource(arvore.tipo).golpes);
+    expect(caixa.loots.some((loot) => loot.itens.includes('madeira'))).toBe(false);
   }, 30_000);
 
   it('use_item com pacote torto ou item inventado é ignorado sem derrubar a sala', async () => {

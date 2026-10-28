@@ -1,0 +1,26 @@
+[
+  {
+    "id": "r01",
+    "nome": "Coqueiro",
+    "exige": "corta_madeira",
+    "golpes": 4,
+    "volta_s": 25,
+    "raio": 0.45,
+    "altura": 4.4,
+    "drops": [
+      { "tipo": "item", "item": "madeira", "chance": 1, "qtd": 2 },
+      { "tipo": "item", "item": "madeira", "chance": 0.4, "qtd": 1 },
+      { "tipo": "item", "item": "fruta", "chance": 0.25, "qtd": 1 }
+    ]
+  },
+  {
+    "id": "r02",
+    "nome": "Árvore Seca",
+    "exige": "corta_madeira",
+    "golpes": 2,
+    "volta_s": 18,
+    "raio": 0.35,
+    "altura": 3.2,
+    "drops": [{ "tipo": "item", "item": "madeira", "chance": 1, "qtd": 1 }]
+  }
+]

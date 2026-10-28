@@ -79,6 +79,8 @@ interface ModeloDeArma {
 const MODELO_DA_ARMA: Readonly<Record<string, ModeloDeArma>> = {
   graveto_reforcado: { arquivo: 'dagger.gltf', comprimento: 0.55, cabo: 0 },
   arma_nv2: { arquivo: 'Sword_Bronze.glb', comprimento: 0.95, cabo: -0.07 },
+  // Machado de uma mão: a pega fica na base do cabo, para a cabeça ter alcance.
+  machado: { arquivo: 'Axe_Bronze.glb', comprimento: 0.6, cabo: -0.22 },
 };
 
 interface ArmaCarregada {

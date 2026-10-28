@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { getEnemy } from '@islabr/content';
-import { ARENA_COLLIDERS, ARENA_ENEMIES, ARENA_SPAWN, ARENA_SPOTS } from './arena.js';
+import { getEnemy, getResource } from '@islabr/content';
+import { ARENA_COLLIDERS, ARENA_ENEMIES, ARENA_SPAWN, ARENA_SPOTS, ARENA_TREES } from './arena.js';
 import { bodyBox, overlapsAny } from './collision.js';
 
 /** O raio em que o bicho percebe o jogador, vindo do JSON. */
@@ -80,5 +80,62 @@ describe('alvos de interação', () => {
   it('as 6 frutas da m03 e as 5 caixas da m02 existem', () => {
     expect(ARENA_SPOTS.filter((spot) => spot.alvo === 'fruta')).toHaveLength(6);
     expect(ARENA_SPOTS.filter((spot) => spot.alvo === 'caixa_quebravel')).toHaveLength(5);
+  });
+});
+
+describe('árvores da arena', () => {
+  it('os ids são únicos e começam com o tipo', () => {
+    const ids = ARENA_TREES.map((tree) => tree.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const tree of ARENA_TREES) {
+      expect(tree.id.startsWith(`${tree.tipo}_`), tree.id).toBe(true);
+    }
+  });
+
+  it('cada tipo existe no conteúdo', () => {
+    for (const tree of ARENA_TREES) {
+      expect(getResource(tree.tipo).golpes, tree.id).toBeGreaterThan(0);
+    }
+  });
+
+  it('ficam dentro dos muros e não se encostam', () => {
+    for (const tree of ARENA_TREES) {
+      expect(Math.abs(tree.x), tree.id).toBeLessThan(23);
+      expect(Math.abs(tree.z), tree.id).toBeLessThan(23);
+    }
+    for (const a of ARENA_TREES) {
+      for (const b of ARENA_TREES) {
+        if (a.id >= b.id) continue;
+        expect(distancia(a, b), `${a.id} x ${b.id}`).toBeGreaterThan(2);
+      }
+    }
+  });
+
+  it('o tronco bloqueia o jogador, mas não nasce dentro de outro colisor', () => {
+    // O colisor da árvore entra em ARENA_COLLIDERS: um corpo no lugar dela bate.
+    for (const tree of ARENA_TREES) {
+      expect(overlapsAny(bodyBox(tree.x, 0, tree.z, 0.4, 1.7), ARENA_COLLIDERS), tree.id).toBe(
+        true,
+      );
+      // Ao lado, longe do tronco, o caminho está livre: nada de árvore em cima de caixa.
+      const aoLado = bodyBox(tree.x + 2, 0, tree.z, 0.4, 1.7);
+      expect(overlapsAny(aoLado, ARENA_COLLIDERS), `${tree.id} ao lado`).toBe(false);
+    }
+  });
+
+  it('nenhuma nasce em cima do ponto de partida nem dos bichos', () => {
+    for (const tree of ARENA_TREES) {
+      expect(distancia(tree, ARENA_SPAWN), `${tree.id} x nascimento`).toBeGreaterThan(2);
+      for (const spawn of ARENA_ENEMIES) {
+        expect(distancia(tree, spawn), `${tree.id} x ${spawn.id}`).toBeGreaterThan(
+          aggroDe(spawn.tipo),
+        );
+      }
+    }
+  });
+
+  it('dá para cortar todas: há árvore perto de onde o jogador nasce', () => {
+    const perto = ARENA_TREES.filter((tree) => distancia(tree, ARENA_SPAWN) < 12);
+    expect(perto.length).toBeGreaterThanOrEqual(2);
   });
 });

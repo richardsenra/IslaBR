@@ -1,5 +1,6 @@
 import { schema, t, type SchemaType } from '@colyseus/schema';
 import { EnemyState } from './EnemyState.js';
+import { TreeState } from './TreeState.js';
 
 /**
  * Estado replicado de um jogador. Posições em float32 porque o cliente usa a
@@ -32,6 +33,7 @@ export const IslandState = schema(
   {
     players: t.map(PlayerState),
     inimigos: t.map(EnemyState),
+    arvores: t.map(TreeState),
   },
   'IslandState',
 );

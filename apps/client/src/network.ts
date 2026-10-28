@@ -53,9 +53,18 @@ interface MapView<T> {
   forEach(callback: (value: T, key: string) => void): void;
 }
 
+interface TreeView {
+  readonly tipo: string;
+  readonly x: number;
+  readonly z: number;
+  readonly golpes: number;
+  readonly golpesMax: number;
+}
+
 interface IslandStateView {
   readonly players: MapView<PlayerView>;
   readonly inimigos: MapView<EnemyView>;
+  readonly arvores: MapView<TreeView>;
 }
 
 export interface NetPlayer {
@@ -68,6 +77,16 @@ export interface NetPlayer {
   readonly seq: number;
   readonly colorIndex: number;
   readonly arma: string;
+}
+
+export interface NetTree {
+  readonly id: string;
+  readonly tipo: string;
+  readonly x: number;
+  readonly z: number;
+  /** Golpes que faltam até cair; zero é árvore no chão. */
+  readonly golpes: number;
+  readonly golpesMax: number;
 }
 
 export interface NetEnemy {
@@ -84,7 +103,12 @@ export interface NetEnemy {
 
 export interface IslandHandlers {
   /** Chamado a cada pacote de estado. `arrivedAt` é o relógio local. */
-  onPatch(players: readonly NetPlayer[], enemies: readonly NetEnemy[], arrivedAt: number): void;
+  onPatch(
+    players: readonly NetPlayer[],
+    enemies: readonly NetEnemy[],
+    trees: readonly NetTree[],
+    arrivedAt: number,
+  ): void;
   onDamage(damage: DamagePayload): void;
   onCorrection(correction: MoveCorrectionPayload): void;
   onDialogue(dialogue: DialoguePayload): void;
@@ -189,8 +213,19 @@ export async function joinIsland(handlers: IslandHandlers): Promise<IslandConnec
         estado: inimigo.estado,
       });
     });
+    const trees: NetTree[] = [];
+    state.arvores.forEach((arvore, id) => {
+      trees.push({
+        id,
+        tipo: arvore.tipo,
+        x: arvore.x,
+        z: arvore.z,
+        golpes: arvore.golpes,
+        golpesMax: arvore.golpesMax,
+      });
+    });
     afterLag(() => {
-      handlers.onPatch(players, enemies, performance.now());
+      handlers.onPatch(players, enemies, trees, performance.now());
     });
   });
 

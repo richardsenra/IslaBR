@@ -26,6 +26,20 @@
     }
   },
   {
+    "id": "machado",
+    "nome": "Machado de Bronze",
+    "tipo": "arma",
+    "descricao": "Lâmina curta de bronze num cabo curto. Bate como o graveto, mas é o que derruba árvore.",
+    "empilhavel": false,
+    "consumivel": false,
+    "vendavel": false,
+    "descartavel": false,
+    "efeito": {
+      "dano": 1,
+      "corta_madeira": true
+    }
+  },
+  {
     "id": "armadura_nv1",
     "nome": "Peitoral de Casca",
     "tipo": "armadura",
@@ -101,6 +115,16 @@
     "efeito": {
       "cura_coracoes": 0.5
     }
+  },
+  {
+    "id": "madeira",
+    "nome": "Tora de Madeira",
+    "tipo": "ingrediente",
+    "descricao": "Pedaço de tronco cortado. Serve de material para quase tudo que o Zé Calango inventa.",
+    "empilhavel": true,
+    "consumivel": true,
+    "vendavel": true,
+    "descartavel": true
   },
   {
     "id": "erva",

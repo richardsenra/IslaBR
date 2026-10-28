@@ -37,12 +37,14 @@ import {
   type IslandConnection,
   type NetEnemy,
   type NetPlayer,
+  type NetTree,
 } from './network.js';
 import { CASAS_DA_BARRA, Hotbar } from './hotbar.js';
 import { PauseMenu } from './menu.js';
 import { createStage } from './scene.js';
 import { carregarConfiguracoes, pixelRatioDa, type Configuracoes } from './settings.js';
 import { Spots } from './spots.js';
+import { Trees } from './trees.js';
 import { createArena } from './world.js';
 
 function byId<T extends HTMLElement>(id: string): T {
@@ -179,6 +181,9 @@ scene.add(spots.group);
 const enemies = new Enemies();
 scene.add(enemies.group);
 
+const arvores = new Trees();
+scene.add(arvores.group);
+
 const rastros = new Rastros();
 scene.add(rastros.group);
 
@@ -273,10 +278,12 @@ let opacidadeLocal = 1;
 function onPatch(
   players: readonly NetPlayer[],
   inimigos: readonly NetEnemy[],
+  arvoresDaSala: readonly NetTree[],
   arrivedAt: number,
 ): void {
   const present = new Set<string>();
   enemies.sync(inimigos, arrivedAt);
+  arvores.sync(arvoresDaSala);
 
   for (const player of players) {
     present.add(player.sessionId);
@@ -690,6 +697,7 @@ renderer.setAnimationLoop((now) => {
   efeitos.tremerCamera(camera, dt);
   spots.update(dtAnim, player, alvo);
   enemies.update(now, dtAnim);
+  arvores.update(dtAnim);
   rastros.update(dtAnim);
 
   for (const remote of remotes.values()) {

@@ -183,6 +183,20 @@ export function checkReferences(content: Content): ContentProblem[] {
     }
   }
 
+  // Recursos do mundo (árvores)
+  for (const resource of content.resources) {
+    const onde = `resources.json/${resource.id}`;
+    for (const drop of resource.drops) {
+      if (drop.tipo === 'item') needItem(`${onde}/drops`, drop.item);
+      else if (drop.min > drop.max) add(`${onde}/drops`, 'moedas com min maior que max');
+    }
+    // Sem uma ferramenta que sirva, o recurso nunca cairia.
+    const ferramentas = content.items.filter((item) => item.efeito?.[resource.exige] === true);
+    if (ferramentas.length === 0) {
+      add(onde, `nenhum item tem a capacidade ${resource.exige}`);
+    }
+  }
+
   // Inimigos
   for (const enemy of content.enemies) {
     const onde = `enemies.json/${enemy.id}`;

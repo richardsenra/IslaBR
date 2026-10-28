@@ -6,7 +6,7 @@
  * por parâmetro para o teste conseguir repetir a mesma sequência.
  */
 
-import type { Drop, Enemy } from '@islabr/content';
+import type { Drop, Enemy, Resource } from '@islabr/content';
 
 /** Devolve um número em [0, 1). `Math.random` serve. */
 export type Sorteio = () => number;
@@ -41,6 +41,18 @@ export function rolarDrops(inimigo: Enemy, sorteio: Sorteio): Saque {
   let moedas = 0;
   const itens: string[] = [];
   for (const drop of inimigo.drops) {
+    const saque = rolarDrop(drop, sorteio);
+    moedas += saque.moedas;
+    itens.push(...saque.itens);
+  }
+  return { moedas, itens };
+}
+
+/** Tudo que um recurso do mundo largou ao cair (árvore e madeira). */
+export function rolarDropsDeRecurso(recurso: Resource, sorteio: Sorteio): Saque {
+  let moedas = 0;
+  const itens: string[] = [];
+  for (const drop of recurso.drops) {
     const saque = rolarDrop(drop, sorteio);
     moedas += saque.moedas;
     itens.push(...saque.itens);

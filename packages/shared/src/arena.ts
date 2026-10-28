@@ -195,9 +195,52 @@ export const ARENA_PIECES: readonly ArenaPiece[] = [
   },
 ];
 
-export const ARENA_COLLIDERS: readonly Box[] = ARENA_PIECES.map((piece) =>
-  boxFromCenter(piece.x, piece.y, piece.z, piece.sizeX, piece.sizeY, piece.sizeZ),
+/** Largura da caixa de colisão do tronco, em metros. */
+export const TREE_TRUNK_WIDTH = 0.7;
+
+export interface TreeSpawn {
+  readonly id: string;
+  /** Id do recurso em content/resources.json. */
+  readonly tipo: string;
+  readonly x: number;
+  readonly z: number;
+}
+
+/**
+ * Árvores da arena de testes. Ficam ao sul, perto de onde o jogador nasce e
+ * longe dos bichos, para dar para experimentar o machado sem briga.
+ */
+export const ARENA_TREES: readonly TreeSpawn[] = [
+  { id: 'r02_1', tipo: 'r02', x: 6, z: 7 },
+  { id: 'r01_1', tipo: 'r01', x: 0, z: 14 },
+  { id: 'r01_2', tipo: 'r01', x: -12, z: 11 },
+  { id: 'r02_2', tipo: 'r02', x: -5, z: -8 },
+  { id: 'r01_3', tipo: 'r01', x: -20, z: 16 },
+];
+/**
+ * Altura do colisor do tronco. O jogador não atravessa a árvore, mas pula em
+ * cima do toco; e como o toco fica no lugar depois de ela cair, o colisor é o
+ * mesmo em pé ou derrubada, sem precisar mudar a colisão em tempo de jogo.
+ */
+export const TREE_COLLIDER_HEIGHT = 0.5;
+
+export const ARENA_TREE_COLLIDERS: readonly Box[] = ARENA_TREES.map((tree) =>
+  boxFromCenter(
+    tree.x,
+    TREE_COLLIDER_HEIGHT / 2,
+    tree.z,
+    TREE_TRUNK_WIDTH,
+    TREE_COLLIDER_HEIGHT,
+    TREE_TRUNK_WIDTH,
+  ),
 );
+
+export const ARENA_COLLIDERS: readonly Box[] = [
+  ...ARENA_PIECES.map((piece) =>
+    boxFromCenter(piece.x, piece.y, piece.z, piece.sizeX, piece.sizeY, piece.sizeZ),
+  ),
+  ...ARENA_TREE_COLLIDERS,
+];
 
 /** Cores dos jogadores, para distinguir quem é quem no M1. */
 export const PLAYER_COLORS = [
