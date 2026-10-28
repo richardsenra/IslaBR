@@ -142,6 +142,8 @@ export interface InteractSpot {
   readonly z: number;
   readonly rotulo: string;
   readonly cor: string;
+  /** Item que o jogador precisa ter para usar o alvo. */
+  readonly exige?: string;
 }
 
 /** Distância máxima para interagir, em metros (SPEC §6). */
@@ -156,6 +158,7 @@ export const ARENA_SPOTS: readonly InteractSpot[] = WORLD.alvos.map((spot) => ({
   z: spot.z,
   rotulo: spot.rotulo,
   cor: spot.cor,
+  ...(spot.exige ? { exige: spot.exige } : {}),
 }));
 
 export function spotById(id: string): InteractSpot | undefined {
@@ -253,3 +256,12 @@ export function colisoresPara(abertas: ReadonlySet<string>): Box[] {
     ...ARENA_GATES.filter((gate) => !abertas.has(gate.zona)).map((gate) => gate.box),
   ];
 }
+
+/** Pontos que disparam ao chegar perto (missões `reach` e insígnias de exploração). */
+export const ARENA_TRIGGERS = WORLD.gatilhos;
+
+/** Moedas soltas pela ilha (SPEC §7.5). */
+export const ARENA_COINS = WORLD.moedas;
+
+/** A que distância, em metros, o jogador pega uma moeda solta. */
+export const COIN_PICKUP_RADIUS = 1.3;

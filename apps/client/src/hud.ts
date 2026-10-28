@@ -1,4 +1,4 @@
-import { badgesById, getItem } from '@islabr/content';
+import { badgesById, getBadge, getItem } from '@islabr/content';
 import type { InventoryUpdatePayload, LootPayload, QuestUpdatePayload } from '@islabr/shared';
 import { ui } from './i18n.js';
 import { ICONES } from './icones.js';
@@ -117,6 +117,9 @@ export class Hud {
     if (loot.moedas > 0) partes.push({ icone: ICONES.moeda, nome: ui.hud.qtdMoedas(loot.moedas) });
     if (loot.joias > 0) partes.push({ icone: ICONES.joia, nome: ui.hud.qtdJoias(loot.joias) });
     for (const item of loot.itens) partes.push({ icone: ICONES.item, nome: getItem(item).nome });
+    for (const id of loot.insignias ?? []) {
+      partes.push({ icone: ICONES.insignia, nome: `${ui.hud.insignia}: ${getBadge(id).feito}` });
+    }
     if (partes.length === 0) return;
 
     const el = this.elementos.loot;

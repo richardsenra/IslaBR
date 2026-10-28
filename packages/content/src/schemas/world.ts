@@ -51,6 +51,34 @@ export const spotSchema = z.strictObject({
   z: z.number(),
   rotulo: z.string().min(1),
   cor: hexColor,
+  /** Item que o jogador precisa ter para usar o alvo (a chave da porta). */
+  exige: z.string().min(1).optional(),
+});
+
+/**
+ * Ponto que dispara ao chegar perto: conta como `reach` para as missões e pode
+ * dar uma insígnia de exploração (SPEC §7.5).
+ */
+export const triggerSchema = z.strictObject({
+  id: z.string().regex(/^[a-z][a-z0-9_]*$/),
+  x: z.number(),
+  y: z.number(),
+  z: z.number(),
+  raio: z.number().positive(),
+  insignia: z
+    .string()
+    .regex(/^b\d{2}$/)
+    .optional(),
+});
+
+/** Moeda solta no chão: o jogador pega ao passar (SPEC §7.5). */
+export const looseCoinSchema = z.strictObject({
+  id: z.string().min(1),
+  zona: zonaId,
+  x: z.number(),
+  y: z.number(),
+  z: z.number(),
+  valor: z.number().int().min(1),
 });
 
 export const treeSpawnSchema = z.strictObject({
@@ -123,6 +151,8 @@ export const worldSchema = z.strictObject({
   arvores: z.array(treeSpawnSchema),
   inimigos: z.array(enemySpawnSchema),
   portoes: z.array(gateSchema),
+  gatilhos: z.array(triggerSchema),
+  moedas: z.array(looseCoinSchema),
   decoracao: z.array(decorationSchema),
   dispersoes: z.array(scatterSchema),
 });
@@ -130,6 +160,8 @@ export const worldSchema = z.strictObject({
 export type World = z.infer<typeof worldSchema>;
 export type WorldArea = z.infer<typeof areaSchema>;
 export type WorldPiece = z.infer<typeof pieceSchema>;
+export type WorldTrigger = z.infer<typeof triggerSchema>;
+export type WorldCoin = z.infer<typeof looseCoinSchema>;
 export type WorldGate = z.infer<typeof gateSchema>;
 export type WorldDecoration = z.infer<typeof decorationSchema>;
 export type WorldScatter = z.infer<typeof scatterSchema>;

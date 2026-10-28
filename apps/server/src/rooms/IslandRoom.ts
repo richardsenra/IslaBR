@@ -15,6 +15,8 @@ import {
   empurrar,
   empurraoDoGolpe,
   parseAttackPayload,
+  parseBuyPayload,
+  parseCraftPayload,
   parseEquipPayload,
   parseInteractPayload,
   parseMovePayload,
@@ -40,7 +42,7 @@ import {
 } from './enemyAI.js';
 import { IslandState, PlayerState } from './IslandState.js';
 import { kitDeTeste, todasAsZonasAbertas } from './kitDeTeste.js';
-import { PlayerSession } from './playerSession.js';
+import { PlayerSession, type CompraResult } from './playerSession.js';
 import { obterStore, type JogadorSalvo } from '../store/index.js';
 
 /**
@@ -92,6 +94,12 @@ export class IslandRoom extends Room<{ state: IslandState }> {
     });
     this.onMessage(MSG.equip, (client, raw: unknown) => {
       this.onEquip(client, raw);
+    });
+    this.onMessage(MSG.buy, (client, raw: unknown) => {
+      this.onBuy(client, raw);
+    });
+    this.onMessage(MSG.craft, (client, raw: unknown) => {
+      this.onCraft(client, raw);
     });
     this.onMessage(MSG.ready, (client) => {
       this.enviarSituacao(client);
@@ -334,6 +342,23 @@ export class IslandRoom extends Room<{ state: IslandState }> {
     player.state = claim.state;
     player.seq = claim.seq;
 
+    const passo = session.passarPor(claim.x, claim.y, claim.z);
+    for (const update of passo.atualizacoes) client.send(MSG.questUpdate, update);
+    for (const moeda of passo.moedas) client.send(MSG.coin, { id: moeda.id });
+    if (passo.insignias.length > 0) {
+      client.send(MSG.loot, {
+        de: 'Exploração',
+        moedas: 0,
+        joias: 0,
+        itens: [],
+        insignias: passo.insignias,
+      });
+    }
+    if (passo.moedas.length > 0 || passo.insignias.length > 0) {
+      client.send(MSG.inventoryUpdate, session.inventario);
+      void this.salvar(session);
+    }
+
     session.aceito = {
       seq: claim.seq,
       x: claim.x,
@@ -341,6 +366,56 @@ export class IslandRoom extends Room<{ state: IslandState }> {
       z: claim.z,
       atMs: now,
     };
+  }
+
+  /** O jogador está perto o bastante deste alvo para comprar ou fabricar? */
+  private pertoDe(session: PlayerSession, spotId: string): boolean {
+    const spot = spotById(spotId);
+    if (!spot) return false;
+    return Math.hypot(spot.x - session.aceito.x, spot.z - session.aceito.z) <= INTERACT_RADIUS + 2;
+  }
+
+  private onBuy(client: Client, raw: unknown): void {
+    const session = this.sessions.get(client.sessionId);
+    const payload = parseBuyPayload(raw);
+    if (!session || !payload) return;
+    if (!this.pertoDe(session, 'spot_bento')) {
+      client.send(MSG.notice, { codigo: 'longe' });
+      return;
+    }
+    this.responderCompra(client, session, session.comprar(payload.item), 'Loja do Seu Bento');
+  }
+
+  private onCraft(client: Client, raw: unknown): void {
+    const session = this.sessions.get(client.sessionId);
+    const payload = parseCraftPayload(raw);
+    if (!session || !payload) return;
+    if (!this.pertoDe(session, 'spot_bancada')) {
+      client.send(MSG.notice, { codigo: 'longe' });
+      return;
+    }
+    this.responderCompra(
+      client,
+      session,
+      session.fabricar(payload.receita),
+      'Bancada do Zé Calango',
+    );
+  }
+
+  private responderCompra(
+    client: Client,
+    session: PlayerSession,
+    resultado: CompraResult,
+    de: string,
+  ): void {
+    if (!resultado.ok) {
+      if (resultado.aviso) client.send(MSG.notice, { codigo: resultado.aviso });
+      return;
+    }
+    for (const update of resultado.atualizacoes ?? []) client.send(MSG.questUpdate, update);
+    client.send(MSG.inventoryUpdate, session.inventario);
+    void de;
+    void this.salvar(session);
   }
 
   /** Tecla F: o servidor confere a distância antes de qualquer coisa. */
@@ -365,6 +440,8 @@ export class IslandRoom extends Room<{ state: IslandState }> {
 
     const result = session.interagir(spot);
 
+    if (result.aviso) client.send(MSG.notice, { codigo: result.aviso });
+    if (result.painel) client.send(MSG.panel, { tipo: result.painel });
     if (result.dialogo) client.send(MSG.dialogue, result.dialogo);
     for (const update of result.atualizacoes) client.send(MSG.questUpdate, update);
     if (result.ganhos) {

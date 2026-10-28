@@ -63,7 +63,8 @@ describe('inimigos na sala', () => {
     await sala.waitForNextPatch();
 
     // Atravessa o porto rumo ao pântano e para a uns 8 m do sapo e04_1.
-    await andarPara(sala, client, -23, 0, seq, 'perto do sapo');
+    await andarPara(sala, client, -14, 17, seq, 'a divisa do pântano');
+    await andarPara(sala, client, -26, 17, seq, 'perto do sapo');
 
     await ate(() => status.length > 0, 'a gosma do sapo', 15_000);
     const gosma = getEnemy('e04').ia;

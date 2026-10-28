@@ -48,6 +48,8 @@ import { carregarConfiguracoes, pixelRatioDa, type Configuracoes } from './setti
 import { MODELOS_DAS_ARVORES } from './trees.js';
 import { criarCenario, carregarModelosDoCenario, modelosDoMapa } from './cenario.js';
 import { criarMar } from './mar.js';
+import { Moedas } from './moedas.js';
+import { Painel, type TipoDePainel } from './painel.js';
 import { Portoes } from './portoes.js';
 import { Spots } from './spots.js';
 import { Trees } from './trees.js';
@@ -98,6 +100,20 @@ function mostrarNotice(texto: string): void {
     noticeEl.hidden = true;
   }, 2200);
 }
+
+const painel = new Painel(byId('painel'), {
+  comprar: (item) => {
+    connection?.buy(item);
+  },
+  fabricar: (receita) => {
+    connection?.craft(receita);
+  },
+});
+/** Painel que chegou enquanto a fala ainda estava aberta: abre quando ela fechar. */
+let painelPendente: TipoDePainel | null = null;
+
+/** Objetos de missão que somem depois de usados (a bancada e a porta ficam). */
+const SOMEM_AO_USAR: ReadonlySet<string> = new Set(['caixa_quebravel', 'lanterna_pantano']);
 
 const inventario = new InventoryPanel(
   byId('inventario'),
@@ -156,14 +172,16 @@ document.addEventListener('pointerlockchange', () => {
     soltandoDePropósito = false;
     return;
   }
-  if (!inventario.aberto) menu.abrir();
+  if (!inventario.aberto && !painel.aberto) menu.abrir();
 });
 
 window.addEventListener('keydown', (event) => {
   if (event.code !== 'Escape' || event.repeat) return;
   // O mesmo Esc que soltou o mouse já abriu o menu; não fecha de novo.
   if (performance.now() - soltouEm < 300) return;
-  if (menu.aberto) {
+  if (painel.aberto) {
+    painel.fechar();
+  } else if (menu.aberto) {
     menu.fechar();
     capturarPonteiro();
   } else if (inventario.aberto) {
@@ -207,6 +225,8 @@ const follow = new ThirdPersonCamera(camera, ARENA_SPAWN.yaw);
 
 /** Colisores do jogador: o mundo e os portões das zonas ainda fechadas. */
 const colisores: Box[] = colisoresPara(new Set());
+const moedas = new Moedas();
+scene.add(moedas.group);
 const portoes = new Portoes();
 portoes.definirAbertas(new Set());
 scene.add(portoes.group);
@@ -403,6 +423,7 @@ joinIsland({
   },
   onInventory: (inventory) => {
     hud.setCarteira(inventory);
+    painel.atualizar(inventory);
     inventario.atualizar(inventory.itens, inventory.armaEquipada);
     atalhos.atualizar(inventory.itens);
     localAvatar.equipar(inventory.armaEquipada);
@@ -431,6 +452,17 @@ joinIsland({
   onLoot: (loot) => {
     hud.mostrarLoot(loot);
     if (alvo?.tipo === 'bau') spots.esconder(alvo.id);
+  },
+  onPanel: (tipo) => {
+    if (dialogo.aberta) {
+      painelPendente = tipo;
+    } else {
+      painel.abrir(tipo);
+      soltarPonteiro();
+    }
+  },
+  onCoin: (id) => {
+    moedas.pegar(id);
   },
   onZones: (zonas) => {
     const abertas = new Set(zonas);
@@ -566,7 +598,7 @@ renderer.setAnimationLoop((now) => {
 
   // Com o menu aberto o jogo não lê teclado nem mouse: o mundo segue, o
   // personagem fica parado.
-  if (menu.aberto) {
+  if (menu.aberto || painel.aberto) {
     input.soltarTudo();
     puloPendente = false;
     esquivaPendente = false;
@@ -664,10 +696,14 @@ renderer.setAnimationLoop((now) => {
 
   if (interagir) {
     if (dialogo.aberta) {
-      dialogo.avancar();
+      if (!dialogo.avancar() && painelPendente) {
+        painel.abrir(painelPendente);
+        painelPendente = null;
+        soltarPonteiro();
+      }
     } else if (alvo && connection) {
       connection.interact(alvo.id);
-      if (alvo.tipo === 'objeto' || alvo.tipo === 'coletavel') spots.esconder(alvo.id);
+      if (SOMEM_AO_USAR.has(alvo.alvo) || alvo.tipo === 'coletavel') spots.esconder(alvo.id);
     }
   }
 
@@ -724,6 +760,7 @@ renderer.setAnimationLoop((now) => {
   spots.update(dtAnim, player, alvo);
   enemies.update(now, dtAnim);
   arvores.update(dtAnim);
+  moedas.update(dtAnim);
   rastros.update(dtAnim);
 
   for (const remote of remotes.values()) {

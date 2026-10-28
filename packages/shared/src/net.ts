@@ -70,7 +70,46 @@ export const MSG = {
   loot: 'loot',
   /** S→C: zonas que o jogador já pode pisar; os portões das outras ficam fechados. */
   zones: 'zones',
+  /** S→C: abre um painel (loja do Seu Bento, bancada do Zé Calango). */
+  panel: 'panel',
+  /** S→C: uma moeda solta foi pega; o cliente a esconde. */
+  coin: 'coin',
 } as const;
+
+export interface PanelPayload {
+  readonly tipo: 'loja' | 'bancada';
+}
+
+export interface CoinPayload {
+  readonly id: string;
+}
+
+/** C→S: comprar um item da loja do Seu Bento. */
+export interface BuyPayload {
+  readonly item: string;
+}
+
+/** C→S: fabricar uma receita na bancada do Zé Calango. */
+export interface CraftPayload {
+  readonly receita: string;
+}
+
+function textoCurto(raw: unknown, campo: string): string | null {
+  if (typeof raw !== 'object' || raw === null) return null;
+  const valor = (raw as Record<string, unknown>)[campo];
+  if (typeof valor !== 'string' || valor.length === 0 || valor.length > 64) return null;
+  return valor;
+}
+
+export function parseBuyPayload(raw: unknown): BuyPayload | null {
+  const item = textoCurto(raw, 'item');
+  return item === null ? null : { item };
+}
+
+export function parseCraftPayload(raw: unknown): CraftPayload | null {
+  const receita = textoCurto(raw, 'receita');
+  return receita === null ? null : { receita };
+}
 
 export interface ZonesPayload {
   readonly zonas: readonly string[];
@@ -180,6 +219,8 @@ export interface LootPayload {
   readonly moedas: number;
   readonly joias: number;
   readonly itens: readonly string[];
+  /** Insígnias de exploração ganhas agora (ids de badges.json). */
+  readonly insignias?: readonly string[];
 }
 
 /** C→S: golpe (1–3 ou carregado) e direção (SPEC §4). */
@@ -250,7 +291,16 @@ export interface StatusPayload {
   readonly origem: string;
 }
 
-export type NoticeCode = 'nao-tem' | 'nao-usavel' | 'vida-cheia';
+export type NoticeCode =
+  | 'nao-tem'
+  | 'nao-usavel'
+  | 'vida-cheia'
+  | 'sem-chave'
+  | 'sem-dinheiro'
+  | 'faltam-itens'
+  | 'nao-aprendida'
+  | 'longe'
+  | 'loja-fechada';
 
 /** S→C: motivo de uma ação recusada, para o cliente mostrar em português. */
 export interface NoticePayload {

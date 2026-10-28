@@ -10,6 +10,8 @@ import {
   type DialoguePayload,
   type InventoryUpdatePayload,
   type ZonesPayload,
+  type PanelPayload,
+  type CoinPayload,
   type LootPayload,
   type MoveCorrectionPayload,
   type MovePayload,
@@ -117,6 +119,8 @@ export interface IslandHandlers {
   onInventory(inventory: InventoryUpdatePayload): void;
   onLoot(loot: LootPayload): void;
   onZones(zonas: readonly string[]): void;
+  onPanel(tipo: PanelPayload['tipo']): void;
+  onCoin(id: string): void;
   onStatus(status: StatusPayload): void;
   onNotice(notice: NoticePayload): void;
   onRespawn(volta: RespawnPayload): void;
@@ -133,6 +137,8 @@ export interface IslandConnection {
   /** Usar item do inventário; o servidor confere e responde. */
   useItem(item: string): void;
   equip(item: string): void;
+  buy(item: string): void;
+  craft(receita: string): void;
   leave(): void;
 }
 
@@ -285,6 +291,18 @@ export async function joinIsland(handlers: IslandHandlers): Promise<IslandConnec
     });
   });
 
+  room.onMessage(MSG.panel, (payload: PanelPayload) => {
+    afterLag(() => {
+      handlers.onPanel(payload.tipo);
+    });
+  });
+
+  room.onMessage(MSG.coin, (payload: CoinPayload) => {
+    afterLag(() => {
+      handlers.onCoin(payload.id);
+    });
+  });
+
   room.onMessage(MSG.zones, (payload: ZonesPayload) => {
     afterLag(() => {
       handlers.onZones(payload.zonas);
@@ -318,6 +336,16 @@ export async function joinIsland(handlers: IslandHandlers): Promise<IslandConnec
     useItem: (item) => {
       afterLag(() => {
         room.send(MSG.useItem, { item });
+      });
+    },
+    buy: (item) => {
+      afterLag(() => {
+        room.send(MSG.buy, { item });
+      });
+    },
+    craft: (receita) => {
+      afterLag(() => {
+        room.send(MSG.craft, { receita });
       });
     },
     equip: (item) => {

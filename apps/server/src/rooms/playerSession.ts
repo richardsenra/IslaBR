@@ -6,7 +6,7 @@
  * do Colyseus, que todo mundo enxerga.
  */
 
-import { content, getChest, getDialogue, getNpc, itemsById } from '@islabr/content';
+import { content, getChest, getDialogue, getNpc, getRecipe, itemsById } from '@islabr/content';
 import {
   DODGE_COOLDOWN,
   DODGE_INVULN,
@@ -42,6 +42,10 @@ import {
   ARENA_COLLIDERS,
   colisoresPara,
   zonasAbertas,
+  ARENA_COINS,
+  ARENA_TRIGGERS,
+  COIN_PICKUP_RADIUS,
+  type PanelPayload,
 } from '@islabr/shared';
 import { danoRecebido } from './combate.js';
 
@@ -63,6 +67,23 @@ export interface InteractResult {
   readonly inventario?: InventoryUpdatePayload;
   /** Só para teste e log: por que nada aconteceu. */
   readonly recusa?: string;
+  /** Painel que o cliente deve abrir (loja, bancada). */
+  readonly painel?: PanelPayload['tipo'];
+  /** Aviso de recusa para o jogador ler. */
+  readonly aviso?: NoticeCode;
+}
+
+/** O que mudou quando o jogador andou: gatilhos, insígnias e moedas soltas. */
+export interface PassoResult {
+  readonly atualizacoes: readonly QuestUpdatePayload[];
+  readonly insignias: readonly string[];
+  readonly moedas: readonly { readonly id: string; readonly valor: number }[];
+}
+
+export interface CompraResult {
+  readonly ok: boolean;
+  readonly aviso?: NoticeCode;
+  readonly atualizacoes?: readonly QuestUpdatePayload[];
 }
 
 const NADA: InteractResult = { atualizacoes: [] };
@@ -91,6 +112,10 @@ export class PlayerSession {
   private temporariosRestantes = 0;
   /** Coletáveis já colhidos nesta sessão; renascem na próxima. */
   private readonly coletados = new Set<string>();
+  /** Gatilhos em que o jogador está dentro agora: só dispara ao entrar. */
+  private readonly dentro = new Set<string>();
+  /** Moedas soltas já pegas nesta sessão; voltam na próxima, como as frutas. */
+  private readonly moedasPegas = new Set<string>();
   private ultimoGolpe: AttackKind | null = null;
   private ultimoGolpeEm = 0;
   /** Última vez que o jogador foi visto alto o bastante para mergulhar. */
@@ -388,8 +413,137 @@ export class PlayerSession {
       if (!quest) continue;
       const { progress } = applyReward(this.progress, quest.recompensa);
       this.progress = progress;
+      this.darInsigniasDaMissao(concluida);
     }
     return atualizacoes;
+  }
+
+  /** Insígnias cuja condição é concluir esta missão (a b07, com a m09). */
+  private darInsigniasDaMissao(missao: string): void {
+    for (const badge of content.badges) {
+      if (badge.condicao.tipo !== 'missao' || badge.condicao.missao !== missao) continue;
+      this.darInsignia(badge.id);
+    }
+  }
+
+  /** Dá a insígnia uma vez só. Devolve `true` se era nova. */
+  private darInsignia(id: string): boolean {
+    if (this.progress.insignias.includes(id)) return false;
+    this.progress = { ...this.progress, insignias: [...this.progress.insignias, id] };
+    this.sujo = true;
+    return true;
+  }
+
+  /**
+   * O jogador andou: confere os gatilhos (missões `reach` e insígnias de
+   * exploração) e as moedas soltas. Gatilho só vale ao entrar no raio.
+   */
+  passarPor(x: number, y: number, z: number): PassoResult {
+    const atualizacoes: QuestUpdatePayload[] = [];
+    const insignias: string[] = [];
+
+    for (const gatilho of ARENA_TRIGGERS) {
+      const perto =
+        Math.hypot(gatilho.x - x, gatilho.z - z) <= gatilho.raio && Math.abs(gatilho.y - y) <= 3;
+      if (!perto) {
+        this.dentro.delete(gatilho.id);
+        continue;
+      }
+      if (this.dentro.has(gatilho.id)) continue;
+      this.dentro.add(gatilho.id);
+      atualizacoes.push(...this.evento({ tipo: 'reach', ponto: gatilho.id }));
+      if (gatilho.insignia && this.darInsignia(gatilho.insignia)) insignias.push(gatilho.insignia);
+      for (const badge of content.badges) {
+        if (badge.condicao.tipo !== 'reach' || badge.condicao.ponto !== gatilho.id) continue;
+        if (this.darInsignia(badge.id)) insignias.push(badge.id);
+      }
+    }
+
+    const moedas: { id: string; valor: number }[] = [];
+    for (const moeda of ARENA_COINS) {
+      if (this.moedasPegas.has(moeda.id)) continue;
+      if (Math.hypot(moeda.x - x, moeda.z - z) > COIN_PICKUP_RADIUS) continue;
+      if (Math.abs(moeda.y - y) > 2) continue;
+      this.moedasPegas.add(moeda.id);
+      this.progress = { ...this.progress, moedas: this.progress.moedas + moeda.valor };
+      this.sujo = true;
+      moedas.push({ id: moeda.id, valor: moeda.valor });
+    }
+
+    return { atualizacoes, insignias: [...new Set(insignias)], moedas };
+  }
+
+  /** A loja do Seu Bento abre quando a m03 termina (SPEC §7.7). */
+  get lojaAberta(): boolean {
+    return this.book['m03']?.status === 'done';
+  }
+
+  /** Receita aprendida: missão feita (ou em andamento, a do repelente) ou baú aberto. */
+  receitaAprendida(id: string): boolean {
+    const origem = getRecipe(id).aprendida_em;
+    if (origem.startsWith('c')) return this.progress.bausAbertos.includes(origem);
+    const status = this.book[origem]?.status;
+    return status === 'done' || (id === 'repelente' && status === 'active');
+  }
+
+  /** Compra na loja: o servidor confere o preço no conteúdo e cobra. */
+  comprar(item: string): CompraResult {
+    if (!this.lojaAberta) return { ok: false, aviso: 'loja-fechada' };
+    const entrada = content.shop.itens.find((candidato) => candidato.item === item);
+    if (!entrada) return { ok: false, aviso: 'nao-tem' };
+    const { moedas, joias, itens } = entrada.custo;
+    if (this.progress.moedas < moedas || this.progress.joias < joias) {
+      return { ok: false, aviso: 'sem-dinheiro' };
+    }
+    if (itens.some((exigido) => itemCount(this.progress, exigido.item) < exigido.qtd)) {
+      return { ok: false, aviso: 'faltam-itens' };
+    }
+    let progress: PlayerProgress = {
+      ...this.progress,
+      moedas: this.progress.moedas - moedas,
+      joias: this.progress.joias - joias,
+    };
+    for (const exigido of itens) {
+      progress = {
+        ...progress,
+        itens: {
+          ...progress.itens,
+          [exigido.item]: itemCount(progress, exigido.item) - exigido.qtd,
+        },
+      };
+    }
+    this.progress = addItem(progress, item, 1);
+    this.sujo = true;
+    return { ok: true, atualizacoes: this.evento({ tipo: 'collect', item, qtd: 1 }) };
+  }
+
+  /** Fabrica na bancada: gasta os ingredientes e entrega o resultado. */
+  fabricar(receita: string): CompraResult {
+    const def = content.recipes.find((candidata) => candidata.id === receita);
+    if (!def) return { ok: false, aviso: 'nao-tem' };
+    if (!this.receitaAprendida(receita)) return { ok: false, aviso: 'nao-aprendida' };
+    if (def.ingredientes.some((ing) => itemCount(this.progress, ing.item) < ing.qtd)) {
+      return { ok: false, aviso: 'faltam-itens' };
+    }
+    let progress = this.progress;
+    for (const ing of def.ingredientes) {
+      progress = {
+        ...progress,
+        itens: { ...progress.itens, [ing.item]: itemCount(progress, ing.item) - ing.qtd },
+      };
+    }
+    this.progress = addItem(progress, def.resultado.item, def.resultado.qtd);
+    this.sujo = true;
+    const atualizacoes = this.evento({
+      tipo: 'collect',
+      item: def.resultado.item,
+      qtd: def.resultado.qtd,
+    });
+    // "Fabrique o repelente na bancada" (m08) conta quando o repelente sai.
+    if (receita === 'repelente') {
+      atualizacoes.push(...this.evento({ tipo: 'use', objeto: 'bancada_calango' }));
+    }
+    return { ok: true, atualizacoes };
   }
 
   /** O jogador apertou F perto de um alvo. */
@@ -407,6 +561,12 @@ export class PlayerSession {
   }
 
   private falarCom(npcId: string): InteractResult {
+    const resultado = this.falarComSemLoja(npcId);
+    // Depois da m03 o Seu Bento também atende no balcão.
+    return npcId === 'npc_bento' && this.lojaAberta ? { ...resultado, painel: 'loja' } : resultado;
+  }
+
+  private falarComSemLoja(npcId: string): InteractResult {
     const npc = getNpc(npcId);
 
     // 1. Conversa que fecha ou adianta uma missão em andamento.
@@ -465,6 +625,10 @@ export class PlayerSession {
   }
 
   private usar(spot: InteractSpot): InteractResult {
+    if (spot.alvo === 'bancada_calango') return { atualizacoes: [], painel: 'bancada' };
+    if (spot.exige && itemCount(this.progress, spot.exige) === 0) {
+      return { atualizacoes: [], aviso: 'sem-chave', recusa: 'sem-chave' };
+    }
     const atualizacoes = this.evento({
       tipo: 'use',
       objeto: spot.alvo,

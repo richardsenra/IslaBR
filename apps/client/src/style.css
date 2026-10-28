@@ -860,3 +860,69 @@ kbd {
   color: var(--destaque);
   font-weight: 800;
 }
+
+#painel {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: min(520px, calc(100% - 32px));
+  max-height: calc(100% - 80px);
+  overflow-y: auto;
+  transform: translate(-50%, -50%);
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: rgb(20 24 40 / 94%);
+  color: #fff;
+}
+
+#painel[hidden] {
+  display: none;
+}
+
+.painel-titulo {
+  font-weight: 700;
+  font-size: 18px;
+  color: #ffd23f;
+  margin-bottom: 10px;
+}
+
+.painel-linha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-top: 1px solid rgb(255 255 255 / 12%);
+}
+
+.painel-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.painel-texto span {
+  font-size: 13px;
+  opacity: 0.75;
+}
+
+#painel button {
+  padding: 6px 14px;
+  border: 0;
+  border-radius: 8px;
+  background: #43c6ac;
+  color: #10231f;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+#painel button:disabled {
+  background: #555a73;
+  color: #aab;
+  cursor: not-allowed;
+}
+
+#painel .painel-fechar {
+  margin-top: 12px;
+  background: #ffd23f;
+}
