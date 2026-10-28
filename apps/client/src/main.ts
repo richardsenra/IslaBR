@@ -47,6 +47,7 @@ import { createStage } from './scene.js';
 import { carregarConfiguracoes, pixelRatioDa, type Configuracoes } from './settings.js';
 import { MODELOS_DAS_ARVORES } from './trees.js';
 import { criarCenario, carregarModelosDoCenario, modelosDoMapa } from './cenario.js';
+import { criarMar } from './mar.js';
 import { Portoes } from './portoes.js';
 import { Spots } from './spots.js';
 import { Trees } from './trees.js';
@@ -172,6 +173,8 @@ window.addEventListener('keydown', (event) => {
   }
 });
 scene.add(createArena());
+const mar = criarMar();
+scene.add(mar.malha);
 
 hud.setStatus(ui.loading);
 try {
@@ -747,6 +750,7 @@ renderer.setAnimationLoop((now) => {
   cargaEl.hidden = true;
 
   efeitos.update(dt, now, camera, canvas);
+  mar.update(now / 1000);
 
   hud.setDebug({
     fps,
