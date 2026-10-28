@@ -346,3 +346,5 @@ export type Recipe = z.infer<typeof recipeSchema>;
 export type Shop = z.infer<typeof shopSchema>;
 export type Dialogue = z.infer<typeof dialogueSchema>;
 export type Drop = z.infer<typeof drop>;
+
+export * from './world.js';

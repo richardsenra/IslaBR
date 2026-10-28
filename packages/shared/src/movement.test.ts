@@ -207,15 +207,15 @@ describe('colisão do corpo', () => {
 });
 
 describe('vão baixo da arena', () => {
-  // Laje em x de -10 a -6, com 1 m de vão livre.
+  // Gruta da praia: laje em x de 34 a 38, com 1 m de vão livre.
   const start = (): PlayerPhysics => ({
-    ...grounded(ARENA_COLLIDERS, -13, 0),
+    ...grounded(ARENA_COLLIDERS, 31, 40),
     yaw: Math.PI / 2,
   });
 
   it('em pé, o jogador bate na laje', () => {
     const player = run(start(), 180, { moveX: 1 }, ARENA_COLLIDERS);
-    expect(player.x).toBeLessThan(-10);
+    expect(player.x).toBeLessThan(34);
   });
 
   it('rolando, o jogador atravessa e só levanta quando cabe', () => {
@@ -223,7 +223,7 @@ describe('vão baixo da arena', () => {
     player = stepPlayer(player, input({ moveX: 1, dodge: true }), ARENA_COLLIDERS);
     expect(player.state).toBe('dodge');
     player = run(player, 120, { moveX: 1 }, ARENA_COLLIDERS);
-    expect(player.x).toBeGreaterThan(-6 + PLAYER_RADIUS);
+    expect(player.x).toBeGreaterThan(38 + PLAYER_RADIUS);
     expect(player.state).not.toBe('dodge');
   });
 });

@@ -65,17 +65,17 @@ describe('checkMove', () => {
   });
 
   it('recusa posição dentro de um colisor', () => {
-    // Dentro do paredão (centro 0, 2, -12).
-    const inside: AcceptedMove = { seq: 10, x: 0, y: 0, z: -11.4, atMs: 1000 };
-    const check = checkMove(inside, claim({ x: 0, y: 1, z: -12 }), now, ARENA_COLLIDERS);
+    // Dentro do lado norte da gruta (centro 36, 1.5, 36).
+    const inside: AcceptedMove = { seq: 10, x: 36, y: 0, z: 35.4, atMs: 1000 };
+    const check = checkMove(inside, claim({ x: 36, y: 1, z: 36 }), now, ARENA_COLLIDERS);
     expect(check).toEqual({ ok: false, reason: 'dentro-de-colisor' });
   });
 
   it('aceita andar rolando por baixo da laje do vão', () => {
-    const atPassage: AcceptedMove = { seq: 10, x: -8, y: 0, z: 0, atMs: 1000 };
+    const atPassage: AcceptedMove = { seq: 10, x: 36, y: 0, z: 40, atMs: 1000 };
     const check = checkMove(
       atPassage,
-      claim({ x: -8 + DODGE_SPEED * 0.05, y: 0, z: 0, vx: DODGE_SPEED, state: 'dodge' }),
+      claim({ x: 36 + DODGE_SPEED * 0.05, y: 0, z: 40, vx: DODGE_SPEED, state: 'dodge' }),
       now,
       ARENA_COLLIDERS,
     );

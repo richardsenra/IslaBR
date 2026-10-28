@@ -16,6 +16,7 @@ import itemsData from '../data/items.json' with { type: 'json' };
 import resourcesData from '../data/resources.json' with { type: 'json' };
 import recipesData from '../data/recipes.json' with { type: 'json' };
 import shopData from '../data/shop.json' with { type: 'json' };
+import worldData from '../data/world.json' with { type: 'json' };
 import dialoguesData from '../data/dialogues.pt-BR.json' with { type: 'json' };
 
 import {
@@ -29,6 +30,7 @@ import {
   questsFile,
   recipesFile,
   shopSchema,
+  worldSchema,
   zonesFile,
   type Badge,
   type Chest,
@@ -40,6 +42,7 @@ import {
   type Recipe,
   type Resource,
   type Shop,
+  type World,
   type Zone,
 } from './schemas/index.js';
 
@@ -57,6 +60,7 @@ export interface Content {
   readonly resources: readonly Resource[];
   readonly recipes: readonly Recipe[];
   readonly shop: Shop;
+  readonly world: World;
   readonly dialogues: Readonly<Record<string, Dialogue>>;
 }
 
@@ -86,6 +90,7 @@ export function loadContent(): Content {
     resources: parse('resources.json', resourcesFile, resourcesData),
     recipes: parse('recipes.json', recipesFile, recipesData),
     shop: parse('shop.json', shopSchema, shopData),
+    world: parse('world.json', worldSchema, worldData),
     dialogues: parse('dialogues.pt-BR.json', dialoguesFile, dialoguesData),
   };
 }

@@ -30,13 +30,13 @@ describe('inimigos na sala', () => {
     await colyseus.cleanup();
   });
 
-  it('a sala nasce povoada com os cinco tipos, cada um no estado do seu arquétipo', async () => {
+  it('a sala nasce povoada com os quatro tipos da superfície, cada um no estado do seu arquétipo', async () => {
     const sala = await colyseus.createRoom<IslandRoom>(ROOM.island);
     expect(sala.state.inimigos.size).toBe(ARENA_ENEMIES.length);
 
     const tipos = new Set<string>();
     sala.state.inimigos.forEach((inimigo) => tipos.add(inimigo.tipo));
-    expect([...tipos].sort()).toEqual(['e01', 'e02', 'e03', 'e04', 'e05']);
+    expect([...tipos].sort()).toEqual(['e01', 'e02', 'e03', 'e04']);
 
     const mosquito = sala.state.inimigos.get('e03_1');
     const ia = getEnemy('e03').ia;
@@ -45,7 +45,6 @@ describe('inimigos na sala', () => {
     expect(mosquito?.y).toBeCloseTo(ia?.tipo === 'voador' ? ia.altura : -1, 3);
 
     expect(sala.state.inimigos.get('e04_1')?.estado).toBe('parado');
-    expect(sala.state.inimigos.get('e05_1')?.estado).toBe('flutuando');
   });
 
   it('o sapo cospe gosma e o servidor avisa só o jogador atingido (lento)', async () => {
@@ -59,10 +58,8 @@ describe('inimigos na sala', () => {
     const seq: Sequencia = { n: 0 };
     await sala.waitForNextPatch();
 
-    // Contorna os caranguejos e o paredão: desce até o norte pelo meio e vai
-    // para perto do sapo e1, a 5 m dele.
-    await andarPara(sala, client, 0, -8, seq, 'o norte da arena');
-    await andarPara(sala, client, 14, -8, seq, 'perto do sapo');
+    // Atravessa o porto rumo ao pântano e para a uns 8 m do sapo e04_1.
+    await andarPara(sala, client, -23, 0, seq, 'perto do sapo');
 
     await ate(() => status.length > 0, 'a gosma do sapo', 15_000);
     const gosma = getEnemy('e04').ia;
@@ -99,7 +96,7 @@ describe('inimigos na sala', () => {
     expect(caixa.inventarios.at(-1)?.itens['pocao_pequena']).toBe(2);
 
     // Deixa um caranguejo morder (meio coração).
-    await andarPara(sala, client, 9, 9, seq, 'perto do caranguejo');
+    await andarPara(sala, client, 3, 19, seq, 'perto do caranguejo');
     await ate(
       () => (caixa.inventarios.at(-1)?.coracoes ?? 3) < 3,
       'a mordida do caranguejo',

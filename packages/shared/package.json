@@ -10,7 +10,7 @@
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json"
   },
-  "devDependencies": {
+  "dependencies": {
     "@islabr/content": "workspace:*"
   }
 }

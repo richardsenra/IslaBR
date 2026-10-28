@@ -1,0 +1,859 @@
+{
+  "limite": 48,
+  "spawn": {
+    "x": 0,
+    "z": 8,
+    "yaw": 3.141592653589793
+  },
+  "areas": [
+    {
+      "id": "area_1",
+      "zona": "z1",
+      "minX": -16,
+      "maxX": 16,
+      "minZ": -16,
+      "maxZ": 16,
+      "cor": "#e8d9a0"
+    },
+    {
+      "id": "area_2",
+      "zona": "z2",
+      "minX": 16,
+      "maxX": 48,
+      "minZ": -16,
+      "maxZ": 16,
+      "cor": "#7ccf5a"
+    },
+    {
+      "id": "area_3",
+      "zona": "z3",
+      "minX": -16,
+      "maxX": 16,
+      "minZ": 16,
+      "maxZ": 48,
+      "cor": "#f2dc8d"
+    },
+    {
+      "id": "area_4",
+      "zona": "z3",
+      "minX": 16,
+      "maxX": 48,
+      "minZ": 16,
+      "maxZ": 48,
+      "cor": "#f2dc8d"
+    },
+    {
+      "id": "area_5",
+      "zona": "z4",
+      "minX": -48,
+      "maxX": -16,
+      "minZ": -16,
+      "maxZ": 16,
+      "cor": "#6b8f4e"
+    },
+    {
+      "id": "area_6",
+      "zona": "z4",
+      "minX": -48,
+      "maxX": -16,
+      "minZ": 16,
+      "maxZ": 48,
+      "cor": "#6b8f4e"
+    },
+    {
+      "id": "area_7",
+      "zona": "z5",
+      "minX": -16,
+      "maxX": 16,
+      "minZ": -48,
+      "maxZ": -16,
+      "cor": "#a8a8b3"
+    },
+    {
+      "id": "area_8",
+      "zona": "z5",
+      "minX": 16,
+      "maxX": 48,
+      "minZ": -48,
+      "maxZ": -16,
+      "cor": "#a8a8b3"
+    },
+    {
+      "id": "area_9",
+      "zona": "z6",
+      "minX": -48,
+      "maxX": -16,
+      "minZ": -48,
+      "maxZ": -16,
+      "cor": "#555a73"
+    }
+  ],
+  "pecas": [
+    {
+      "id": "muro_n",
+      "kind": "wall",
+      "zona": null,
+      "x": 0,
+      "y": 2,
+      "z": -48.5,
+      "sizeX": 98,
+      "sizeY": 4,
+      "sizeZ": 1,
+      "cor": "#6ea8d8"
+    },
+    {
+      "id": "muro_s",
+      "kind": "wall",
+      "zona": null,
+      "x": 0,
+      "y": 2,
+      "z": 48.5,
+      "sizeX": 98,
+      "sizeY": 4,
+      "sizeZ": 1,
+      "cor": "#6ea8d8"
+    },
+    {
+      "id": "muro_l",
+      "kind": "wall",
+      "zona": null,
+      "x": 48.5,
+      "y": 2,
+      "z": 0,
+      "sizeX": 1,
+      "sizeY": 4,
+      "sizeZ": 98,
+      "cor": "#6ea8d8"
+    },
+    {
+      "id": "muro_o",
+      "kind": "wall",
+      "zona": null,
+      "x": -48.5,
+      "y": 2,
+      "z": 0,
+      "sizeX": 1,
+      "sizeY": 4,
+      "sizeZ": 98,
+      "cor": "#6ea8d8"
+    },
+    {
+      "id": "farol",
+      "kind": "wall",
+      "zona": "z1",
+      "x": 10,
+      "y": 5,
+      "z": -9,
+      "sizeX": 3,
+      "sizeY": 10,
+      "sizeZ": 3,
+      "cor": "#f4f1ea"
+    },
+    {
+      "id": "cais_pilar",
+      "kind": "wall",
+      "zona": "z1",
+      "x": -10,
+      "y": 0.75,
+      "z": -10,
+      "sizeX": 1,
+      "sizeY": 1.5,
+      "sizeZ": 1,
+      "cor": "#8a5a3c"
+    },
+    {
+      "id": "loja",
+      "kind": "wall",
+      "zona": "z2",
+      "x": 40,
+      "y": 1.8,
+      "z": -9,
+      "sizeX": 8,
+      "sizeY": 3.6,
+      "sizeZ": 6,
+      "cor": "#e07a5f"
+    },
+    {
+      "id": "loja_caixa_1",
+      "kind": "crate",
+      "zona": "z2",
+      "x": 31.2,
+      "y": 0.6,
+      "z": -9,
+      "sizeX": 1.6,
+      "sizeY": 1.2,
+      "sizeZ": 1.6,
+      "cor": "#d98b45"
+    },
+    {
+      "id": "loja_caixa_2",
+      "kind": "crate",
+      "zona": "z2",
+      "x": 33,
+      "y": 1.2,
+      "z": -9,
+      "sizeX": 1.6,
+      "sizeY": 2.4,
+      "sizeZ": 1.6,
+      "cor": "#c97a36"
+    },
+    {
+      "id": "loja_caixa_3",
+      "kind": "crate",
+      "zona": "z2",
+      "x": 34.8,
+      "y": 1.8,
+      "z": -9,
+      "sizeX": 1.6,
+      "sizeY": 3.6,
+      "sizeZ": 1.6,
+      "cor": "#b96b2c"
+    },
+    {
+      "id": "casa_1",
+      "kind": "wall",
+      "zona": "z2",
+      "x": 22,
+      "y": 1.5,
+      "z": -8,
+      "sizeX": 5,
+      "sizeY": 3,
+      "sizeZ": 5,
+      "cor": "#f2cc8f"
+    },
+    {
+      "id": "gruta_laje",
+      "kind": "ceiling",
+      "zona": "z3",
+      "x": 36,
+      "y": 1.6,
+      "z": 40,
+      "sizeX": 4,
+      "sizeY": 1.2,
+      "sizeZ": 4,
+      "cor": "#e86aa6"
+    },
+    {
+      "id": "gruta_lado_n",
+      "kind": "wall",
+      "zona": "z3",
+      "x": 36,
+      "y": 1.5,
+      "z": 36,
+      "sizeX": 4,
+      "sizeY": 3,
+      "sizeZ": 4,
+      "cor": "#d4588f"
+    },
+    {
+      "id": "gruta_lado_s",
+      "kind": "wall",
+      "zona": "z3",
+      "x": 36,
+      "y": 1.5,
+      "z": 44,
+      "sizeX": 4,
+      "sizeY": 3,
+      "sizeZ": 4,
+      "cor": "#d4588f"
+    },
+    {
+      "id": "tronco_oco",
+      "kind": "wall",
+      "zona": "z4",
+      "x": -34,
+      "y": 0.5,
+      "z": -7,
+      "sizeX": 3.2,
+      "sizeY": 1,
+      "sizeZ": 1.2,
+      "cor": "#7a5a3a"
+    },
+    {
+      "id": "escalada_1",
+      "kind": "crate",
+      "zona": "z5",
+      "x": -12,
+      "y": 0.6,
+      "z": -24,
+      "sizeX": 1.6,
+      "sizeY": 1.2,
+      "sizeZ": 1.6,
+      "cor": "#d98b45"
+    },
+    {
+      "id": "escalada_2",
+      "kind": "crate",
+      "zona": "z5",
+      "x": -10.2,
+      "y": 1.2,
+      "z": -24,
+      "sizeX": 1.6,
+      "sizeY": 2.4,
+      "sizeZ": 1.6,
+      "cor": "#c97a36"
+    },
+    {
+      "id": "escalada_3",
+      "kind": "crate",
+      "zona": "z5",
+      "x": -8.4,
+      "y": 1.8,
+      "z": -24,
+      "sizeX": 1.6,
+      "sizeY": 3.6,
+      "sizeZ": 1.6,
+      "cor": "#b96b2c"
+    },
+    {
+      "id": "plataforma_1",
+      "kind": "platform",
+      "zona": "z5",
+      "x": -5.8,
+      "y": 3.7,
+      "z": -24,
+      "sizeX": 3,
+      "sizeY": 0.4,
+      "sizeZ": 3,
+      "cor": "#9b7bd4"
+    },
+    {
+      "id": "plataforma_2",
+      "kind": "platform",
+      "zona": "z5",
+      "x": -0.8,
+      "y": 3.7,
+      "z": -24,
+      "sizeX": 3,
+      "sizeY": 0.4,
+      "sizeZ": 3,
+      "cor": "#8a68c9"
+    },
+    {
+      "id": "plataforma_3",
+      "kind": "platform",
+      "zona": "z5",
+      "x": 4.2,
+      "y": 3.7,
+      "z": -24,
+      "sizeX": 3,
+      "sizeY": 0.4,
+      "sizeZ": 3,
+      "cor": "#7b58bd"
+    },
+    {
+      "id": "cume_1",
+      "kind": "wall",
+      "zona": "z5",
+      "x": 5.5,
+      "y": 0.6,
+      "z": -36,
+      "sizeX": 3,
+      "sizeY": 1.2,
+      "sizeZ": 4,
+      "cor": "#9a9aa8"
+    },
+    {
+      "id": "cume_2",
+      "kind": "wall",
+      "zona": "z5",
+      "x": 8.5,
+      "y": 1.2,
+      "z": -36,
+      "sizeX": 3,
+      "sizeY": 2.4,
+      "sizeZ": 4,
+      "cor": "#9a9aa8"
+    },
+    {
+      "id": "cume_3",
+      "kind": "wall",
+      "zona": "z5",
+      "x": 11.5,
+      "y": 1.7999999999999998,
+      "z": -36,
+      "sizeX": 3,
+      "sizeY": 3.5999999999999996,
+      "sizeZ": 4,
+      "cor": "#9a9aa8"
+    },
+    {
+      "id": "cume_4",
+      "kind": "wall",
+      "zona": "z5",
+      "x": 14.5,
+      "y": 2.4,
+      "z": -36,
+      "sizeX": 3,
+      "sizeY": 4.8,
+      "sizeZ": 4,
+      "cor": "#9a9aa8"
+    },
+    {
+      "id": "cume_5",
+      "kind": "wall",
+      "zona": "z5",
+      "x": 17.5,
+      "y": 3,
+      "z": -36,
+      "sizeX": 3,
+      "sizeY": 6,
+      "sizeZ": 4,
+      "cor": "#9a9aa8"
+    },
+    {
+      "id": "iracema_n",
+      "kind": "wall",
+      "zona": "z5",
+      "x": 30,
+      "y": 1.5,
+      "z": -31.75,
+      "sizeX": 8,
+      "sizeY": 3,
+      "sizeZ": 0.5,
+      "cor": "#bc6c25"
+    },
+    {
+      "id": "iracema_l",
+      "kind": "wall",
+      "zona": "z5",
+      "x": 33.75,
+      "y": 1.5,
+      "z": -27.5,
+      "sizeX": 0.5,
+      "sizeY": 3,
+      "sizeZ": 8,
+      "cor": "#bc6c25"
+    },
+    {
+      "id": "iracema_o",
+      "kind": "wall",
+      "zona": "z5",
+      "x": 26.25,
+      "y": 1.5,
+      "z": -27.5,
+      "sizeX": 0.5,
+      "sizeY": 3,
+      "sizeZ": 8,
+      "cor": "#bc6c25"
+    },
+    {
+      "id": "iracema_s_o",
+      "kind": "wall",
+      "zona": "z5",
+      "x": 27.5,
+      "y": 1.5,
+      "z": -23.25,
+      "sizeX": 2.5,
+      "sizeY": 3,
+      "sizeZ": 0.5,
+      "cor": "#bc6c25"
+    },
+    {
+      "id": "iracema_s_l",
+      "kind": "wall",
+      "zona": "z5",
+      "x": 32.5,
+      "y": 1.5,
+      "z": -23.25,
+      "sizeX": 2.5,
+      "sizeY": 3,
+      "sizeZ": 0.5,
+      "cor": "#bc6c25"
+    },
+    {
+      "id": "iracema_teto",
+      "kind": "ceiling",
+      "zona": "z5",
+      "x": 30,
+      "y": 3.2,
+      "z": -27.5,
+      "sizeX": 8,
+      "sizeY": 0.4,
+      "sizeZ": 8,
+      "cor": "#dda15e"
+    }
+  ],
+  "alvos": [
+    {
+      "id": "spot_nara",
+      "tipo": "npc",
+      "alvo": "npc_nara",
+      "x": 0,
+      "y": 0,
+      "z": 3,
+      "rotulo": "Capitã Nara",
+      "cor": "#ef476f"
+    },
+    {
+      "id": "spot_bento",
+      "tipo": "npc",
+      "alvo": "npc_bento",
+      "x": 26,
+      "y": 0,
+      "z": 4,
+      "rotulo": "Seu Bento",
+      "cor": "#ffd23f"
+    },
+    {
+      "id": "spot_iracema",
+      "tipo": "npc",
+      "alvo": "npc_iracema",
+      "x": 36,
+      "y": 0,
+      "z": 4,
+      "rotulo": "Dona Iracema",
+      "cor": "#43c6ac"
+    },
+    {
+      "id": "spot_caixa_1",
+      "tipo": "objeto",
+      "alvo": "caixa_quebravel",
+      "x": -3,
+      "y": 0,
+      "z": -4,
+      "rotulo": "Caixa do cais",
+      "cor": "#d98b45"
+    },
+    {
+      "id": "spot_caixa_2",
+      "tipo": "objeto",
+      "alvo": "caixa_quebravel",
+      "x": -1.5,
+      "y": 0,
+      "z": -4,
+      "rotulo": "Caixa do cais",
+      "cor": "#d98b45"
+    },
+    {
+      "id": "spot_caixa_3",
+      "tipo": "objeto",
+      "alvo": "caixa_quebravel",
+      "x": 0,
+      "y": 0,
+      "z": -4,
+      "rotulo": "Caixa do cais",
+      "cor": "#d98b45"
+    },
+    {
+      "id": "spot_caixa_4",
+      "tipo": "objeto",
+      "alvo": "caixa_quebravel",
+      "x": 1.5,
+      "y": 0,
+      "z": -4,
+      "rotulo": "Caixa do cais",
+      "cor": "#d98b45"
+    },
+    {
+      "id": "spot_caixa_5",
+      "tipo": "objeto",
+      "alvo": "caixa_quebravel",
+      "x": 3,
+      "y": 0,
+      "z": -4,
+      "rotulo": "Caixa do cais",
+      "cor": "#d98b45"
+    },
+    {
+      "id": "spot_fruta_1",
+      "tipo": "coletavel",
+      "alvo": "fruta",
+      "x": 19,
+      "y": 0,
+      "z": 10,
+      "rotulo": "Fruta da horta",
+      "cor": "#ef476f"
+    },
+    {
+      "id": "spot_fruta_2",
+      "tipo": "coletavel",
+      "alvo": "fruta",
+      "x": 20.6,
+      "y": 0,
+      "z": 10,
+      "rotulo": "Fruta da horta",
+      "cor": "#ef476f"
+    },
+    {
+      "id": "spot_fruta_3",
+      "tipo": "coletavel",
+      "alvo": "fruta",
+      "x": 22.2,
+      "y": 0,
+      "z": 10,
+      "rotulo": "Fruta da horta",
+      "cor": "#ef476f"
+    },
+    {
+      "id": "spot_fruta_4",
+      "tipo": "coletavel",
+      "alvo": "fruta",
+      "x": 19,
+      "y": 0,
+      "z": 11.6,
+      "rotulo": "Fruta da horta",
+      "cor": "#ef476f"
+    },
+    {
+      "id": "spot_fruta_5",
+      "tipo": "coletavel",
+      "alvo": "fruta",
+      "x": 20.6,
+      "y": 0,
+      "z": 11.6,
+      "rotulo": "Fruta da horta",
+      "cor": "#ef476f"
+    },
+    {
+      "id": "spot_fruta_6",
+      "tipo": "coletavel",
+      "alvo": "fruta",
+      "x": 22.2,
+      "y": 0,
+      "z": 11.6,
+      "rotulo": "Fruta da horta",
+      "cor": "#ef476f"
+    },
+    {
+      "id": "spot_c01",
+      "tipo": "bau",
+      "alvo": "c01",
+      "x": 6,
+      "y": 0,
+      "z": -6,
+      "rotulo": "Baú atrás do farol",
+      "cor": "#ffd23f"
+    },
+    {
+      "id": "spot_c02",
+      "tipo": "bau",
+      "alvo": "c02",
+      "x": 40,
+      "y": 3.6,
+      "z": -9,
+      "rotulo": "Baú no telhado da loja",
+      "cor": "#ffd23f"
+    },
+    {
+      "id": "spot_c03",
+      "tipo": "bau",
+      "alvo": "c03",
+      "x": 36,
+      "y": 0,
+      "z": 40,
+      "rotulo": "Baú da gruta",
+      "cor": "#ffd23f"
+    },
+    {
+      "id": "spot_c04",
+      "tipo": "bau",
+      "alvo": "c04",
+      "x": -34,
+      "y": 0,
+      "z": -4.8,
+      "rotulo": "Baú do tronco oco",
+      "cor": "#ffd23f"
+    },
+    {
+      "id": "spot_c05",
+      "tipo": "bau",
+      "alvo": "c05",
+      "x": -44,
+      "y": 0,
+      "z": 30,
+      "rotulo": "Baú da ilhota",
+      "cor": "#ffd23f"
+    },
+    {
+      "id": "spot_c06",
+      "tipo": "bau",
+      "alvo": "c06",
+      "x": 17.5,
+      "y": 6,
+      "z": -36,
+      "rotulo": "Baú do cume",
+      "cor": "#ffd23f"
+    },
+    {
+      "id": "spot_c07",
+      "tipo": "bau",
+      "alvo": "c07",
+      "x": 4.2,
+      "y": 3.9,
+      "z": -24,
+      "rotulo": "Baú da plataforma alta",
+      "cor": "#ffd23f"
+    },
+    {
+      "id": "spot_c08",
+      "tipo": "bau",
+      "alvo": "c08",
+      "x": 30,
+      "y": 0,
+      "z": -28,
+      "rotulo": "Baú da casa da Iracema",
+      "cor": "#ffd23f"
+    }
+  ],
+  "arvores": [
+    {
+      "id": "r02_1",
+      "tipo": "r02",
+      "x": 6,
+      "z": 7
+    },
+    {
+      "id": "r01_1",
+      "tipo": "r01",
+      "x": 0,
+      "z": 14
+    },
+    {
+      "id": "r01_2",
+      "tipo": "r01",
+      "x": -12,
+      "z": 11
+    },
+    {
+      "id": "r02_2",
+      "tipo": "r02",
+      "x": -5,
+      "z": -8
+    },
+    {
+      "id": "r01_3",
+      "tipo": "r01",
+      "x": -13,
+      "z": 3
+    },
+    {
+      "id": "r01_4",
+      "tipo": "r01",
+      "x": 44,
+      "z": 10
+    },
+    {
+      "id": "r01_5",
+      "tipo": "r01",
+      "x": 22,
+      "z": -13
+    },
+    {
+      "id": "r02_3",
+      "tipo": "r02",
+      "x": -36,
+      "z": -4
+    },
+    {
+      "id": "r01_6",
+      "tipo": "r01",
+      "x": -20,
+      "z": 36
+    },
+    {
+      "id": "r01_7",
+      "tipo": "r01",
+      "x": 26,
+      "z": 44
+    }
+  ],
+  "inimigos": [
+    {
+      "id": "e01_1",
+      "tipo": "e01",
+      "x": -10,
+      "z": 26
+    },
+    {
+      "id": "e01_2",
+      "tipo": "e01",
+      "x": 0,
+      "z": 24
+    },
+    {
+      "id": "e01_3",
+      "tipo": "e01",
+      "x": 10,
+      "z": 28
+    },
+    {
+      "id": "e01_4",
+      "tipo": "e01",
+      "x": 22,
+      "z": 24
+    },
+    {
+      "id": "e01_5",
+      "tipo": "e01",
+      "x": 42,
+      "z": 24
+    },
+    {
+      "id": "e01_6",
+      "tipo": "e01",
+      "x": 4,
+      "z": 40
+    },
+    {
+      "id": "e01_7",
+      "tipo": "e01",
+      "x": 18,
+      "z": 40
+    },
+    {
+      "id": "e01_8",
+      "tipo": "e01",
+      "x": -8,
+      "z": 40
+    },
+    {
+      "id": "e02_1",
+      "tipo": "e02",
+      "x": 28,
+      "z": 32
+    },
+    {
+      "id": "e02_2",
+      "tipo": "e02",
+      "x": -22,
+      "z": 12
+    },
+    {
+      "id": "e03_1",
+      "tipo": "e03",
+      "x": -44,
+      "z": -12
+    },
+    {
+      "id": "e03_2",
+      "tipo": "e03",
+      "x": -26,
+      "z": -10
+    },
+    {
+      "id": "e03_3",
+      "tipo": "e03",
+      "x": -40,
+      "z": 10
+    },
+    {
+      "id": "e03_4",
+      "tipo": "e03",
+      "x": -24,
+      "z": 24
+    },
+    {
+      "id": "e04_1",
+      "tipo": "e04",
+      "x": -28,
+      "z": 6
+    },
+    {
+      "id": "e04_2",
+      "tipo": "e04",
+      "x": -34,
+      "z": 22
+    }
+  ]
+}

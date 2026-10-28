@@ -283,5 +283,37 @@ export function checkReferences(content: Content): ContentProblem[] {
     }
   }
 
+  // Mundo (world.json): tudo que ele posiciona precisa existir no conteúdo.
+  const resources = new Set(content.resources.map((resource) => resource.id));
+  const spotIds = new Set<string>();
+  for (const spot of content.world.alvos) {
+    const onde = `world.json alvos ${spot.id}`;
+    if (spotIds.has(spot.id)) add(onde, 'id repetido');
+    spotIds.add(spot.id);
+    if (spot.tipo === 'npc' && !npcs.has(spot.alvo)) add(onde, `NPC inexistente: ${spot.alvo}`);
+    if (spot.tipo === 'bau' && !chests.has(spot.alvo)) add(onde, `baú inexistente: ${spot.alvo}`);
+  }
+  for (const tree of content.world.arvores) {
+    if (!resources.has(tree.tipo))
+      add(`world.json arvores ${tree.id}`, `recurso inexistente: ${tree.tipo}`);
+  }
+  for (const spawn of content.world.inimigos) {
+    if (!enemies.has(spawn.tipo))
+      add(`world.json inimigos ${spawn.id}`, `inimigo inexistente: ${spawn.tipo}`);
+  }
+  for (const piece of content.world.pecas) {
+    if (piece.zona && !zones.has(piece.zona))
+      add(`world.json pecas ${piece.id}`, `zona inexistente: ${piece.zona}`);
+  }
+  // Os baús c01–c08 ficam nas zonas z1–z5; c09 e c10 esperam a caverna (M5).
+  for (const chest of content.chests) {
+    if (chest.zona === 'z6') continue;
+    const colocados = content.world.alvos.filter(
+      (spot) => spot.tipo === 'bau' && spot.alvo === chest.id,
+    );
+    if (colocados.length !== 1)
+      add(`world.json alvos ${chest.id}`, `baú colocado ${colocados.length} vezes`);
+  }
+
   return problems;
 }

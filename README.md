@@ -4,7 +4,8 @@ Jogo 3D online em cartoon colorido, jogado no navegador: three.js no cliente,
 Node e Colyseus no servidor. A spec completa da primeira ilha está em
 [SPEC.md](SPEC.md).
 
-O projeto está em construção. Hoje dá para andar pela arena de testes com outras
+O projeto está em construção. Em que milestone estamos e qual é o próximo passo
+estão em [STATUS.md](STATUS.md). Hoje dá para andar pela arena de testes com outras
 pessoas e jogar as duas primeiras missões da história.
 
 ## Do zero até jogar
@@ -137,11 +138,16 @@ devolve 2 corações, a grande devolve todos, e a heróica dá 2 corações extr
 um minuto. O servidor recusa poção de cura com a vida cheia, para ninguém gastar
 à toa.
 
-**A arena de testes.** Ela é provisória e serve para exercitar o movimento:
+**O mapa.** A ilha tem 96 × 96 m, em nove quadras de 32 m. Você nasce no **Porto** (z1,
+centro); a **Vila** (z2) fica a leste, a **Praia dos Caranguejos** (z3) ao sul, o
+**Pântano** (z4) a oeste e as **Falésias** (z5) ao norte. A quadra do canto
+noroeste espera a caverna. Por enquanto as zonas não têm trava: dá para andar
+por todas. O desenho está em `packages/content/data/world.json`.
 
-- a escada de caixas sobe até duas plataformas, uma delas exigindo um pulo
-- o bloco rosa tem um vão baixo: andando não passa, rolando com Shift passa
-- os muros servem para ver a câmera encurtar em vez de atravessar parede
+Para os baús: o **c02** está no telhado da loja (suba pelas caixas), o **c03** na gruta
+da praia (passe rolando com Shift), o **c07** nas plataformas das falésias (pulos) e o
+**c06** no cume; o **c08** fica na casa da Dona Iracema. Os baús que pedem chave ou
+missão continuam fechados até você cumprir o requisito.
 
 **Rede com atraso.** <http://localhost:5173/?lag=100> simula 100 ms de latência
 de ida e volta. Com duas abas abertas assim, o personagem da outra aba deve
@@ -156,8 +162,7 @@ O navegador guarda um token de convidado, então recarregar a página devolve
 moedas, itens e a missão onde você parou. Sem banco, o jogo roda igual, mas o
 progresso só dura enquanto o servidor estiver de pé.
 
-Ainda **não** existem: loja, fabricação, os mini-chefes, o chefe e as outras zonas
-da ilha.
+Ainda **não** existem: loja, fabricação, os mini-chefes, o chefe e a caverna.
 
 ## Se algo der errado
 

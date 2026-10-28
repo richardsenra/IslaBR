@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { getEnemy, getResource } from '@islabr/content';
-import { ARENA_COLLIDERS, ARENA_ENEMIES, ARENA_SPAWN, ARENA_SPOTS, ARENA_TREES } from './arena.js';
+import {
+  ARENA_LIMITE,
+  ARENA_COLLIDERS,
+  ARENA_ENEMIES,
+  ARENA_SPAWN,
+  ARENA_SPOTS,
+  ARENA_TREES,
+} from './arena.js';
 import { bodyBox, overlapsAny } from './collision.js';
 
 /** O raio em que o bicho percebe o jogador, vindo do JSON. */
@@ -29,7 +36,7 @@ describe('inimigos da arena', () => {
     const quantos = (tipo: string): number =>
       ARENA_ENEMIES.filter((spawn) => spawn.tipo === tipo).length;
     expect(quantos('e01')).toBeGreaterThanOrEqual(8);
-    for (const tipo of ['e02', 'e03', 'e04', 'e05']) {
+    for (const tipo of ['e02', 'e03', 'e04']) {
       expect(quantos(tipo), tipo).toBeGreaterThanOrEqual(1);
     }
   });
@@ -42,8 +49,8 @@ describe('inimigos da arena', () => {
 
   it('ficam dentro dos muros e fora de qualquer colisor', () => {
     for (const spawn of ARENA_ENEMIES) {
-      expect(Math.abs(spawn.x), spawn.id).toBeLessThan(23);
-      expect(Math.abs(spawn.z), spawn.id).toBeLessThan(23);
+      expect(Math.abs(spawn.x), spawn.id).toBeLessThan(ARENA_LIMITE - 1);
+      expect(Math.abs(spawn.z), spawn.id).toBeLessThan(ARENA_LIMITE - 1);
       // Um corpo de bicho grande, para a conta valer para o sapo e o espinhoso.
       expect(overlapsAny(bodyBox(spawn.x, 0, spawn.z, 0.7, 1), ARENA_COLLIDERS), spawn.id).toBe(
         false,
@@ -100,8 +107,8 @@ describe('árvores da arena', () => {
 
   it('ficam dentro dos muros e não se encostam', () => {
     for (const tree of ARENA_TREES) {
-      expect(Math.abs(tree.x), tree.id).toBeLessThan(23);
-      expect(Math.abs(tree.z), tree.id).toBeLessThan(23);
+      expect(Math.abs(tree.x), tree.id).toBeLessThan(ARENA_LIMITE - 1);
+      expect(Math.abs(tree.z), tree.id).toBeLessThan(ARENA_LIMITE - 1);
     }
     for (const a of ARENA_TREES) {
       for (const b of ARENA_TREES) {
