@@ -242,7 +242,8 @@
       "sizeX": 4,
       "sizeY": 1.2,
       "sizeZ": 4,
-      "cor": "#e86aa6"
+      "cor": "#e86aa6",
+      "visivel": false
     },
     {
       "id": "gruta_lado_n",
@@ -254,7 +255,8 @@
       "sizeX": 4,
       "sizeY": 3,
       "sizeZ": 4,
-      "cor": "#d4588f"
+      "cor": "#d4588f",
+      "visivel": false
     },
     {
       "id": "gruta_lado_s",
@@ -266,7 +268,8 @@
       "sizeX": 4,
       "sizeY": 3,
       "sizeZ": 4,
-      "cor": "#d4588f"
+      "cor": "#d4588f",
+      "visivel": false
     },
     {
       "id": "tronco_oco",
@@ -278,7 +281,8 @@
       "sizeX": 3.2,
       "sizeY": 1,
       "sizeZ": 1.2,
-      "cor": "#7a5a3a"
+      "cor": "#7a5a3a",
+      "visivel": false
     },
     {
       "id": "escalada_1",
@@ -362,7 +366,7 @@
       "sizeX": 3,
       "sizeY": 1.2,
       "sizeZ": 4,
-      "cor": "#9a9aa8"
+      "cor": "#8b8b96"
     },
     {
       "id": "cume_2",
@@ -374,7 +378,7 @@
       "sizeX": 3,
       "sizeY": 2.4,
       "sizeZ": 4,
-      "cor": "#9a9aa8"
+      "cor": "#8b8b96"
     },
     {
       "id": "cume_3",
@@ -386,7 +390,7 @@
       "sizeX": 3,
       "sizeY": 3.5999999999999996,
       "sizeZ": 4,
-      "cor": "#9a9aa8"
+      "cor": "#8b8b96"
     },
     {
       "id": "cume_4",
@@ -398,7 +402,7 @@
       "sizeX": 3,
       "sizeY": 4.8,
       "sizeZ": 4,
-      "cor": "#9a9aa8"
+      "cor": "#8b8b96"
     },
     {
       "id": "cume_5",
@@ -410,7 +414,7 @@
       "sizeX": 3,
       "sizeY": 6,
       "sizeZ": 4,
-      "cor": "#9a9aa8"
+      "cor": "#8b8b96"
     },
     {
       "id": "iracema_n",
@@ -422,7 +426,8 @@
       "sizeX": 8,
       "sizeY": 3,
       "sizeZ": 0.5,
-      "cor": "#bc6c25"
+      "cor": "#bc6c25",
+      "visivel": false
     },
     {
       "id": "iracema_l",
@@ -434,7 +439,8 @@
       "sizeX": 0.5,
       "sizeY": 3,
       "sizeZ": 8,
-      "cor": "#bc6c25"
+      "cor": "#bc6c25",
+      "visivel": false
     },
     {
       "id": "iracema_o",
@@ -446,31 +452,34 @@
       "sizeX": 0.5,
       "sizeY": 3,
       "sizeZ": 8,
-      "cor": "#bc6c25"
+      "cor": "#bc6c25",
+      "visivel": false
     },
     {
       "id": "iracema_s_o",
       "kind": "wall",
       "zona": "z5",
-      "x": 27.5,
+      "x": 27,
       "y": 1.5,
       "z": -23.25,
-      "sizeX": 2.5,
+      "sizeX": 2,
       "sizeY": 3,
       "sizeZ": 0.5,
-      "cor": "#bc6c25"
+      "cor": "#bc6c25",
+      "visivel": false
     },
     {
       "id": "iracema_s_l",
       "kind": "wall",
       "zona": "z5",
-      "x": 32.5,
+      "x": 32,
       "y": 1.5,
       "z": -23.25,
-      "sizeX": 2.5,
+      "sizeX": 4,
       "sizeY": 3,
       "sizeZ": 0.5,
-      "cor": "#bc6c25"
+      "cor": "#bc6c25",
+      "visivel": false
     },
     {
       "id": "iracema_teto",
@@ -482,7 +491,8 @@
       "sizeX": 8,
       "sizeY": 0.4,
       "sizeZ": 8,
-      "cor": "#dda15e"
+      "cor": "#dda15e",
+      "visivel": false
     },
     {
       "id": "carroca",
@@ -1937,6 +1947,235 @@
       "z": -30,
       "giro": 0,
       "escala": 1.2
+    },
+    {
+      "modelo": "Wall_Plaster_Straight",
+      "x": 27,
+      "y": 0,
+      "z": -23.6,
+      "giro": 3.1416,
+      "escala": 1,
+      "escalaY": 0.9615384615384615
+    },
+    {
+      "modelo": "Wall_Plaster_Door_Round",
+      "x": 29,
+      "y": 0,
+      "z": -23.6,
+      "giro": 3.1416,
+      "escala": 1,
+      "escalaY": 0.9615384615384615
+    },
+    {
+      "modelo": "Wall_Plaster_Straight",
+      "x": 31,
+      "y": 0,
+      "z": -23.6,
+      "giro": 3.1416,
+      "escala": 1,
+      "escalaY": 0.9615384615384615
+    },
+    {
+      "modelo": "Wall_Plaster_Straight",
+      "x": 33,
+      "y": 0,
+      "z": -23.6,
+      "giro": 3.1416,
+      "escala": 1,
+      "escalaY": 0.9615384615384615
+    },
+    {
+      "modelo": "Wall_Plaster_Straight",
+      "x": 27,
+      "y": 0,
+      "z": -31.4,
+      "giro": 0,
+      "escala": 1,
+      "escalaY": 0.9615384615384615
+    },
+    {
+      "modelo": "Wall_Plaster_Straight",
+      "x": 29,
+      "y": 0,
+      "z": -31.4,
+      "giro": 0,
+      "escala": 1,
+      "escalaY": 0.9615384615384615
+    },
+    {
+      "modelo": "Wall_Plaster_Window_Wide_Round",
+      "x": 31,
+      "y": 0,
+      "z": -31.4,
+      "giro": 0,
+      "escala": 1,
+      "escalaY": 0.9615384615384615
+    },
+    {
+      "modelo": "Wall_Plaster_Straight",
+      "x": 33,
+      "y": 0,
+      "z": -31.4,
+      "giro": 0,
+      "escala": 1,
+      "escalaY": 0.9615384615384615
+    },
+    {
+      "modelo": "Wall_Plaster_Straight",
+      "x": 33.9,
+      "y": 0,
+      "z": -30.5,
+      "giro": -1.5708,
+      "escala": 1,
+      "escalaY": 0.9615384615384615
+    },
+    {
+      "modelo": "Wall_Plaster_Straight",
+      "x": 33.9,
+      "y": 0,
+      "z": -28.5,
+      "giro": -1.5708,
+      "escala": 1,
+      "escalaY": 0.9615384615384615
+    },
+    {
+      "modelo": "Wall_Plaster_Window_Wide_Round",
+      "x": 33.9,
+      "y": 0,
+      "z": -26.5,
+      "giro": -1.5708,
+      "escala": 1,
+      "escalaY": 0.9615384615384615
+    },
+    {
+      "modelo": "Wall_Plaster_Straight",
+      "x": 33.9,
+      "y": 0,
+      "z": -24.5,
+      "giro": -1.5708,
+      "escala": 1,
+      "escalaY": 0.9615384615384615
+    },
+    {
+      "modelo": "Wall_Plaster_Straight",
+      "x": 26.1,
+      "y": 0,
+      "z": -30.5,
+      "giro": 1.5708,
+      "escala": 1,
+      "escalaY": 0.9615384615384615
+    },
+    {
+      "modelo": "Wall_Plaster_Straight",
+      "x": 26.1,
+      "y": 0,
+      "z": -28.5,
+      "giro": 1.5708,
+      "escala": 1,
+      "escalaY": 0.9615384615384615
+    },
+    {
+      "modelo": "Wall_Plaster_Window_Wide_Round",
+      "x": 26.1,
+      "y": 0,
+      "z": -26.5,
+      "giro": 1.5708,
+      "escala": 1,
+      "escalaY": 0.9615384615384615
+    },
+    {
+      "modelo": "Wall_Plaster_Straight",
+      "x": 26.1,
+      "y": 0,
+      "z": -24.5,
+      "giro": 1.5708,
+      "escala": 1,
+      "escalaY": 0.9615384615384615
+    },
+    {
+      "modelo": "Corner_Exterior_Wood",
+      "x": 26,
+      "y": 0,
+      "z": -31.5,
+      "giro": 0,
+      "escala": 1,
+      "escalaY": 0.9615384615384615
+    },
+    {
+      "modelo": "Corner_Exterior_Wood",
+      "x": 34,
+      "y": 0,
+      "z": -31.5,
+      "giro": 0,
+      "escala": 1,
+      "escalaY": 0.9615384615384615
+    },
+    {
+      "modelo": "Corner_Exterior_Wood",
+      "x": 26,
+      "y": 0,
+      "z": -23.5,
+      "giro": 0,
+      "escala": 1,
+      "escalaY": 0.9615384615384615
+    },
+    {
+      "modelo": "Corner_Exterior_Wood",
+      "x": 34,
+      "y": 0,
+      "z": -23.5,
+      "giro": 0,
+      "escala": 1,
+      "escalaY": 0.9615384615384615
+    },
+    {
+      "modelo": "Roof_RoundTiles_8x8",
+      "x": 30,
+      "y": 3,
+      "z": -27.5,
+      "giro": 0,
+      "escala": 1
+    },
+    {
+      "modelo": "Prop_Chimney",
+      "x": 33,
+      "y": 2.2,
+      "z": -30,
+      "giro": 0,
+      "escala": 1
+    },
+    {
+      "modelo": "Rock_Medium_3",
+      "x": 36,
+      "y": 0,
+      "z": 36,
+      "giro": 0.4,
+      "escala": 1.5
+    },
+    {
+      "modelo": "Rock_Medium_3",
+      "x": 36,
+      "y": 0,
+      "z": 44,
+      "giro": 2.1,
+      "escala": 1.5
+    },
+    {
+      "modelo": "Rock_Medium_1",
+      "x": 36,
+      "y": 0.75,
+      "z": 40,
+      "giro": 1.2,
+      "escala": 1.5,
+      "escalaY": 0.6
+    },
+    {
+      "modelo": "DeadTree_2",
+      "x": -34,
+      "y": 0.55,
+      "z": -7,
+      "giro": 1.57,
+      "escala": 0.28
     }
   ],
   "dispersoes": [
@@ -2168,6 +2407,177 @@
       "quantidade": 8,
       "semente": 314,
       "escala": [0.4, 0.8],
+      "folga": 0.6
+    },
+    {
+      "id": "praia_mato",
+      "minX": -15,
+      "maxX": 47,
+      "minZ": 17,
+      "maxZ": 47,
+      "modelos": [
+        "Grass_Common_Tall",
+        "Grass_Common_Short",
+        "Grass_Common_Short",
+        "Grass_Common_Tall"
+      ],
+      "quantidade": 70,
+      "semente": 401,
+      "escala": [0.6, 1],
+      "folga": 0.6
+    },
+    {
+      "id": "praia_pedras",
+      "minX": -15,
+      "maxX": 47,
+      "minZ": 17,
+      "maxZ": 47,
+      "modelos": ["Rock_Medium_1", "Rock_Medium_2", "Rock_Medium_3"],
+      "quantidade": 10,
+      "semente": 402,
+      "escala": [0.35, 0.7],
+      "folga": 1.5
+    },
+    {
+      "id": "praia_seixos",
+      "minX": -15,
+      "maxX": 47,
+      "minZ": 17,
+      "maxZ": 47,
+      "modelos": ["Pebble_Round_1"],
+      "quantidade": 24,
+      "semente": 403,
+      "escala": [0.8, 1.6],
+      "folga": 0.6
+    },
+    {
+      "id": "praia_arbustos",
+      "minX": -15,
+      "maxX": 47,
+      "minZ": 17,
+      "maxZ": 47,
+      "modelos": ["Bush_Common"],
+      "quantidade": 8,
+      "semente": 404,
+      "escala": [0.7, 1.1],
+      "folga": 1.5
+    },
+    {
+      "id": "pantano_secas",
+      "minX": -47,
+      "maxX": -17,
+      "minZ": -15,
+      "maxZ": 47,
+      "modelos": ["DeadTree_1", "DeadTree_2", "DeadTree_3"],
+      "quantidade": 16,
+      "semente": 501,
+      "escala": [0.35, 0.6],
+      "folga": 2
+    },
+    {
+      "id": "pantano_mato",
+      "minX": -47,
+      "maxX": -17,
+      "minZ": -15,
+      "maxZ": 47,
+      "modelos": [
+        "Grass_Common_Tall",
+        "Grass_Common_Short",
+        "Grass_Common_Short",
+        "Grass_Common_Tall"
+      ],
+      "quantidade": 70,
+      "semente": 502,
+      "escala": [0.7, 1.2],
+      "folga": 0.6
+    },
+    {
+      "id": "pantano_samambaias",
+      "minX": -47,
+      "maxX": -17,
+      "minZ": -15,
+      "maxZ": 47,
+      "modelos": ["Fern_1", "Plant_1_Big"],
+      "quantidade": 16,
+      "semente": 503,
+      "escala": [0.12, 0.22],
+      "folga": 1
+    },
+    {
+      "id": "pantano_cogumelos",
+      "minX": -47,
+      "maxX": -17,
+      "minZ": -15,
+      "maxZ": 47,
+      "modelos": ["Mushroom_Common"],
+      "quantidade": 18,
+      "semente": 504,
+      "escala": [0.9, 1.6],
+      "folga": 0.6
+    },
+    {
+      "id": "pantano_arbustos",
+      "minX": -47,
+      "maxX": -17,
+      "minZ": -15,
+      "maxZ": 47,
+      "modelos": ["Bush_Common"],
+      "quantidade": 10,
+      "semente": 505,
+      "escala": [0.8, 1.2],
+      "folga": 1.5
+    },
+    {
+      "id": "falesias_retorcidas",
+      "minX": -15,
+      "maxX": 47,
+      "minZ": -47,
+      "maxZ": -17,
+      "modelos": ["TwistedTree_1", "TwistedTree_2"],
+      "quantidade": 7,
+      "semente": 601,
+      "escala": [0.3, 0.45],
+      "folga": 3
+    },
+    {
+      "id": "falesias_pinheiros",
+      "minX": -15,
+      "maxX": 47,
+      "minZ": -47,
+      "maxZ": -17,
+      "modelos": ["Pine_1"],
+      "quantidade": 10,
+      "semente": 602,
+      "escala": [0.7, 1.1],
+      "folga": 2
+    },
+    {
+      "id": "falesias_pedras",
+      "minX": -15,
+      "maxX": 47,
+      "minZ": -47,
+      "maxZ": -17,
+      "modelos": ["Rock_Medium_1", "Rock_Medium_2", "Rock_Medium_3"],
+      "quantidade": 14,
+      "semente": 603,
+      "escala": [0.4, 0.9],
+      "folga": 1.5
+    },
+    {
+      "id": "falesias_mato",
+      "minX": -15,
+      "maxX": 47,
+      "minZ": -47,
+      "maxZ": -17,
+      "modelos": [
+        "Grass_Common_Tall",
+        "Grass_Common_Short",
+        "Grass_Common_Short",
+        "Grass_Common_Tall"
+      ],
+      "quantidade": 40,
+      "semente": 604,
+      "escala": [0.6, 1],
       "folga": 0.6
     }
   ],
