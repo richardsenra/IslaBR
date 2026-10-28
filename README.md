@@ -94,13 +94,24 @@ golpe não machuca. A arma aparece na mão do boneco (o graveto como adaga, e a
 **Espada de Coral**, de 2 de dano, como espada).
 
 Para testar o combate sem cumprir missão, ligue o kit de teste no servidor:
-`ISLABR_KIT_DE_TESTE=graveto_reforcado,arma_nv2` em `apps/server/.env` dá as duas
-armas a quem entra. Deixe vazio num servidor de verdade. Os **caranguejos** ficam espalhados pelo leste e pelo sul da
+`ISLABR_KIT_DE_TESTE=graveto_reforcado,arma_nv2,machado` em `apps/server/.env` dá as
+duas armas e o machado a quem entra. Deixe vazio num servidor de verdade. Os **caranguejos** ficam espalhados pelo leste e pelo sul da
 arena; chegue perto e eles te perseguem e mordem (meio coração). Dois golpes
 derrubam um caranguejo comum, e o carregado derruba em um. Esquivar (Shift) dá
 um instante de invulnerabilidade. Os **espinhosos** (marrom-escuros, no oeste)
 devolvem o golpe se você bate de frente: dê a volta e ataque pelas costas. Quem
-cai levanta alguns segundos depois, com os corações cheios.
+fica sem corações renasce na hora no ponto de partida, com a vida cheia e um
+instante de invulnerabilidade.
+
+**Cortar árvore.** Com o **Machado de Bronze** na mão (abra o inventário com
+`I` e clique em **Equipar**), bata nas árvores: cada machadada tira um golpe, e
+a última derruba. O **coqueiro** cai em 4 golpes e dá 2 ou 3 toras de madeira,
+às vezes com uma fruta; a **árvore seca** cai em 2 e dá 1 tora. A árvore volta a
+crescer do toco depois de uns 20 segundos. Duas delas ficam perto de onde você
+nasce, e as outras três espalhadas pela arena.
+
+A espada bate o dobro do machado, mas não derruba árvore: vale trocar na mão
+conforme o que você vai fazer. Bater na árvore sem machado não dá nada.
 
 Às vezes o inimigo some atrás do boneco, porque a câmera fica atrás dele; nessas
 horas o boneco fica semitransparente e a barra de vida mostra onde o bicho está.
