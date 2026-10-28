@@ -30,7 +30,7 @@ import { ui } from './i18n.js';
 import { InputReader } from './input.js';
 import { Rastros } from './rastros.js';
 import { InventoryPanel } from './inventory.js';
-import { PLAYER_MODELS, carregarModelos, modeloDoJogador } from './models.js';
+import { carregarModelos, modeloDoJogador } from './models.js';
 import {
   joinIsland,
   simulatedLagMs,
@@ -168,7 +168,7 @@ scene.add(createArena());
 
 hud.setStatus(ui.loading);
 try {
-  await carregarModelos([...PLAYER_MODELS]);
+  await carregarModelos();
 } catch (erro) {
   console.error('modelos não carregaram, usando bonecos de primitiva', erro);
 }

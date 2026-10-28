@@ -1,12 +1,12 @@
 import * as THREE from 'three';
 import { STATE_BLEND_SECONDS, wrapAngle, type CharacterState } from '@islabr/shared';
-import { POSE_DO_MERGULHO_S, criarArma, criarModelo, type ModeloAnimado } from './models.js';
+import { criarArma, criarModelo, type ModeloAnimado } from './models.js';
 
 /**
  * Boneco do jogo.
  *
- * Quando o modelo glTF está carregado (KayKit, CC0), o avatar é o modelo com
- * esqueleto e os clipes do KayKit. Se o carregamento falhar, cai no boneco de
+ * Quando o modelo glTF está carregado (Quaternius ou KayKit, CC0), o avatar é o
+ * modelo com esqueleto e os clipes do pacote dele. Se o carregamento falhar, cai no boneco de
  * primitivas com animação procedural, que foi o que existiu até o M2 — assim
  * um erro de rede não deixa o jogador invisível.
  *
@@ -17,21 +17,11 @@ import { POSE_DO_MERGULHO_S, criarArma, criarModelo, type ModeloAnimado } from '
 const BLEND_TAU = STATE_BLEND_SECONDS / 3;
 
 /**
- * O KayKit exporta o personagem olhando para +Z, que é a mesma convenção de
- * yaw do jogo, então não precisa girar nada. Um modelo que venha olhando para
- * -Z pediria Math.PI aqui.
+ * Os dois pacotes (KayKit e Quaternius) exportam o personagem olhando para +Z,
+ * que é a mesma convenção de yaw do jogo, então não precisa girar nada. Um
+ * modelo que venha olhando para -Z pediria Math.PI aqui.
  */
 const MODEL_YAW_OFFSET = 0;
-
-/**
- * Osso da mão direita no esqueleto do KayKit, onde a arma é encaixada. No
- * arquivo ele se chama `handslot.r`, mas o carregador de glTF do three.js tira
- * os pontos dos nomes dos nós (`PropertyBinding.sanitizeNodeName`), então aqui ele
- * é `handslotr`. Procurar pelo nome do arquivo não acha nada.
- */
-const OSSO_DA_MAO = 'handslotr';
-/** Giro da arma em relação ao osso, para a lâmina apontar para fora da mão. */
-const ARMA_GIRO = { x: 0, y: 0, z: 0 };
 
 export interface AvatarOptions {
   /** Nome do modelo em `public/models`; sem ele, usa o boneco de primitivas. */
@@ -77,8 +67,8 @@ export class Avatar {
   }
 
   /**
-   * Põe a arma na mão direita do boneco (o osso `handslot.r` do esqueleto do
-   * KayKit), ou tira com `null`. Ela anima junto com o braço. Só vale para o
+   * Põe a arma na mão direita do boneco (o osso e a pose do encaixe vêm do
+   * esqueleto dele, em `models.ts`), ou tira com `null`. Ela anima junto com o braço. Só vale para o
    * modelo glTF; o boneco de primitivas, que é reserva, fica de mãos vazias.
    */
   equipar(itemId: string | null): void {
@@ -96,12 +86,13 @@ export class Avatar {
     this.materiaisDaArma = [];
     if (!itemId) return;
 
-    const mao = this.modelo.raiz.getObjectByName(OSSO_DA_MAO);
+    const encaixe = this.modelo.encaixeDaArma;
+    const mao = this.modelo.raiz.getObjectByName(encaixe.osso);
     const arma = criarArma(itemId);
     if (!mao || !arma) {
       // Não é para acontecer; se acontecer, o jogador ficaria sem arma na tela
       // sem ninguém saber por quê.
-      console.warn(`arma não equipada: osso ${OSSO_DA_MAO} ou modelo de ${itemId} ausente`);
+      console.warn(`arma não equipada: osso ${encaixe.osso} ou modelo de ${itemId} ausente`);
       return;
     }
 
@@ -116,7 +107,9 @@ export class Avatar {
       this.materiaisDaArma.push(copia);
     });
 
-    arma.rotation.set(ARMA_GIRO.x, ARMA_GIRO.y, ARMA_GIRO.z);
+    arma.position.set(...encaixe.posicao);
+    arma.rotation.set(...encaixe.giro);
+    arma.scale.setScalar(encaixe.escala);
     mao.add(arma);
     this.armaObjeto = arma;
   }
@@ -162,7 +155,7 @@ export class Avatar {
   ): void {
     if (this.modelo) {
       this.modelo.tocar(state, STATE_BLEND_SECONDS, reiniciar, pernas);
-      this.modelo.avancar(dt, mergulhando ? POSE_DO_MERGULHO_S : undefined);
+      this.modelo.avancar(dt, mergulhando);
       return;
     }
     this.primitivo?.animar(state, dt);
