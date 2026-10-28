@@ -25,13 +25,14 @@ export const COMBO_WINDOW_SECONDS = 0.7;
  * para o número aparecer quando a espada chega e não antes de o braço descer.
  *
  * O combo é diagonal, horizontal e um golpe de cima, que fecha mais lento e
- * pesado. O carregado é um salto com golpe de cima, e demora mais para bater.
+ * pesado. O carregado é uma rajada de cortes encadeados, e o impacto cai no
+ * último deles.
  */
 export const GOLPE_TEMPOS: Readonly<Record<AttackKind, { duracao: number; impacto: number }>> = {
   attack1: { duracao: 0.55, impacto: 0.3 },
   attack2: { duracao: 0.5, impacto: 0.2 },
   attack3: { duracao: 0.75, impacto: 0.45 },
-  charged: { duracao: 0.95, impacto: 0.55 },
+  charged: { duracao: 1.3, impacto: 0.85 },
   // O mergulho bate no instante em que pisa no chão; a duração é a recuperação.
   plunge: { duracao: 0.45, impacto: 0 },
 };

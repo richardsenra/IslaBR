@@ -59,33 +59,60 @@ const RIG_DO_MODELO: Readonly<Record<ModelName, Rig>> = {
 };
 
 /**
- * Modelo de cada arma, pelo id do item. O graveto ainda não tem modelo próprio
- * (não há graveto nos assets CC0), então aparece como uma adaga curta.
+ * Cada arma é medida em metros no mundo, e não na escala do arquivo: modelos de
+ * pacotes diferentes vêm em tamanhos diferentes, e o que importa é a espada
+ * parecer proporcional ao personagem.
  */
-const MODELO_DA_ARMA: Readonly<Record<string, string>> = {
-  graveto_reforcado: 'dagger',
-  arma_nv2: 'sword_1handed',
+interface ModeloDeArma {
+  /** Arquivo em `public/models`, com extensão. A lâmina tem de apontar para +Y. */
+  readonly arquivo: string;
+  /** Comprimento total, do pomo à ponta, em metros no mundo. */
+  readonly comprimento: number;
+  /** Altura do centro do cabo no arquivo, em unidades dele: é o que vai na palma. */
+  readonly cabo: number;
+}
+
+/**
+ * O graveto ainda não tem modelo próprio (não há graveto nos assets CC0), então
+ * aparece como uma adaga curta.
+ */
+const MODELO_DA_ARMA: Readonly<Record<string, ModeloDeArma>> = {
+  graveto_reforcado: { arquivo: 'dagger.gltf', comprimento: 0.55, cabo: 0 },
+  arma_nv2: { arquivo: 'Sword_Bronze.glb', comprimento: 0.95, cabo: -0.07 },
 };
 
-const armas = new Map<string, THREE.Group>();
+interface ArmaCarregada {
+  readonly cena: THREE.Group;
+  /** Escala que leva o arquivo ao comprimento em metros, sem contar o boneco. */
+  readonly metrosPorUnidade: number;
+  readonly cabo: number;
+}
+
+const armas = new Map<string, ArmaCarregada>();
 
 /** Onde e como a arma encaixa na mão de um esqueleto. */
 export interface EncaixeDaArma {
   /** Nome do osso, como fica depois de o carregador tirar os pontos. */
   readonly osso: string;
+  /** Posição do centro do cabo no osso, nas unidades dele. */
   readonly posicao: readonly [number, number, number];
   readonly giro: readonly [number, number, number];
-  readonly escala: number;
 }
+
+/**
+ * Além dos estados do jogo, o mergulho tem uma pose própria para o pouso: no ar
+ * o boneco fica com a espada para baixo, e ao pisar no chão toca o clipe de pouso.
+ */
+type Pose = CharacterState | 'plunge_pouso';
 
 interface DescritorDoRig {
   /** Arquivos em `public/models` com as animações do pacote. */
   readonly bibliotecas: readonly string[];
   /**
-   * Clipe de cada estado da máquina (SPEC §6). O primeiro da lista que existir
-   * é o usado; os seguintes são reserva.
+   * Clipe de cada pose (SPEC §6). O primeiro da lista que existir é o usado; os
+   * seguintes são reserva.
    */
-  readonly clipes: Readonly<Record<CharacterState, readonly string[]>>;
+  readonly clipes: Readonly<Record<Pose, readonly string[]>>;
   /**
    * Em que instante do clipe a lâmina acerta, em segundos, medido pelo maior
    * pico de velocidade da mão da espada. A velocidade de cada golpe é calculada
@@ -95,13 +122,8 @@ interface DescritorDoRig {
    * cortado pela mudança de estado, então o golpe termina quando o jogo diz.
    */
   readonly impacto: Readonly<Partial<Record<AttackState, number>>>;
-  /** Velocidade de reprodução fixa de estados que não são golpe. */
-  readonly velocidade: Readonly<Partial<Record<CharacterState, number>>>;
-  /**
-   * Instante do clipe do mergulho em que o personagem fica parado no ar, com a
-   * espada erguida, até pousar. Daí o clipe segue e a lâmina desce no chão.
-   */
-  readonly poseDoMergulho: number;
+  /** Velocidade de reprodução fixa de poses que não são golpe. */
+  readonly velocidade: Readonly<Partial<Record<Pose, number>>>;
   /** O osso é do tronco para cima? Senão é da metade de baixo (raiz, quadril e pernas). */
   readonly ehDeCima: (osso: string) => boolean;
   readonly arma: EncaixeDaArma;
@@ -123,25 +145,22 @@ const RIGS: Readonly<Record<Rig, DescritorDoRig>> = {
       attack1: ['Sword_Regular_A'],
       attack2: ['Sword_Regular_B'],
       attack3: ['Sword_Regular_C'],
-      // O carregado não toca clipe próprio: o main alterna entre os três golpes
-      // normais em sequência rápida (rajada). Este é só o reserva.
-      charged: ['Sword_Regular_C'],
-      // Mergulho: o golpe de cima, segurado no alto durante a descida.
-      plunge: ['Sword_Regular_C'],
+      // O carregado é o combo de espada inteiro, de uma vez só: quatro cortes
+      // encadeados, o mesmo clipe do começo ao fim, sem emendar um golpe no outro.
+      charged: ['Sword_Regular_Combo'],
+      // Mergulho: no ar, a pose de cair com a espada para baixo (a lâmina aponta
+      // quase reto para o chão); ao pousar, o clipe de pouso.
+      plunge: ['NinjaJump_Idle_Loop'],
+      plunge_pouso: ['NinjaJump_Land'],
     },
-    impacto: { attack1: 0.25, attack2: 0.27, attack3: 0.65, charged: 0.65 },
-    velocidade: { run: 1.4, jump: 1.6 },
-    poseDoMergulho: 0.5,
+    // O quarto corte do combo é o que fecha a rajada; o impacto do jogo cai nele.
+    impacto: { attack1: 0.25, attack2: 0.27, attack3: 0.65, charged: 1.55 },
+    velocidade: { run: 1.4, jump: 1.6, plunge_pouso: 2.2 },
     ehDeCima: (osso) => !/^(root|pelvis|thigh_|calf_|foot_|ball_)/.test(osso),
     // Medido na pose Sword_Idle: os dedos se dobram em torno do eixo Z do osso
     // hand_r, que é o do cabo. Rodar a espada 90° em X põe a lâmina (+Y) nele; o
     // centro do cabo fica na palma, do lado para onde os dedos fecham (-X).
-    arma: {
-      osso: 'hand_r',
-      posicao: [-0.03, 0.08, 0.003],
-      giro: [Math.PI / 2, 0, 0],
-      escala: 0.82,
-    },
+    arma: { osso: 'hand_r', posicao: [-0.03, 0.08, 0.003], giro: [Math.PI / 2, 0, 0] },
   },
   kaykit: {
     bibliotecas: [
@@ -163,10 +182,10 @@ const RIGS: Readonly<Record<Rig, DescritorDoRig>> = {
       attack3: ['Melee_1H_Attack_Chop', 'Idle_A'],
       charged: ['Melee_1H_Attack_Chop', 'Idle_A'],
       plunge: ['Melee_1H_Attack_Jump_Chop', 'Melee_1H_Attack_Chop', 'Idle_A'],
+      plunge_pouso: ['Melee_1H_Attack_Chop', 'Idle_A'],
     },
     impacto: { attack1: 0.42, attack2: 0.28, attack3: 0.62, charged: 0.62 },
     velocidade: {},
-    poseDoMergulho: 0.55,
     // Nomes já sem pontos, como o carregador deixa (`handslot.r` vira `handslotr`).
     ehDeCima: (osso) =>
       [
@@ -184,17 +203,17 @@ const RIGS: Readonly<Record<Rig, DescritorDoRig>> = {
         'handr',
         'handslotr',
       ].includes(osso),
-    arma: { osso: 'handslotr', posicao: [0, 0, 0], giro: [0, 0, 0], escala: 1 },
+    arma: { osso: 'handslotr', posicao: [0, 0, 0], giro: [0, 0, 0] },
   },
 };
 
 /** Quanto a esquiva deve durar na tela: esta, sim, cabe inteira. */
-const DURACAO_DO_ESTADO: Readonly<Partial<Record<CharacterState, number>>> = {
+const DURACAO_DA_POSE: Readonly<Partial<Record<Pose, number>>> = {
   dodge: DODGE_DURATION,
 };
 
-/** Estados que tocam uma vez e seguram a última pose. */
-const ONCE: ReadonlySet<CharacterState> = new Set<CharacterState>([
+/** Poses que tocam uma vez e seguram a última pose. */
+const ONCE: ReadonlySet<Pose> = new Set<Pose>([
   'jump',
   'hurt',
   'dead',
@@ -202,22 +221,20 @@ const ONCE: ReadonlySet<CharacterState> = new Set<CharacterState>([
   'attack2',
   'attack3',
   'charged',
-  'plunge',
+  'plunge_pouso',
 ]);
 
-function ehGolpe(estado: CharacterState): estado is Exclude<AttackState, 'plunge'> {
-  return (
-    estado === 'attack1' || estado === 'attack2' || estado === 'attack3' || estado === 'charged'
-  );
+function ehGolpe(pose: Pose): pose is Exclude<AttackState, 'plunge'> {
+  return pose === 'attack1' || pose === 'attack2' || pose === 'attack3' || pose === 'charged';
 }
 
-/** Velocidade de reprodução de um estado, ou `undefined` para a velocidade do clipe. */
-function velocidadeDoEstado(rig: DescritorDoRig, estado: CharacterState): number | undefined {
-  if (ehGolpe(estado)) {
-    const noClipe = rig.impacto[estado];
-    return noClipe === undefined ? undefined : noClipe / impactoDoGolpe(estado);
+/** Velocidade de reprodução de uma pose, ou `undefined` para a velocidade do clipe. */
+function velocidadeDaPose(rig: DescritorDoRig, pose: Pose): number | undefined {
+  if (ehGolpe(pose)) {
+    const noClipe = rig.impacto[pose];
+    return noClipe === undefined ? undefined : noClipe / impactoDoGolpe(pose);
   }
-  return rig.velocidade[estado];
+  return rig.velocidade[pose];
 }
 
 const loader = new GLTFLoader();
@@ -267,11 +284,18 @@ async function carregarRig(rig: Rig, modelos: readonly ModelName[]): Promise<voi
  * o outro e com o boneco de primitivas no lugar do que faltou.
  */
 export async function carregarModelos(): Promise<void> {
-  // As armas são glTF soltos (um arquivo .gltf, um .bin e a textura).
+  // As armas vêm como .gltf solto (com .bin e textura) ou como .glb.
   await Promise.all(
-    Object.entries(MODELO_DA_ARMA).map(async ([item, arquivo]) => {
-      const gltf = await loader.loadAsync(`${base()}/${arquivo}.gltf`);
-      armas.set(item, gltf.scene);
+    Object.entries(MODELO_DA_ARMA).map(async ([item, modelo]) => {
+      const gltf = await loader.loadAsync(`${base()}/${modelo.arquivo}`);
+      const caixa = new THREE.Box3().setFromObject(gltf.scene);
+      const comprimento = caixa.max.y - caixa.min.y;
+      if (comprimento <= 0) return;
+      armas.set(item, {
+        cena: gltf.scene,
+        metrosPorUnidade: modelo.comprimento / comprimento,
+        cabo: modelo.cabo,
+      });
     }),
   );
 
@@ -294,9 +318,20 @@ export async function carregarModelos(): Promise<void> {
   }
 }
 
-/** Cópia do modelo da arma, ou `null` se o item não tem modelo. */
-export function criarArma(itemId: string): THREE.Object3D | null {
-  return armas.get(itemId)?.clone(true) ?? null;
+/**
+ * Cópia da arma, ou `null` se o item não tem modelo. Já vem no tamanho certo em
+ * metros e com o centro do cabo na origem, pronta para ir no osso da mão.
+ * `escalaDoBoneco` é a escala do boneco que a segura, que a arma herda.
+ */
+export function criarArma(itemId: string, escalaDoBoneco: number): THREE.Object3D | null {
+  const arma = armas.get(itemId);
+  if (!arma) return null;
+  const modelo = arma.cena.clone(true);
+  modelo.position.y = -arma.cabo;
+  const suporte = new THREE.Group();
+  suporte.add(modelo);
+  suporte.scale.setScalar(arma.metrosPorUnidade / escalaDoBoneco);
+  return suporte;
 }
 
 export function temModelo(nome: string): boolean {
@@ -336,15 +371,18 @@ export interface ModeloAnimado {
    * Com `pernas`, o corpo se divide: do tronco para cima toca `estado` e as
    * pernas tocam `pernas`. É o golpe dado correndo: sem isto o golpe trava as
    * pernas e o personagem desliza pelo chão.
+   *
+   * `noAr` só importa no mergulho: no ar, a pose de queda com a espada para
+   * baixo; em solo, o clipe de pouso.
    */
   tocar(
     estado: CharacterState,
     mistura: number,
     reiniciar?: boolean,
     pernas?: CharacterState,
+    noAr?: boolean,
   ): void;
-  /** Com `segurando`, o clipe em curso para na pose do mergulho até soltar. */
-  avancar(dt: number, segurando?: boolean): void;
+  avancar(dt: number): void;
   descartar(): void;
 }
 
@@ -360,28 +398,25 @@ export function criarModelo(nome: string): ModeloAnimado | null {
   const acoes = new Map<string, THREE.AnimationAction>();
 
   /** Cada metade do corpo é uma camada com o seu clipe atual. */
-  const camadas: Record<
-    Metade,
-    { acao: THREE.AnimationAction | null; estado: CharacterState | null }
-  > = {
-    cima: { acao: null, estado: null },
-    baixo: { acao: null, estado: null },
+  const camadas: Record<Metade, { acao: THREE.AnimationAction | null; pose: Pose | null }> = {
+    cima: { acao: null, pose: null },
+    baixo: { acao: null, pose: null },
   };
 
-  const acaoDe = (estado: CharacterState, metade: Metade): THREE.AnimationAction | null => {
-    const chave = `${estado}#${metade}`;
+  const acaoDe = (pose: Pose, metade: Metade): THREE.AnimationAction | null => {
+    const chave = `${pose}#${metade}`;
     const pronta = acoes.get(chave);
     if (pronta) return pronta;
-    for (const nomeClipe of descritor.clipes[estado]) {
+    for (const nomeClipe of descritor.clipes[pose]) {
       const clip = clips.get(nomeClipe);
       if (!clip) continue;
       const acao = mixer.clipAction(metadeDo(rig, clip, metade), raiz);
-      if (ONCE.has(estado)) {
+      if (ONCE.has(pose)) {
         acao.setLoop(THREE.LoopOnce, 1);
         acao.clampWhenFinished = true;
       }
-      const duracao = DURACAO_DO_ESTADO[estado];
-      const velocidade = velocidadeDoEstado(descritor, estado);
+      const duracao = DURACAO_DA_POSE[pose];
+      const velocidade = velocidadeDaPose(descritor, pose);
       if (velocidade !== undefined) {
         acao.setEffectiveTimeScale(velocidade);
       } else if (duracao !== undefined && clip.duration > 0) {
@@ -396,44 +431,42 @@ export function criarModelo(nome: string): ModeloAnimado | null {
   /** Troca o clipe de uma camada; devolve a ação nova, se trocou. */
   const trocar = (
     metade: Metade,
-    estado: CharacterState,
+    pose: Pose,
     mistura: number,
     reiniciar: boolean,
   ): THREE.AnimationAction | null => {
     const camada = camadas[metade];
-    if (estado === camada.estado && !reiniciar) return null;
-    const proxima = acaoDe(estado, metade);
+    if (pose === camada.pose && !reiniciar) return null;
+    const proxima = acaoDe(pose, metade);
     if (!proxima) return null;
-    camada.estado = estado;
+    camada.pose = pose;
     proxima.reset().play();
     if (camada.acao && camada.acao !== proxima) proxima.crossFadeFrom(camada.acao, mistura, false);
     camada.acao = proxima;
     return proxima;
   };
 
+  const poseDe = (estado: CharacterState, noAr: boolean): Pose =>
+    estado === 'plunge' && !noAr ? 'plunge_pouso' : estado;
+
   return {
     raiz,
     encaixeDaArma: descritor.arma,
-    tocar(estado, mistura, reiniciar = false, pernas) {
-      trocar('cima', estado, mistura, reiniciar);
+    tocar(estado, mistura, reiniciar = false, pernas, noAr = false) {
+      const pose = poseDe(estado, noAr);
+      trocar('cima', pose, mistura, reiniciar);
       // As pernas só recomeçam junto quando fazem o mesmo golpe que o tronco;
       // correndo, recomeçar a corrida a cada golpe faria o passo engasgar.
-      const nova = trocar('baixo', pernas ?? estado, mistura, reiniciar && pernas === undefined);
+      const nova = trocar('baixo', pernas ?? pose, mistura, reiniciar && pernas === undefined);
       // Parou de correr no meio do golpe: as pernas entram no golpe no mesmo
       // ponto em que o tronco está, e não do começo.
       const { cima } = camadas;
-      if (nova && !reiniciar && pernas === undefined && cima.acao && cima.estado === estado) {
+      if (nova && !reiniciar && pernas === undefined && cima.acao && cima.pose === pose) {
         nova.time = cima.acao.time;
       }
     },
-    avancar(dt, segurando = false) {
+    avancar(dt) {
       mixer.update(dt);
-      if (!segurando) return;
-      for (const camada of Object.values(camadas)) {
-        if (camada.acao && camada.acao.time > descritor.poseDoMergulho) {
-          camada.acao.time = descritor.poseDoMergulho;
-        }
-      }
     },
     descartar() {
       mixer.stopAllAction();

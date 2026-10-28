@@ -198,6 +198,7 @@ interface RemoteAvatar {
   readonly buffer: SnapshotBuffer;
   /** Onde estava no quadro anterior, para saber se está andando. */
   ultimoX: number;
+  ultimoY: number;
   ultimoZ: number;
 }
 
@@ -285,7 +286,13 @@ function onPatch(
       const modelo = modeloDoJogador(player.colorIndex);
       const avatar = new Avatar({ modelo, cor: playerColor(player.colorIndex) });
       scene.add(avatar.root);
-      remote = { avatar, buffer: new SnapshotBuffer(), ultimoX: player.x, ultimoZ: player.z };
+      remote = {
+        avatar,
+        buffer: new SnapshotBuffer(),
+        ultimoX: player.x,
+        ultimoY: player.y,
+        ultimoZ: player.z,
+      };
       remotes.set(player.sessionId, remote);
     }
     remote.avatar.equipar(player.arma === '' ? null : player.arma);
@@ -415,6 +422,15 @@ let sendTimer = 0;
 let fps = 60;
 let desenhos = 0;
 
+/**
+ * Instantes, em segundos depois do começo do carregado, em que a lâmina passa nos
+ * dois primeiros cortes do combo (o terceiro é o impacto). Medidos no clipe
+ * Sword_Regular_Combo, 0,25 s e 0,73 s, na velocidade em que ele toca.
+ */
+const MOMENTOS_DA_RAJADA: readonly number[] = [0.14, 0.4];
+/** Quantos cortes da rajada já ganharam rastro neste carregado. */
+let rajadaFeita = 0;
+
 /** Começa o ataque no ar: o personagem despenca com a espada para baixo. */
 function iniciarMergulho(agora: number): void {
   mergulhando = true;
@@ -473,6 +489,7 @@ function dispararGolpe(solto: 'normal' | 'charged', agora: number): void {
   // +20ms de folga garante que o servidor sempre aceite o intervaloMinimoMs
   golpeLiberadoEm = agora + recargaDoGolpeMs(golpe) + 20;
   golpeGatilho += 1;
+  rajadaFeita = 0;
   golpePendente = { golpe, enviarEm: agora + impactoDoGolpe(golpe) * 1000 };
 }
 
@@ -610,36 +627,26 @@ renderer.setAnimationLoop((now) => {
   }
 
   let estadoVisual: CharacterState = player.state;
-  let gatilhoVisual = golpeGatilho;
+  const gatilhoVisual = golpeGatilho;
 
   if (now < machucadoAte) {
     estadoVisual = 'hurt';
   } else if (player.state === 'dodge') {
     estadoVisual = 'dodge';
-  } else if (golpeAtual === 'charged') {
-    // Em vez de usar a animação de pulo ('charged'), divide o tempo em 3 golpes
-    // normais super rápidos (attack1 -> attack2 -> attack3)!
-    const progresso = (now - golpeInicio) / (duracaoDoGolpe('charged') * 1000);
-    if (progresso < 0.3) {
-      estadoVisual = 'attack1';
-      gatilhoVisual = golpeGatilho * 10 + 1;
-    } else if (progresso < 0.6) {
-      estadoVisual = 'attack2';
-      gatilhoVisual = golpeGatilho * 10 + 2;
-    } else {
-      estadoVisual = 'attack3';
-      gatilhoVisual = golpeGatilho * 10 + 3;
-    }
   } else if (golpeAtual) {
     estadoVisual = golpeAtual;
   }
 
-  // Quando mudar a sub-etapa da rajada, solta o rastro visual correspondente!
-  if (golpeAtual === 'charged' && golpeAnimado !== gatilhoVisual) {
-    if (estadoVisual === 'attack1') {
-      rastros.golpe('attack1', player.x, player.y, player.z, yawDoGolpe);
-    } else if (estadoVisual === 'attack2') {
-      rastros.golpe('attack2', player.x, player.y, player.z, yawDoGolpe);
+  // O carregado toca o combo de espada de uma vez só; os dois primeiros cortes
+  // ganham o rastro na hora em que a lâmina passa, e o terceiro sai no impacto.
+  if (golpeAtual === 'charged') {
+    const decorrido = (now - golpeInicio) / 1000;
+    let momento = MOMENTOS_DA_RAJADA[rajadaFeita];
+    while (momento !== undefined && decorrido >= momento) {
+      const corte = rajadaFeita === 0 ? 'attack1' : 'attack2';
+      rastros.golpe(corte, player.x, player.y, player.z, yawDoGolpe);
+      rajadaFeita += 1;
+      momento = MOMENTOS_DA_RAJADA[rajadaFeita];
     }
   }
 
@@ -680,13 +687,16 @@ renderer.setAnimationLoop((now) => {
     // Do outro jogador só chega a pose; se ele andou desde o último quadro, as
     // pernas correm enquanto ele golpeia.
     const andou = Math.hypot(pose.x - remote.ultimoX, pose.z - remote.ultimoZ) > 0.01;
+    // Em mergulho, ele ainda está no ar enquanto a altura diminui.
+    const descendo = pose.y < remote.ultimoY - 0.005;
     remote.ultimoX = pose.x;
+    remote.ultimoY = pose.y;
     remote.ultimoZ = pose.z;
     remote.avatar.animate(
       pose.state,
       dtAnim,
       false,
-      false,
+      pose.state === 'plunge' && descendo,
       pernasDoGolpe(pose.state, andou ? 'run' : 'idle'),
     );
   }

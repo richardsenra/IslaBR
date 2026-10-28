@@ -2,13 +2,15 @@
 /**
  * Prepara os modelos da Quaternius (CC0) para o jogo.
  *
- *   node scripts/preparar-modelos.mjs <pasta-dos-personagens> <UAL1.glb> <UAL2.glb>
+ *   node scripts/preparar-modelos.mjs <pasta-dos-personagens> <UAL1.glb> <UAL2.glb> [pasta-dos-props]
  *
  * - <pasta-dos-personagens>: onde estão Superhero_Male_FullBody.gltf e
  *   Superhero_Female_FullBody.gltf, com os .bin e as texturas (do pacote
  *   "Universal Base Characters", pasta "Godot - UE").
  * - UAL1.glb e UAL2.glb: "Universal Animation Library" 1 e 2 (versão sem
  *   root motion, pasta "Unreal-Godot").
+ * - pasta-dos-props (opcional): onde estão Sword_Bronze.gltf, o .bin e a textura
+ *   T_Trim_Props_BaseColor.png, do pacote "Fantasy Props MegaKit" (pasta "glTF").
  *
  * O que faz, e por quê (SPEC §10: 60 fps com 8 jogadores, 150 desenhos por zona):
  * - Junta corpo, sobrancelha e olhos num só material e numa só malha. O pacote
@@ -27,7 +29,7 @@ import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { prune, resample } from '@gltf-transform/functions';
 import sharp from 'sharp';
 
-const [pastaPersonagens, ual1, ual2] = process.argv.slice(2);
+const [pastaPersonagens, ual1, ual2, pastaProps] = process.argv.slice(2);
 if (!pastaPersonagens || !ual1 || !ual2) {
   console.error(
     'uso: node scripts/preparar-modelos.mjs <pasta-dos-personagens> <UAL1.glb> <UAL2.glb>',
@@ -214,6 +216,38 @@ async function personagem(entrada, destino) {
   );
 }
 
+/**
+ * Arma do Fantasy Props MegaKit: o pacote usa uma folha de texturas de 2048×2048
+ * com mapa de normal e de rugosidade. Aqui fica só a cor, em 512×512 JPEG, que é
+ * o que se enxerga numa espada de 1 m vista de longe.
+ */
+async function arma(entrada, destino) {
+  const doc = await io.read(entrada);
+  const root = doc.getRoot();
+  for (const material of root.listMaterials()) {
+    const textura = material.getBaseColorTexture();
+    if (textura) {
+      const jpeg = await sharp(Buffer.from(textura.getImage()))
+        .resize(512, 512, { fit: 'fill' })
+        .removeAlpha()
+        .jpeg({ quality: 88 })
+        .toBuffer();
+      textura.setImage(new Uint8Array(jpeg)).setMimeType('image/jpeg').setURI('');
+    }
+    // Sem o mapa de rugosidade e sem ambiente, o metal puro fica preto.
+    material
+      .setNormalTexture(null)
+      .setOcclusionTexture(null)
+      .setMetallicRoughnessTexture(null)
+      .setMetallicFactor(0.1)
+      .setRoughnessFactor(0.6);
+  }
+  await doc.transform(prune(), prune());
+  await io.write(destino, doc);
+  const bytes = root.listBuffers()[0] ? 'ok' : '?';
+  console.log(`${path.basename(destino)}: ${bytes}`);
+}
+
 async function animacoes(entrada, destino, manter) {
   const doc = await io.read(entrada);
   const root = doc.getRoot();
@@ -270,6 +304,9 @@ await personagem(
 );
 await animacoes(ual1, path.join(saida, 'Anim_UAL1.glb'), ANIMACOES[ual1]);
 await animacoes(ual2, path.join(saida, 'Anim_UAL2.glb'), ANIMACOES[ual2]);
+if (pastaProps) {
+  await arma(path.join(pastaProps, 'Sword_Bronze.gltf'), path.join(saida, 'Sword_Bronze.glb'));
+}
 await writeFile(
   path.join(saida, 'LICENSE-QUATERNIUS.md'),
   [
@@ -279,6 +316,8 @@ await writeFile(
     '(texturas reduzidas e fundidas num atlas; ver apps/client/scripts/preparar-modelos.mjs).',
     '',
     'Anim_UAL1.glb, Anim_UAL2.glb: animações selecionadas de "Universal Animation Library" 1 e 2.',
+    '',
+    'Sword_Bronze.glb: derivado de "Fantasy Props MegaKit" (textura reduzida a 512 px).',
     '',
     'Autor: Quaternius (https://quaternius.com). Licença: CC0 1.0 Universal, domínio público',
     '(https://creativecommons.org/publicdomain/zero/1.0/).',

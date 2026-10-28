@@ -88,7 +88,7 @@ export class Avatar {
 
     const encaixe = this.modelo.encaixeDaArma;
     const mao = this.modelo.raiz.getObjectByName(encaixe.osso);
-    const arma = criarArma(itemId);
+    const arma = criarArma(itemId, this.modelo.raiz.scale.x);
     if (!mao || !arma) {
       // Não é para acontecer; se acontecer, o jogador ficaria sem arma na tela
       // sem ninguém saber por quê.
@@ -109,7 +109,6 @@ export class Avatar {
 
     arma.position.set(...encaixe.posicao);
     arma.rotation.set(...encaixe.giro);
-    arma.scale.setScalar(encaixe.escala);
     mao.add(arma);
     this.armaObjeto = arma;
   }
@@ -154,8 +153,8 @@ export class Avatar {
     pernas?: CharacterState,
   ): void {
     if (this.modelo) {
-      this.modelo.tocar(state, STATE_BLEND_SECONDS, reiniciar, pernas);
-      this.modelo.avancar(dt, mergulhando);
+      this.modelo.tocar(state, STATE_BLEND_SECONDS, reiniciar, pernas, mergulhando);
+      this.modelo.avancar(dt);
       return;
     }
     this.primitivo?.animar(state, dt);
