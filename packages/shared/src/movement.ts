@@ -36,8 +36,13 @@ export const PLUNGE_AIR_CONTROL = 0.25;
  */
 export const PLUNGE_MIN_HEIGHT = 2;
 
-export const DODGE_SPEED = 11;
-export const DODGE_DURATION = 0.35;
+/**
+ * A esquiva é um rolamento: cobre 4 m, mais que o dobro do alcance de um golpe,
+ * e é bem mais rápida que a corrida. Em 0,35 s ela virava um teleporte, sem o
+ * rolamento dar tempo de ser lido na tela.
+ */
+export const DODGE_SPEED = 8;
+export const DODGE_DURATION = 0.5;
 /** Recarga de 1,2 s (SPEC §6). */
 export const DODGE_COOLDOWN = 1.2;
 /** Invulnerabilidade curta de 0,25 s (SPEC §6). */

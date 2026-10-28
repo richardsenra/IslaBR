@@ -124,6 +124,11 @@ interface DescritorDoRig {
   readonly impacto: Readonly<Partial<Record<AttackState, number>>>;
   /** Velocidade de reprodução fixa de poses que não são golpe. */
   readonly velocidade: Readonly<Partial<Record<Pose, number>>>;
+  /**
+   * Trecho do clipe que o jogo usa, em segundos. Serve para o que vem com
+   * preparação ou volta ao descanso presas no mesmo clipe.
+   */
+  readonly trecho: Readonly<Partial<Record<Pose, readonly [number, number]>>>;
   /** O osso é do tronco para cima? Senão é da metade de baixo (raiz, quadril e pernas). */
   readonly ehDeCima: (osso: string) => boolean;
   readonly arma: EncaixeDaArma;
@@ -155,7 +160,12 @@ const RIGS: Readonly<Record<Rig, DescritorDoRig>> = {
     },
     // O quarto corte do combo é o que fecha a rajada; o impacto do jogo cai nele.
     impacto: { attack1: 0.25, attack2: 0.27, attack3: 0.65, charged: 1.55 },
-    velocidade: { run: 1.4, jump: 1.6, plunge_pouso: 2.2 },
+    // A corrida cobre 5,5 m/s (MOVE_SPEED); o Sprint_Loop na velocidade dele daria
+    // 3,3 m/s, e o pé escorregava no chão.
+    velocidade: { run: 1.65, jump: 1.6, plunge_pouso: 2.2 },
+    // O Roll tem 1,47 s, mas o rolamento acaba em 0,8 s: o resto é levantar e
+    // voltar ao descanso, que a esquiva do jogo não espera.
+    trecho: { dodge: [0, 0.8] },
     ehDeCima: (osso) => !/^(root|pelvis|thigh_|calf_|foot_|ball_)/.test(osso),
     // Medido na pose Sword_Idle: os dedos se dobram em torno do eixo Z do osso
     // hand_r, que é o do cabo. Rodar a espada 90° em X põe a lâmina (+Y) nele; o
@@ -186,6 +196,7 @@ const RIGS: Readonly<Record<Rig, DescritorDoRig>> = {
     },
     impacto: { attack1: 0.42, attack2: 0.28, attack3: 0.62, charged: 0.62 },
     velocidade: {},
+    trecho: {},
     // Nomes já sem pontos, como o carregador deixa (`handslot.r` vira `handslotr`).
     ehDeCima: (osso) =>
       [
@@ -338,6 +349,26 @@ export function temModelo(nome: string): boolean {
   return templates.has(nome);
 }
 
+/** Trechos já recortados, para não refazer a conta em cada boneco. */
+const recortes = new Map<string, THREE.AnimationClip>();
+
+/** Só o trecho útil do clipe, com os tempos puxados para começar em zero. */
+function trechoDo(
+  clip: THREE.AnimationClip,
+  [inicio, fim]: readonly [number, number],
+): THREE.AnimationClip {
+  const chave = `${clip.name}@${inicio}-${fim}`;
+  const pronto = recortes.get(chave);
+  if (pronto) return pronto;
+  const novo = clip.clone();
+  novo.name = chave;
+  for (const trilha of novo.tracks) trilha.trim(inicio, fim).shift(-inicio);
+  // A duração passa a ser a do último quadro que sobrou, não a pedida.
+  novo.resetDuration();
+  recortes.set(chave, novo);
+  return novo;
+}
+
 type Metade = 'cima' | 'baixo';
 
 const metades = new Map<string, THREE.AnimationClip>();
@@ -408,8 +439,10 @@ export function criarModelo(nome: string): ModeloAnimado | null {
     const pronta = acoes.get(chave);
     if (pronta) return pronta;
     for (const nomeClipe of descritor.clipes[pose]) {
-      const clip = clips.get(nomeClipe);
-      if (!clip) continue;
+      const bruto = clips.get(nomeClipe);
+      if (!bruto) continue;
+      const corte = descritor.trecho[pose];
+      const clip = corte ? trechoDo(bruto, corte) : bruto;
       const acao = mixer.clipAction(metadeDo(rig, clip, metade), raiz);
       if (ONCE.has(pose)) {
         acao.setLoop(THREE.LoopOnce, 1);

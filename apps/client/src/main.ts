@@ -259,6 +259,14 @@ const AVANCO_DO_GOLPE: Readonly<Record<AttackKind, number>> = {
 let golpeAnimado = 0;
 let ultimoGolpe: AttackKind | null = null;
 let ultimoGolpeEm = 0;
+/**
+ * Pulo e esquiva ficam guardados até um passo de física os aplicar. O teclado é
+ * lido a cada quadro, mas o passo fixo de 60 Hz não roda em todo quadro: num
+ * monitor de 144 Hz, só um quadro em cada dois ou três roda um passo, e o pulo
+ * lido nos outros se perdia. Era o "às vezes pula, às vezes não".
+ */
+let puloPendente = false;
+let esquivaPendente = false;
 let machucadoAte = 0;
 let opacidadeLocal = 1;
 
@@ -379,6 +387,8 @@ joinIsland({
     golpeAtual = null;
     golpesNaFila = 0;
     carregarNaFila = false;
+    puloPendente = false;
+    esquivaPendente = false;
     mergulhando = false;
     machucadoAte = 0;
     lentoAte = 0;
@@ -525,12 +535,14 @@ renderer.setAnimationLoop((now) => {
   // personagem fica parado.
   if (menu.aberto) {
     input.soltarTudo();
+    puloPendente = false;
+    esquivaPendente = false;
     direction.x = 0;
     direction.z = 0;
   }
 
-  let jump = input.consumeJump();
-  let dodge = input.consumeDodge();
+  if (input.consumeJump()) puloPendente = true;
+  if (input.consumeDodge()) esquivaPendente = true;
   const interagir = input.consumeInteract();
 
   if (input.consumeInventory() && inventario.alternar()) {
@@ -561,14 +573,14 @@ renderer.setAnimationLoop((now) => {
       dt: STEP_SECONDS,
       moveX: direction.x,
       moveZ: direction.z,
-      jump,
-      dodge,
+      jump: puloPendente,
+      dodge: esquivaPendente,
       speedScale: lento ? ESCALA_LENTA : 1,
       plunge: mergulhando,
     });
     accumulator -= STEP_SECONDS;
-    jump = false;
-    dodge = false;
+    puloPendente = false;
+    esquivaPendente = false;
   }
 
   const player = local.current;

@@ -3,6 +3,7 @@ import { ARENA_COLLIDERS } from './arena.js';
 import { boxFromCenter, type Box } from './collision.js';
 import {
   DODGE_COOLDOWN,
+  DODGE_DURATION,
   DODGE_INVULN,
   DODGE_SPEED,
   GRAVITY,
@@ -172,7 +173,7 @@ describe('esquiva', () => {
     expect(first.dodgeCooldown).toBeCloseTo(DODGE_COOLDOWN, 6);
 
     // Logo depois do fim da esquiva, ainda em recarga.
-    const early = run(first, 30, { dodge: true, moveZ: 1 });
+    const early = run(first, Math.ceil(DODGE_DURATION / STEP) + 2, { dodge: true, moveZ: 1 });
     expect(early.state).not.toBe('dodge');
 
     const ready = run(early, 60, { moveZ: 1 });
