@@ -34,13 +34,13 @@ describe('inimigos na sala', () => {
     await colyseus.cleanup();
   });
 
-  it('a sala nasce povoada com os quatro tipos da superfície, cada um no estado do seu arquétipo', async () => {
+  it('a sala nasce povoada com os tipos da superfície e os dois mini-chefes, cada um no estado do seu arquétipo', async () => {
     const sala = await colyseus.createRoom<IslandRoom>(ROOM.island);
     expect(sala.state.inimigos.size).toBe(ARENA_ENEMIES.length);
 
     const tipos = new Set<string>();
     sala.state.inimigos.forEach((inimigo) => tipos.add(inimigo.tipo));
-    expect([...tipos].sort()).toEqual(['e01', 'e02', 'e03', 'e04']);
+    expect([...tipos].sort()).toEqual(['e01', 'e02', 'e03', 'e04', 'mb1', 'mb2']);
 
     const mosquito = sala.state.inimigos.get('e03_1');
     const ia = getEnemy('e03').ia;

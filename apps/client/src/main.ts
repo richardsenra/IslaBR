@@ -48,6 +48,7 @@ import { carregarConfiguracoes, pixelRatioDa, type Configuracoes } from './setti
 import { MODELOS_DAS_ARVORES } from './trees.js';
 import { criarCenario, carregarModelosDoCenario, modelosDoMapa } from './cenario.js';
 import { criarMar } from './mar.js';
+import { Avisos } from './avisos.js';
 import { Moedas } from './moedas.js';
 import { Painel, type TipoDePainel } from './painel.js';
 import { Portoes } from './portoes.js';
@@ -225,6 +226,8 @@ const follow = new ThirdPersonCamera(camera, ARENA_SPAWN.yaw);
 
 /** Colisores do jogador: o mundo e os portões das zonas ainda fechadas. */
 const colisores: Box[] = colisoresPara(new Set());
+const avisos = new Avisos();
+scene.add(avisos.group);
 const moedas = new Moedas();
 scene.add(moedas.group);
 const portoes = new Portoes();
@@ -460,6 +463,9 @@ joinIsland({
       painel.abrir(tipo);
       soltarPonteiro();
     }
+  },
+  onTelegraph: (aviso) => {
+    avisos.mostrar(aviso);
   },
   onCoin: (id) => {
     moedas.pegar(id);
@@ -761,6 +767,7 @@ renderer.setAnimationLoop((now) => {
   enemies.update(now, dtAnim);
   arvores.update(dtAnim);
   moedas.update(dtAnim);
+  avisos.update(dtAnim);
   rastros.update(dtAnim);
 
   for (const remote of remotes.values()) {

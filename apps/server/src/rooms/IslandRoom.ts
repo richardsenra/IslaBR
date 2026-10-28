@@ -70,6 +70,11 @@ export class IslandRoom extends Room<{ state: IslandState }> {
   private readonly arvores = new Map<string, ArvoreRuntime>();
 
   private readonly renascendo = new Map<string, number>();
+  /** Bichos chamados por um mini-chefe: id do invocado → id de quem o chamou. */
+  private readonly invocados = new Map<string, string>();
+  /** Invocado derrotado some depois de uns segundos, em vez de renascer. */
+  private readonly sumindo = new Map<string, number>();
+  private proximoInvocado = 1;
 
   /** Sorteio dos drops. Trocado nos testes por um de semente fixa. */
   protected sorteio: Sorteio = Math.random;
@@ -170,12 +175,14 @@ export class IslandRoom extends Room<{ state: IslandState }> {
       for (const inimigo of this.inimigos.values()) {
         if (inimigo.estado === 'morto') continue;
         const acao = passoDaIA(inimigo, alvos, dt);
+        this.atenderChefe(inimigo);
         this.espelhar(inimigo);
         if (acao) this.agirContraJogadores(acao);
       }
     }
 
     this.cuidarDoRenascimento(dt);
+    this.cuidarDosInvocados(dt);
     this.cuidarDasArvores(dt);
 
     for (const [sessionId, session] of this.sessions) {
@@ -199,6 +206,64 @@ export class IslandRoom extends Room<{ state: IslandState }> {
     for (const arvore of passarOTempo(this.arvores.values(), dt)) {
       const estado = this.state.arvores.get(arvore.id);
       if (estado) estado.golpes = arvore.golpes;
+    }
+  }
+
+  /** Manda os avisos de área do mini-chefe aos clientes e atende o pedido de invocação. */
+  private atenderChefe(chefe: EnemyRuntime): void {
+    for (const aviso of chefe.avisos.splice(0)) this.broadcast(MSG.telegraph, aviso);
+
+    if (chefe.invocar <= 0) return;
+    const quer = chefe.invocar;
+    chefe.invocar = 0;
+    let vivos = 0;
+    for (const [id, dono] of this.invocados) {
+      if (dono === chefe.id && this.inimigos.get(id)?.estado !== 'morto') vivos += 1;
+    }
+    const livres = Math.max(0, chefe.maxInvocados - vivos);
+    for (let i = 0; i < Math.min(quer, livres); i += 1) {
+      const angulo = Math.random() * Math.PI * 2;
+      this.invocarMosquito(
+        chefe,
+        chefe.x + Math.cos(angulo) * 2.5,
+        chefe.z + Math.sin(angulo) * 2.5,
+      );
+    }
+  }
+
+  private invocarMosquito(chefe: EnemyRuntime, x: number, z: number): void {
+    const id = `e03_s${this.proximoInvocado}`;
+    this.proximoInvocado += 1;
+    const inimigo = criarInimigo(id, 'e03', x, z);
+    this.inimigos.set(id, inimigo);
+    this.invocados.set(id, chefe.id);
+    this.state.inimigos.set(
+      id,
+      new EnemyState({
+        tipo: inimigo.tipo,
+        x: inimigo.x,
+        y: inimigo.y,
+        z: inimigo.z,
+        yaw: inimigo.yaw,
+        hp: inimigo.hp,
+        hpMax: inimigo.hp,
+        estado: inimigo.estado,
+      }),
+    );
+  }
+
+  /** Tira da sala o invocado derrotado, depois que o corpo teve tempo de sumir na tela. */
+  private cuidarDosInvocados(dt: number): void {
+    for (const [id, restante] of this.sumindo) {
+      const falta = restante - dt;
+      if (falta > 0) {
+        this.sumindo.set(id, falta);
+        continue;
+      }
+      this.sumindo.delete(id);
+      this.invocados.delete(id);
+      this.inimigos.delete(id);
+      this.state.inimigos.delete(id);
     }
   }
 
@@ -517,7 +582,12 @@ export class IslandRoom extends Room<{ state: IslandState }> {
       });
 
       if (!acerto.morreu) continue;
-      this.renascendo.set(acerto.inimigo.id, ENEMY_RESPAWN_SECONDS);
+      if (this.invocados.has(acerto.inimigo.id)) {
+        this.sumindo.set(acerto.inimigo.id, 3);
+      } else {
+        const volta = getEnemy(acerto.inimigo.tipo).volta_s ?? ENEMY_RESPAWN_SECONDS;
+        this.renascendo.set(acerto.inimigo.id, volta);
+      }
       this.premiar(client, session, acerto.inimigo.tipo, acerto.saque);
     }
 

@@ -1,5 +1,6 @@
 import { getEnemy, type Ia } from '@islabr/content';
 import { wrapAngle } from '@islabr/shared';
+import { passoDoAncestral, passoDoRei } from './chefes.js';
 
 /**
  * IA dos inimigos comuns (SPEC §7.6 e §9, M3). Roda no tick de 20 Hz do
@@ -35,6 +36,9 @@ export type EnemyMode =
   | 'preparando'
   | 'mergulhando'
   | 'recuando'
+  // mini-chefes
+  | 'investindo'
+  | 'bolhas'
   // saltador
   | 'pulando'
   | 'cuspindo'
@@ -72,6 +76,22 @@ export interface EnemyRuntime {
   deZ: number;
   paraX: number;
   paraZ: number;
+  /** Círculos de aviso que a sala ainda tem de mandar aos clientes. */
+  avisos: AvisoDeArea[];
+  /** Áreas que o mini-chefe vai acertar quando o aviso acabar. */
+  circulos: { x: number; z: number; raio: number }[];
+  /** Quantos bichos o mini-chefe quer invocar agora; a sala zera ao atender. */
+  invocar: number;
+  /** Teto de bichos invocados vivos ao mesmo tempo. */
+  maxInvocados: number;
+}
+
+/** Círculo vermelho no chão: onde o golpe vai cair e em quantos segundos. */
+export interface AvisoDeArea {
+  readonly x: number;
+  readonly z: number;
+  readonly raio: number;
+  readonly segundos: number;
 }
 
 export interface AlvoDoInimigo {
@@ -141,15 +161,23 @@ export function criarInimigo(
     deZ: z,
     paraX: x,
     paraZ: z,
+    avisos: [],
+    circulos: [],
+    invocar: 0,
+    maxInvocados: 0,
   };
 }
 
-function distancia(a: { x: number; z: number }, b: { x: number; z: number }): number {
+export function distancia(a: { x: number; z: number }, b: { x: number; z: number }): number {
   return Math.hypot(a.x - b.x, a.z - b.z);
 }
 
 /** Vira na direção do ponto, sem girar mais que `maxGiro` no passo. */
-function virarPara(inimigo: EnemyRuntime, alvo: { x: number; z: number }, maxGiro: number): void {
+export function virarPara(
+  inimigo: EnemyRuntime,
+  alvo: { x: number; z: number },
+  maxGiro: number,
+): void {
   const desejado = Math.atan2(alvo.x - inimigo.x, alvo.z - inimigo.z);
   const diferenca = wrapAngle(desejado - inimigo.yaw);
   inimigo.yaw = wrapAngle(
@@ -157,7 +185,7 @@ function virarPara(inimigo: EnemyRuntime, alvo: { x: number; z: number }, maxGir
   );
 }
 
-function andarPara(
+export function andarPara(
   inimigo: EnemyRuntime,
   alvo: { x: number; z: number },
   velocidade: number,
@@ -217,7 +245,10 @@ export function passoDaIA(
 
   const desiste = ia.aggro * DESIST_FATOR;
   // Pulo e mergulho não se interrompem: parar no ar congelaria o bicho lá.
-  const emPlena = inimigo.estado === 'pulando' || inimigo.estado === 'mergulhando';
+  const emPlena =
+    inimigo.estado === 'pulando' ||
+    inimigo.estado === 'mergulhando' ||
+    inimigo.estado === 'investindo';
 
   let referencia = maisPerto;
   if (!referencia && emPlena) {
@@ -249,6 +280,10 @@ export function passoDaIA(
       return passoSaltador(inimigo, ia, referencia, perto, dt);
     case 'flutuante':
       return passoFlutuante(inimigo, ia, jogadores, referencia, perto, dt);
+    case 'rei':
+      return passoDoRei(inimigo, ia, referencia, jogadores, perto, dt);
+    case 'ancestral':
+      return passoDoAncestral(inimigo, ia, referencia, jogadores, perto, dt);
   }
 }
 
@@ -517,6 +552,8 @@ export function levarGolpe(inimigo: EnemyRuntime, dano: number): boolean {
   }
   // No meio do pulo ou do mergulho ele não para: congelaria no ar.
   const noAr = inimigo.estado === 'pulando' || inimigo.estado === 'mergulhando';
-  if (dano > 0 && !noAr) inimigo.atordoado = FLINCH_SECONDS;
+  // Mini-chefe não fica tonto a cada golpe: seria prender o bicho no ar.
+  const chefe = inimigo.ia?.tipo === 'rei' || inimigo.ia?.tipo === 'ancestral';
+  if (dano > 0 && !noAr && !chefe) inimigo.atordoado = FLINCH_SECONDS;
   return false;
 }

@@ -74,7 +74,17 @@ export const MSG = {
   panel: 'panel',
   /** S→C: uma moeda solta foi pega; o cliente a esconde. */
   coin: 'coin',
+  /** S→C: círculo vermelho no chão avisando um golpe de chefe em área. */
+  telegraph: 'telegraph',
 } as const;
+
+export interface TelegraphPayload {
+  readonly x: number;
+  readonly z: number;
+  readonly raio: number;
+  /** Em quantos segundos o golpe cai. */
+  readonly segundos: number;
+}
 
 export interface PanelPayload {
   readonly tipo: 'loja' | 'bancada';

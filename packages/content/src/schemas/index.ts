@@ -192,6 +192,36 @@ export const iaSchema = z.discriminatedUnion('tipo', [
     aviso_cuspe: z.number().positive(),
     lento_segundos: z.number().positive(),
   }),
+  /**
+   * Caranguejo-Rei (mini-chefe): persegue, avisa com um círculo no chão e
+   * investe; abaixo da metade da vida passa a chover bolhas (SPEC §7.6).
+   */
+  z.strictObject({
+    tipo: z.literal('rei'),
+    ...iaComum,
+    /** Tempo entre o círculo aparecer e a investida cair. */
+    aviso_investida: z.number().positive(),
+    raio_investida: z.number().positive(),
+    /** Bolhas da segunda fase. */
+    bolhas: z.number().int().min(1),
+    raio_bolha: z.number().positive(),
+    aviso_bolha: z.number().positive(),
+    recarga_bolhas: z.number().positive(),
+  }),
+  /**
+   * Sapo-Ancestral (mini-chefe): pulos em área avisados no chão e mosquitos
+   * invocados de tempos em tempos (SPEC §7.6).
+   */
+  z.strictObject({
+    tipo: z.literal('ancestral'),
+    ...iaComum,
+    aviso_pulo: z.number().positive(),
+    raio_pulo: z.number().positive(),
+    /** Quantos mosquitos ele chama de uma vez, e quantos podem existir. */
+    invoca: z.number().int().min(1),
+    invoca_max: z.number().int().min(1),
+    recarga_invocacao: z.number().positive(),
+  }),
   /** Flutua devagar e dá choque em área depois de carregar (água-viva). */
   z.strictObject({
     tipo: z.literal('flutuante'),
@@ -216,6 +246,8 @@ export const enemySchema = z.strictObject({
   /** Obrigatória para inimigo comum; chefes ganham a deles nos M4 e M5. */
   ia: iaSchema.optional(),
   drops: z.array(drop),
+  /** Segundos até voltar depois de derrotado; sem isto, vale o tempo padrão dos comuns. */
+  volta_s: z.number().positive().optional(),
   /** Só o chefe tem fases (SPEC §7.6). */
   fases: z
     .array(z.strictObject({ hp: z.number().int().min(1), descricao: z.string().min(1) }))

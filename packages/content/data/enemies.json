@@ -213,7 +213,21 @@
         "min": 50,
         "max": 50
       }
-    ]
+    ],
+    "volta_s": 90,
+    "ia": {
+      "tipo": "rei",
+      "velocidade": 3,
+      "aggro": 9,
+      "alcance": 2.6,
+      "recarga": 2.2,
+      "aviso_investida": 0.9,
+      "raio_investida": 2.4,
+      "bolhas": 5,
+      "raio_bolha": 1.6,
+      "aviso_bolha": 1.3,
+      "recarga_bolhas": 5
+    }
   },
   {
     "id": "mb2",
@@ -230,7 +244,20 @@
         "chance": 1,
         "qtd": 1
       }
-    ]
+    ],
+    "volta_s": 120,
+    "ia": {
+      "tipo": "ancestral",
+      "velocidade": 2.4,
+      "aggro": 10,
+      "alcance": 2.8,
+      "recarga": 3.4,
+      "aviso_pulo": 1,
+      "raio_pulo": 3.2,
+      "invoca": 2,
+      "invoca_max": 4,
+      "recarga_invocacao": 12
+    }
   },
   {
     "id": "boss1",

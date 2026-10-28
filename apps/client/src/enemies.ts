@@ -497,8 +497,15 @@ class AguaViva extends Criatura {
   }
 }
 
+/** Mini-chefes são o bicho comum em tamanho grande. */
+const ESCALA_DE_CHEFE: Readonly<Record<string, number>> = { mb1: 2.4, mb2: 2.2, boss1: 1 };
+
 function criarCriatura(tipo: string): Criatura {
   switch (tipo) {
+    case 'mb1':
+      return new Caranguejo(false);
+    case 'mb2':
+      return new Sapo();
     case 'e03':
       return new Mosquito();
     case 'e04':
@@ -587,7 +594,10 @@ export class Enemies {
         const sombra = new THREE.Mesh(SOMBRA_GEO, SOMBRA_MAT);
         const raiz = new THREE.Group();
         raiz.add(criatura.raiz, barra.sprite, sombra);
-        barra.sprite.position.y = criatura.alturaDaBarra;
+        const escala = ESCALA_DE_CHEFE[dado.tipo] ?? 1;
+        criatura.raiz.scale.multiplyScalar(escala);
+        barra.sprite.position.y = criatura.alturaDaBarra * escala;
+        if (escala > 1) barra.sprite.scale.multiplyScalar(1.8);
         this.group.add(raiz);
         visao = {
           criatura,

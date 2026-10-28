@@ -12,6 +12,7 @@ import {
   type ZonesPayload,
   type PanelPayload,
   type CoinPayload,
+  type TelegraphPayload,
   type LootPayload,
   type MoveCorrectionPayload,
   type MovePayload,
@@ -121,6 +122,7 @@ export interface IslandHandlers {
   onZones(zonas: readonly string[]): void;
   onPanel(tipo: PanelPayload['tipo']): void;
   onCoin(id: string): void;
+  onTelegraph(aviso: TelegraphPayload): void;
   onStatus(status: StatusPayload): void;
   onNotice(notice: NoticePayload): void;
   onRespawn(volta: RespawnPayload): void;
@@ -294,6 +296,12 @@ export async function joinIsland(handlers: IslandHandlers): Promise<IslandConnec
   room.onMessage(MSG.panel, (payload: PanelPayload) => {
     afterLag(() => {
       handlers.onPanel(payload.tipo);
+    });
+  });
+
+  room.onMessage(MSG.telegraph, (aviso: TelegraphPayload) => {
+    afterLag(() => {
+      handlers.onTelegraph(aviso);
     });
   });
 
