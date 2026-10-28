@@ -49,6 +49,8 @@ import { MODELOS_DAS_ARVORES } from './trees.js';
 import { criarCenario, carregarModelosDoCenario, modelosDoMapa } from './cenario.js';
 import { criarMar } from './mar.js';
 import { Avisos } from './avisos.js';
+import { BarraDoChefe } from './barraDoChefe.js';
+import { Caverna } from './caverna.js';
 import { Moedas } from './moedas.js';
 import { Painel, type TipoDePainel } from './painel.js';
 import { Portoes } from './portoes.js';
@@ -114,7 +116,12 @@ const painel = new Painel(byId('painel'), {
 let painelPendente: TipoDePainel | null = null;
 
 /** Objetos de missão que somem depois de usados (a bancada e a porta ficam). */
-const SOMEM_AO_USAR: ReadonlySet<string> = new Set(['caixa_quebravel', 'lanterna_pantano']);
+const SOMEM_AO_USAR: ReadonlySet<string> = new Set([
+  'caixa_quebravel',
+  'lanterna_pantano',
+  'comporta',
+  'caracois_parasitas',
+]);
 
 const inventario = new InventoryPanel(
   byId('inventario'),
@@ -226,6 +233,12 @@ const follow = new ThirdPersonCamera(camera, ARENA_SPAWN.yaw);
 
 /** Colisores do jogador: o mundo e os portões das zonas ainda fechadas. */
 const colisores: Box[] = colisoresPara(new Set());
+const caverna = new Caverna();
+caverna.definirAbertas(new Set());
+scene.add(caverna.group);
+const barraDoChefe = new BarraDoChefe(byId('chefe'));
+const tintaEl = byId('tinta');
+let tintaAte = 0;
 const avisos = new Avisos();
 scene.add(avisos.group);
 const moedas = new Moedas();
@@ -448,6 +461,7 @@ joinIsland({
   },
   onStatus: (status) => {
     if (status.tipo === 'lento') lentoAte = performance.now() + status.segundos * 1000;
+    if (status.tipo === 'tinta') tintaAte = performance.now() + status.segundos * 1000;
   },
   onNotice: (notice) => {
     mostrarNotice(ui.avisos[notice.codigo]);
@@ -464,6 +478,10 @@ joinIsland({
       soltarPonteiro();
     }
   },
+  onBoss: (luta) => {
+    barraDoChefe.atualizar(luta);
+    caverna.aoReceberLuta(luta);
+  },
   onTelegraph: (aviso) => {
     avisos.mostrar(aviso);
   },
@@ -475,6 +493,7 @@ joinIsland({
     colisores.length = 0;
     colisores.push(...colisoresPara(abertas));
     portoes.definirAbertas(abertas);
+    caverna.definirAbertas(abertas);
   },
   onDisconnect: () => {
     hud.setStatus(ui.disconnected);
@@ -768,6 +787,8 @@ renderer.setAnimationLoop((now) => {
   arvores.update(dtAnim);
   moedas.update(dtAnim);
   avisos.update(dtAnim);
+  caverna.update(dtAnim);
+  tintaEl.style.opacity = performance.now() < tintaAte ? '1' : '0';
   rastros.update(dtAnim);
 
   for (const remote of remotes.values()) {

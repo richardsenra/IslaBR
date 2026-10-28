@@ -590,6 +590,149 @@
       "sizeY": 8.4,
       "sizeZ": 1.6,
       "cor": "#c9c2b0"
+    },
+    {
+      "id": "cav_a_n",
+      "kind": "wall",
+      "zona": "z6",
+      "x": -30,
+      "y": 3,
+      "z": -27,
+      "sizeX": 0.8,
+      "sizeY": 6,
+      "sizeZ": 6,
+      "cor": "#6b5b4b",
+      "visivel": true
+    },
+    {
+      "id": "cav_a_s",
+      "kind": "wall",
+      "zona": "z6",
+      "x": -30,
+      "y": 3,
+      "z": -18,
+      "sizeX": 0.8,
+      "sizeY": 6,
+      "sizeZ": 4,
+      "cor": "#6b5b4b",
+      "visivel": true
+    },
+    {
+      "id": "cav_b_o",
+      "kind": "wall",
+      "zona": "z6",
+      "x": -37.5,
+      "y": 3,
+      "z": -30,
+      "sizeX": 21,
+      "sizeY": 6,
+      "sizeZ": 0.8,
+      "cor": "#6b5b4b",
+      "visivel": true
+    },
+    {
+      "id": "cav_b_l",
+      "kind": "wall",
+      "zona": "z6",
+      "x": -19.5,
+      "y": 3,
+      "z": -30,
+      "sizeX": 7,
+      "sizeY": 6,
+      "sizeZ": 0.8,
+      "cor": "#6b5b4b",
+      "visivel": true
+    },
+    {
+      "id": "cav_c_n",
+      "kind": "wall",
+      "zona": "z6",
+      "x": -34,
+      "y": 3,
+      "z": -45,
+      "sizeX": 0.8,
+      "sizeY": 6,
+      "sizeZ": 6,
+      "cor": "#6b5b4b",
+      "visivel": true
+    },
+    {
+      "id": "cav_c_s",
+      "kind": "wall",
+      "zona": "z6",
+      "x": -34,
+      "y": 3,
+      "z": -34,
+      "sizeX": 0.8,
+      "sizeY": 6,
+      "sizeZ": 8,
+      "cor": "#6b5b4b",
+      "visivel": true
+    },
+    {
+      "id": "cav_c_m",
+      "kind": "wall",
+      "zona": "z6",
+      "x": -34,
+      "y": 3,
+      "z": -31,
+      "sizeX": 0.8,
+      "sizeY": 6,
+      "sizeZ": 2,
+      "cor": "#6b5b4b",
+      "visivel": true
+    },
+    {
+      "id": "cav_plat_1",
+      "kind": "platform",
+      "zona": "z6",
+      "x": -42.9,
+      "y": 0.6,
+      "z": -40.9,
+      "sizeX": 1.8,
+      "sizeY": 1.2,
+      "sizeZ": 1.8,
+      "cor": "#8a68c9",
+      "visivel": true
+    },
+    {
+      "id": "cav_plat_2",
+      "kind": "platform",
+      "zona": "z6",
+      "x": -39.1,
+      "y": 0.6,
+      "z": -40.9,
+      "sizeX": 1.8,
+      "sizeY": 1.2,
+      "sizeZ": 1.8,
+      "cor": "#8a68c9",
+      "visivel": true
+    },
+    {
+      "id": "cav_plat_3",
+      "kind": "platform",
+      "zona": "z6",
+      "x": -42.9,
+      "y": 0.6,
+      "z": -37.1,
+      "sizeX": 1.8,
+      "sizeY": 1.2,
+      "sizeZ": 1.8,
+      "cor": "#8a68c9",
+      "visivel": true
+    },
+    {
+      "id": "cav_plat_4",
+      "kind": "platform",
+      "zona": "z6",
+      "x": -39.1,
+      "y": 0.6,
+      "z": -37.1,
+      "sizeX": 1.8,
+      "sizeY": 1.2,
+      "sizeZ": 1.8,
+      "cor": "#8a68c9",
+      "visivel": true
     }
   ],
   "alvos": [
@@ -953,6 +1096,76 @@
       "z": -21,
       "rotulo": "Dona Iracema",
       "cor": "#43c6ac"
+    },
+    {
+      "id": "spot_anselmo",
+      "tipo": "npc",
+      "alvo": "npc_anselmo",
+      "x": -22,
+      "y": 0,
+      "z": -22,
+      "rotulo": "Dr. Anselmo",
+      "cor": "#a8dadc"
+    },
+    {
+      "id": "spot_c09",
+      "tipo": "bau",
+      "alvo": "c09",
+      "x": -46,
+      "y": 0,
+      "z": -24,
+      "rotulo": "Baú da sala seca",
+      "cor": "#ffd23f"
+    },
+    {
+      "id": "spot_c10",
+      "tipo": "bau",
+      "alvo": "c10",
+      "x": -46,
+      "y": 0,
+      "z": -47,
+      "rotulo": "Baú do Guardião",
+      "cor": "#ffd23f"
+    },
+    {
+      "id": "spot_comporta_1",
+      "tipo": "objeto",
+      "alvo": "comporta",
+      "x": -42,
+      "y": 0,
+      "z": -20,
+      "rotulo": "Comporta",
+      "cor": "#4d96ff"
+    },
+    {
+      "id": "spot_comporta_2",
+      "tipo": "objeto",
+      "alvo": "comporta",
+      "x": -34,
+      "y": 0,
+      "z": -27,
+      "rotulo": "Comporta",
+      "cor": "#4d96ff"
+    },
+    {
+      "id": "spot_comporta_3",
+      "tipo": "objeto",
+      "alvo": "comporta",
+      "x": -18,
+      "y": 0,
+      "z": -28,
+      "rotulo": "Comporta",
+      "cor": "#4d96ff"
+    },
+    {
+      "id": "spot_parasitas",
+      "tipo": "objeto",
+      "alvo": "caracois_parasitas",
+      "x": -31,
+      "y": 0,
+      "z": -43,
+      "rotulo": "Caracóis na ventosa",
+      "cor": "#c77dff"
     }
   ],
   "arvores": [
@@ -2721,6 +2934,26 @@
       "sizeX": 0.6,
       "sizeY": 6,
       "sizeZ": 32
+    },
+    {
+      "id": "portao_salas_internas",
+      "zona": "salas_internas",
+      "x": -25,
+      "y": 3,
+      "z": -30,
+      "sizeX": 4,
+      "sizeY": 6,
+      "sizeZ": 0.8
+    },
+    {
+      "id": "portao_sala_chefe",
+      "zona": "sala_chefe",
+      "x": -34,
+      "y": 3,
+      "z": -40,
+      "sizeX": 0.8,
+      "sizeY": 6,
+      "sizeZ": 4
     }
   ],
   "gatilhos": [
@@ -2776,6 +3009,34 @@
       "y": 0,
       "z": -30,
       "raio": 2.5
+    },
+    {
+      "id": "tentaculo_1",
+      "x": -25,
+      "y": 0,
+      "z": -33,
+      "raio": 2
+    },
+    {
+      "id": "tentaculo_2",
+      "x": -25,
+      "y": 0,
+      "z": -38,
+      "raio": 2
+    },
+    {
+      "id": "tentaculo_3",
+      "x": -29,
+      "y": 0,
+      "z": -41,
+      "raio": 2
+    },
+    {
+      "id": "tentaculo_4",
+      "x": -32,
+      "y": 0,
+      "z": -40,
+      "raio": 2
     }
   ],
   "moedas": [
@@ -3018,6 +3279,59 @@
       "y": 0,
       "z": -20,
       "valor": 1
+    }
+  ],
+  "guardiao": {
+    "nucleo": {
+      "x": -41,
+      "z": -39
+    },
+    "tentaculos": [
+      {
+        "x": -46,
+        "z": -34
+      },
+      {
+        "x": -46,
+        "z": -44
+      },
+      {
+        "x": -36,
+        "z": -34
+      },
+      {
+        "x": -36,
+        "z": -44
+      }
+    ],
+    "sala": {
+      "minX": -48,
+      "maxX": -34,
+      "minZ": -48,
+      "maxZ": -30
+    },
+    "agua_max": 1
+  },
+  "trajeto_tentaculo": [
+    {
+      "x": -25,
+      "z": -31
+    },
+    {
+      "x": -25,
+      "z": -36
+    },
+    {
+      "x": -25,
+      "z": -40
+    },
+    {
+      "x": -29,
+      "z": -41
+    },
+    {
+      "x": -33,
+      "z": -40
     }
   ]
 }

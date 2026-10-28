@@ -39,6 +39,8 @@ export type EnemyMode =
   // mini-chefes
   | 'investindo'
   | 'bolhas'
+  // Tentáculo-Guardião: o núcleo fica 'vulneravel' durante a janela
+  | 'vulneravel'
   // saltador
   | 'pulando'
   | 'cuspindo'
@@ -84,6 +86,8 @@ export interface EnemyRuntime {
   invocar: number;
   /** Teto de bichos invocados vivos ao mesmo tempo. */
   maxInvocados: number;
+  /** Núcleo do chefe fora da janela: o golpe passa e não machuca. */
+  invulneravel: boolean;
 }
 
 /** Círculo vermelho no chão: onde o golpe vai cair e em quantos segundos. */
@@ -165,6 +169,7 @@ export function criarInimigo(
     circulos: [],
     invocar: 0,
     maxInvocados: 0,
+    invulneravel: false,
   };
 }
 

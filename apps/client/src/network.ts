@@ -13,6 +13,7 @@ import {
   type PanelPayload,
   type CoinPayload,
   type TelegraphPayload,
+  type BossPayload,
   type LootPayload,
   type MoveCorrectionPayload,
   type MovePayload,
@@ -123,6 +124,7 @@ export interface IslandHandlers {
   onPanel(tipo: PanelPayload['tipo']): void;
   onCoin(id: string): void;
   onTelegraph(aviso: TelegraphPayload): void;
+  onBoss(luta: BossPayload): void;
   onStatus(status: StatusPayload): void;
   onNotice(notice: NoticePayload): void;
   onRespawn(volta: RespawnPayload): void;
@@ -296,6 +298,12 @@ export async function joinIsland(handlers: IslandHandlers): Promise<IslandConnec
   room.onMessage(MSG.panel, (payload: PanelPayload) => {
     afterLag(() => {
       handlers.onPanel(payload.tipo);
+    });
+  });
+
+  room.onMessage(MSG.boss, (luta: BossPayload) => {
+    afterLag(() => {
+      handlers.onBoss(luta);
     });
   });
 

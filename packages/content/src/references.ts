@@ -305,9 +305,8 @@ export function checkReferences(content: Content): ContentProblem[] {
     if (piece.zona && !zones.has(piece.zona))
       add(`world.json pecas ${piece.id}`, `zona inexistente: ${piece.zona}`);
   }
-  // Os baús c01–c08 ficam nas zonas z1–z5; c09 e c10 esperam a caverna (M5).
+  // Todo baú tem de estar no mundo, uma vez só.
   for (const chest of content.chests) {
-    if (chest.zona === 'z6') continue;
     const colocados = content.world.alvos.filter(
       (spot) => spot.tipo === 'bau' && spot.alvo === chest.id,
     );

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion -- teste: o dado existe por construção */
 import { describe, expect, it } from 'vitest';
 import { content } from '@islabr/content';
 import {
@@ -120,8 +121,8 @@ describe('bancada do Zé Calango', () => {
   });
 });
 
-describe('a ilha de ponta a ponta (aceite do M4)', () => {
-  it('um jogador novo cumpre da m01 à m09 só com o que existe no mundo', () => {
+describe('a ilha de ponta a ponta (aceites do M4 e do M5)', () => {
+  it('um jogador novo cumpre da m01 à m14 só com o que existe no mundo', () => {
     const sessao = jogador();
     const spotDoNpc = (npc: string) => {
       const spot = ARENA_SPOTS.find(
@@ -130,7 +131,7 @@ describe('a ilha de ponta a ponta (aceite do M4)', () => {
       if (!spot) throw new Error(`NPC sem lugar no mundo: ${npc}`);
       return spot;
     };
-    const quests = content.quests.filter((quest) => quest.id <= 'm09');
+    const quests = content.quests;
 
     for (let volta = 0; volta < 500; volta += 1) {
       const ativa = quests.find((quest) => sessao.book[quest.id]?.status === 'active');
@@ -156,8 +157,16 @@ describe('a ilha de ponta a ponta (aceite do M4)', () => {
           );
           if (fontes.length > 0) {
             for (const fonte of fontes) sessao.interagir(fonte);
+          } else if (passo.item === 'pedaco_mapa') {
+            // Um na gruta, um na ilhota (com a chave do Sapo-Ancestral) e um na sala seca.
+            sessao.progress = addItem(sessao.progress, 'chave_ilhota');
+            for (const bau of ['c03', 'c05', 'c09']) {
+              sessao.interagir(ARENA_SPOTS.find((spot) => spot.alvo === bau)!);
+            }
           } else if (passo.item === 'erva_rara') {
             sessao.interagir(ARENA_SPOTS.find((spot) => spot.alvo === 'c04')!);
+          } else if (passo.item === 'escama_guardiao') {
+            sessao.interagir(ARENA_SPOTS.find((spot) => spot.alvo === 'c10')!);
           } else {
             // Drop de bicho: o sorteio é testado em outro lugar.
             sessao.progress = addItem(sessao.progress, passo.item, passo.qtd);
@@ -187,7 +196,8 @@ describe('a ilha de ponta a ponta (aceite do M4)', () => {
           }
           break;
         case 'defeat_boss':
-          throw new Error('o chefe fica para o M5');
+          sessao.derrotarChefe(passo.chefe, true);
+          break;
       }
 
       const depois = JSON.stringify(sessao.book[ativa.id]);
@@ -203,8 +213,19 @@ describe('a ilha de ponta a ponta (aceite do M4)', () => {
     }
     expect(sessao.progress.insignias).toContain('b07');
     expect(sessao.progress.coracoesMax).toBe(4);
-    // Aceitar as missões abriu a Vila, a Praia, o Pântano e as Falésias; a caverna espera a m10.
+    // Aceitar as missões abriu todas as zonas e, concluindo, as travas da caverna.
     sessao.atualizarZonas(false);
-    expect([...sessao.zonas].sort()).toEqual(['z1', 'z2', 'z3', 'z4', 'z5']);
+    expect([...sessao.zonas].filter((zona) => /^z[0-9]$/.test(zona)).sort()).toEqual([
+      'z1',
+      'z2',
+      'z3',
+      'z4',
+      'z5',
+      'z6',
+    ]);
+    expect(sessao.zonas.has('salas_internas')).toBe(true);
+    expect(sessao.zonas.has('sala_chefe')).toBe(true);
+    expect(sessao.progress.insignias).toContain('b08');
+    expect(sessao.progress.bausAbertos).toContain('c10');
   });
 });

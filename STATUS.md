@@ -4,7 +4,7 @@ Atualizado em 2026-10-28. A spec e os critérios de aceite estão em [SPEC.md](S
 
 ## Onde estamos
 
-**M0 a M4 estão feitos. O M5 (caverna e chefe) está em andamento.**
+**M0 a M5 estão feitos no código e nos testes automáticos. Falta testar à mão e polir (M6 vem depois).**
 
 | Milestone | Situação | Aceite |
 | --- | --- | --- |
@@ -13,7 +13,7 @@ Atualizado em 2026-10-28. A spec e os critérios de aceite estão em [SPEC.md](S
 | M2 — Interação, diálogo e missões | Feito | m01 e m02 de ponta a ponta; progresso no Postgres; motor de missões testado |
 | M3 — Combate, inimigos e loot | Feito | 8 caranguejos concluem a m04; drops conferidos em 1000 simulações (`drops.test.ts`, `m04.test.ts`) |
 | M4 — Mundo e conteúdo (z1–z5) | Feito | m01 a m09 cumpridas de ponta a ponta em teste automático; faltam testar à mão e polir o visual |
-| M5 — Caverna e chefe | Não começou | — |
+| M5 — Caverna e chefe | Feito | Zona z6 com portões de trava, 3 comportas, trajeto do tentáculo, chefe em 3 fases, m12 a m14; testes com 1 e 4 jogadores e com saída no meio |
 | M6 — Casa-lobby, estilo e polimento | Não começou | — |
 
 ### Verificação de hoje
@@ -65,3 +65,21 @@ Dívidas conhecidas do M4:
 - Moedas soltas e frutas voltam a cada sessão (não vão para o banco).
 - Visual de objetos de missão (lanternas, ervas, bancada, chave) ainda são caixas coloridas.
 - Os tentáculos e o chefe ficam para o M5.
+
+## M5: feito (falta testar à mão)
+
+- Caverna (z6) com camp do Dr. Anselmo, sala seca (c09), salas internas (alagadas até a m11) e sala do chefe (aberta pela m12).
+- Tentáculo-Guardião: núcleo + 4 tentáculos, 3 fases (20/20/15), janela de dano ao cortar tentáculo, maré e tinta na fase 2, salvas na fase 3.
+- Vida escala por jogador na sala; sala vazia por 10 s zera a luta; vitória vale para quem estava na sala; b08 para quem não levou dano; c10 abre depois da vitória.
+- Teste de aceite: `mundo.test.ts` cumpre m01 a m14; `luta.test.ts` derrota o chefe com 1 e com 4 jogadores, um saindo no meio.
+
+Dívidas do M5:
+
+- O visual do chefe e dos tentáculos é de primitivas; o tentáculo gigante do corredor é só um tubo.
+- Não há luz de caverna nem teto: a caverna é um recinto de paredes de rocha a céu aberto.
+- O alcance do golpe contra o núcleo foi conferido só por teste automático (jogador no chão); da plataforma não foi.
+- Balanceamento (vida, dano, tempos) são valores iniciais.
+
+## Antes do M6
+
+Falta rodar o jogo e jogar de ponta a ponta para ver o que está feio ou injusto. O M6 (casa-lobby, toon shading, áudio, carregamento) só começa depois.

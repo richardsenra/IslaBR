@@ -926,3 +926,46 @@ kbd {
   margin-top: 12px;
   background: #ffd23f;
 }
+
+/* Tinta do Guardião: a tela escurece nas bordas e some aos poucos. */
+#tinta {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.6s ease-out;
+  background: radial-gradient(ellipse at center, rgb(10 5 25 / 35%) 15%, rgb(8 4 20 / 96%) 70%);
+}
+
+#chefe {
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  width: min(520px, calc(100% - 32px));
+  transform: translateX(-50%);
+  color: #fff;
+  text-align: center;
+  text-shadow: 0 1px 3px rgb(0 0 0 / 80%);
+}
+
+#chefe[hidden] {
+  display: none;
+}
+
+.chefe-rotulo {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.chefe-trilho {
+  height: 12px;
+  border-radius: 7px;
+  background: rgb(0 0 0 / 55%);
+  overflow: hidden;
+}
+
+.chefe-cheia {
+  height: 100%;
+  background: linear-gradient(90deg, #c13b8e, #ef476f);
+  transition: width 0.2s linear;
+}

@@ -40,6 +40,7 @@ import {
   type EnemyRuntime,
   type Acao,
 } from './enemyAI.js';
+import { Guardiao, SEGUNDOS_DE_TINTA } from './guardiao.js';
 import { IslandState, PlayerState } from './IslandState.js';
 import { kitDeTeste, todasAsZonasAbertas } from './kitDeTeste.js';
 import { PlayerSession, type CompraResult } from './playerSession.js';
@@ -75,6 +76,9 @@ export class IslandRoom extends Room<{ state: IslandState }> {
   /** Invocado derrotado some depois de uns segundos, em vez de renascer. */
   private readonly sumindo = new Map<string, number>();
   private proximoInvocado = 1;
+  /** A luta do Tentáculo-Guardião (SPEC §7.6). */
+  private readonly luta = new Guardiao();
+  private ticksDesdeOBoss = 0;
 
   /** Sorteio dos drops. Trocado nos testes por um de semente fixa. */
   protected sorteio: Sorteio = Math.random;
@@ -112,6 +116,7 @@ export class IslandRoom extends Room<{ state: IslandState }> {
 
     this.povoarInimigos();
     this.povoarArvores();
+    this.povoarGuardiao();
     // Tick de 20 Hz (SPEC §4).
     this.setSimulationInterval((deltaMs) => {
       this.tick(deltaMs / 1000);
@@ -132,6 +137,25 @@ export class IslandRoom extends Room<{ state: IslandState }> {
           yaw: inimigo.yaw,
           hp: inimigo.hp,
           hpMax: inimigo.hp,
+          estado: inimigo.estado,
+        }),
+      );
+    }
+  }
+
+  private povoarGuardiao(): void {
+    for (const inimigo of this.luta.todos) {
+      this.inimigos.set(inimigo.id, inimigo);
+      this.state.inimigos.set(
+        inimigo.id,
+        new EnemyState({
+          tipo: inimigo.tipo,
+          x: inimigo.x,
+          y: inimigo.y,
+          z: inimigo.z,
+          yaw: inimigo.yaw,
+          hp: inimigo.hp,
+          hpMax: this.luta.nucleo.id === inimigo.id ? this.luta.estado.hpMax : inimigo.hp,
           estado: inimigo.estado,
         }),
       );
@@ -173,6 +197,7 @@ export class IslandRoom extends Room<{ state: IslandState }> {
     // Sala vazia: ninguém para perceber, então a IA espera (o renascimento não).
     if (alvos.length > 0) {
       for (const inimigo of this.inimigos.values()) {
+        if (this.luta.ehDaLuta(inimigo.id)) continue;
         if (inimigo.estado === 'morto') continue;
         const acao = passoDaIA(inimigo, alvos, dt);
         this.atenderChefe(inimigo);
@@ -181,6 +206,7 @@ export class IslandRoom extends Room<{ state: IslandState }> {
       }
     }
 
+    this.cuidarDaLuta(dt, alvos);
     this.cuidarDoRenascimento(dt);
     this.cuidarDosInvocados(dt);
     this.cuidarDasArvores(dt);
@@ -207,6 +233,60 @@ export class IslandRoom extends Room<{ state: IslandState }> {
       const estado = this.state.arvores.get(arvore.id);
       if (estado) estado.golpes = arvore.golpes;
     }
+  }
+
+  /** Um passo da luta do Guardião: golpes, maré, tinta e o estado que a tela mostra. */
+  private cuidarDaLuta(dt: number, alvos: readonly AlvoDoInimigo[]): void {
+    const saida = this.luta.passo(dt, alvos);
+    for (const acao of saida.acoes) this.agirContraJogadores(acao);
+    for (const aviso of saida.avisos) this.broadcast(MSG.telegraph, aviso);
+    for (const sessionId of saida.tinta) {
+      this.clients
+        .find((candidato) => candidato.sessionId === sessionId)
+        ?.send(MSG.status, {
+          tipo: 'tinta',
+          segundos: SEGUNDOS_DE_TINTA,
+          origem: this.luta.nucleo.id,
+        });
+    }
+    for (const inimigo of this.luta.todos) this.espelhar(inimigo);
+    const nucleo = this.state.inimigos.get(this.luta.nucleo.id);
+    if (nucleo) nucleo.hpMax = this.luta.estado.hpMax;
+
+    // O estado da luta vai para todos cinco vezes por segundo, enquanto houver luta.
+    this.ticksDesdeOBoss += 1;
+    if (this.ticksDesdeOBoss >= 4) {
+      this.ticksDesdeOBoss = 0;
+      const estado = this.luta.estado;
+      if (estado.ativa || this.ultimoBossAtivo) this.broadcast(MSG.boss, estado);
+      this.ultimoBossAtivo = estado.ativa;
+    }
+  }
+
+  private ultimoBossAtivo = false;
+
+  /** O núcleo caiu: quem estava na sala vence, e o servidor paga a recompensa. */
+  private vencerOGuardiao(): void {
+    const participantes = this.luta.venceu();
+    for (const sessionId of participantes) {
+      const session = this.sessions.get(sessionId);
+      const client = this.clients.find((candidato) => candidato.sessionId === sessionId);
+      if (!session || !client) continue;
+      const resultado = session.derrotarChefe('boss1', !this.luta.feridos.has(sessionId));
+      for (const update of resultado.atualizacoes) client.send(MSG.questUpdate, update);
+      if (resultado.insignias.length > 0) {
+        client.send(MSG.loot, {
+          de: getEnemy('boss1').nome,
+          moedas: 0,
+          joias: 0,
+          itens: [],
+          insignias: resultado.insignias,
+        });
+      }
+      client.send(MSG.inventoryUpdate, session.inventario);
+      void this.salvar(session);
+    }
+    this.broadcast(MSG.boss, { ...this.luta.estado, ativa: false });
   }
 
   /** Manda os avisos de área do mini-chefe aos clientes e atende o pedido de invocação. */
@@ -582,6 +662,11 @@ export class IslandRoom extends Room<{ state: IslandState }> {
       });
 
       if (!acerto.morreu) continue;
+      if (this.luta.ehDaLuta(acerto.inimigo.id)) {
+        this.luta.aoMorrer(acerto.inimigo.id);
+        if (acerto.inimigo.id === this.luta.nucleo.id) this.vencerOGuardiao();
+        continue;
+      }
       if (this.invocados.has(acerto.inimigo.id)) {
         this.sumindo.set(acerto.inimigo.id, 3);
       } else {
@@ -735,6 +820,7 @@ export class IslandRoom extends Room<{ state: IslandState }> {
     const sofrido = session.levarDano(dano, this.now());
     if (sofrido <= 0) return;
 
+    if (this.luta.ehDaLuta(origem)) this.luta.aoMachucar(client.sessionId);
     const estado = this.state.players.get(client.sessionId);
     if (estado) estado.coracoes = session.progress.coracoes;
 

@@ -162,7 +162,26 @@ O navegador guarda um token de convidado, então recarregar a página devolve
 moedas, itens e a missão onde você parou. Sem banco, o jogo roda igual, mas o
 progresso só dura enquanto o servidor estiver de pé.
 
-Ainda **não** existem: loja, fabricação, os mini-chefes, o chefe e a caverna.
+**As zonas abrem com as missões.** Cada zona começa fechada por uma bruma azul e abre
+quando você aceita a missão que a libera (a Vila com a m01, a Praia com a m04, o Pântano
+com a m05, as Falésias com a m06 e a Caverna com a m10). Para andar por tudo sem cumprir
+missão, ligue `ISLABR_ZONAS_ABERTAS=1` em `apps/server/.env`.
+
+**Moedas, insígnias e balcões.** Há 30 moedas soltas pela ilha (passe por cima) e insígnias
+de exploração que se ganham chegando a lugares difíceis (o topo do farol, a gruta da praia,
+o mirante das falésias, a ilhota). Depois da m03 o **Seu Bento** vende no balcão (fale com
+ele de novo); o **Zé Calango** tem a bancada de fabricação, que usa as receitas que você
+aprendeu.
+
+**Mini-chefes.** O **Caranguejo-Rei** (praia) e o **Sapo-Ancestral** (pântano) avisam o golpe
+em área com um círculo vermelho no chão: saia dele antes de o tempo acabar.
+
+**A caverna e o Tentáculo-Guardião.** Depois da m10 a caverna abre. As comportas da m11
+baixam a água das salas internas, e a m12 libera a sala do chefe. A luta tem três fases:
+corte um tentáculo para expor o núcleo (fase 1); depois a maré sobe e só as plataformas são
+seguras (fase 2); por fim as batidas aceleram (fase 3). A vida do chefe cresce com quem está
+na sala, e quem sai no meio não trava a luta. Terminar sem levar nenhum dano dá a insígnia
+final.
 
 ## Se algo der errado
 

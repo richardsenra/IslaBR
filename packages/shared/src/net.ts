@@ -76,7 +76,20 @@ export const MSG = {
   coin: 'coin',
   /** S→C: círculo vermelho no chão avisando um golpe de chefe em área. */
   telegraph: 'telegraph',
+  /** S→C: andamento da luta do Guardião (fase, maré, vida), para a barra e a água. */
+  boss: 'boss',
 } as const;
+
+export interface BossPayload {
+  readonly ativa: boolean;
+  readonly fase: 1 | 2 | 3;
+  /** Altura da maré na sala do chefe, em metros. */
+  readonly agua: number;
+  /** Segundos que faltam da janela de dano aberta por um tentáculo cortado. */
+  readonly janela: number;
+  readonly hp: number;
+  readonly hpMax: number;
+}
 
 export interface TelegraphPayload {
   readonly x: number;
@@ -296,7 +309,7 @@ export function parseEquipPayload(raw: unknown): EquipPayload | null {
 
 /** S→C: um efeito de estado que o servidor aplicou no jogador. */
 export interface StatusPayload {
-  readonly tipo: 'lento';
+  readonly tipo: 'lento' | 'tinta';
   readonly segundos: number;
   readonly origem: string;
 }

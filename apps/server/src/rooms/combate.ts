@@ -40,7 +40,7 @@ export function resolverAtaque(
   inimigos: readonly EnemyRuntime[],
   sorteio: Sorteio,
 ): ResultadoDoAtaque {
-  const vivos = inimigos.filter((inimigo) => inimigo.estado !== 'morto');
+  const vivos = inimigos.filter((inimigo) => inimigo.estado !== 'morto' && !inimigo.invulneravel);
 
   const { alcance, raio } = areaDoGolpe(golpe);
 

@@ -392,6 +392,84 @@ class Sapo extends Criatura {
   }
 }
 
+/** Núcleo do Tentáculo-Guardião: um olho grande, que brilha na janela de dano. */
+class Nucleo extends Criatura {
+  readonly alturaDaBarra = 2.6;
+
+  private readonly olho: THREE.MeshLambertMaterial;
+  private readonly pupila: THREE.Mesh;
+
+  constructor() {
+    super();
+    const carne = this.material('#7b3f9e');
+    this.olho = this.material('#fff6dc');
+    const iris = this.material('#e0457b');
+
+    const massa = new THREE.Mesh(new THREE.SphereGeometry(1.3, 22, 16), carne);
+    massa.position.y = 1.2;
+    const globo = new THREE.Mesh(new THREE.SphereGeometry(0.85, 20, 14), this.olho);
+    globo.position.set(0, 1.35, 0.7);
+    const rosa = new THREE.Mesh(new THREE.SphereGeometry(0.42, 14, 10), iris);
+    rosa.position.set(0, 1.35, 1.35);
+    this.pupila = new THREE.Mesh(new THREE.SphereGeometry(0.2, 10, 8), this.material('#1a1024'));
+    this.pupila.position.set(0, 1.35, 1.7);
+    this.corpo.add(massa, globo, rosa, this.pupila);
+  }
+
+  protected animarVivo(estado: string): void {
+    // Aberto (janela de dano): o olho brilha em dourado. Fechado, fica apagado.
+    if (estado === 'vulneravel') {
+      this.olho.emissive.setRGB(0.9, 0.7, 0.1);
+      this.corpo.scale.setScalar(1 + Math.sin(this.tempo * 8) * 0.03);
+    } else {
+      this.olho.emissive.setRGB(0, 0, 0);
+      this.corpo.scale.setScalar(1);
+    }
+    this.corpo.position.y = Math.sin(this.tempo * 1.5) * 0.08;
+  }
+}
+
+/** Tentáculo do Guardião: sobe, pende e bate no chão quando prepara o golpe. */
+class Tentaculo extends Criatura {
+  readonly alturaDaBarra = 3.4;
+
+  private readonly haste: THREE.Group;
+
+  constructor() {
+    super();
+    const pele = this.material('#9a4fc4');
+    const ventosa = this.material('#e8b7f0');
+    this.haste = new THREE.Group();
+    for (let i = 0; i < 6; i += 1) {
+      const raio = 0.42 - i * 0.05;
+      const segmento = new THREE.Mesh(new THREE.CylinderGeometry(raio * 0.85, raio, 0.7, 10), pele);
+      segmento.position.set(Math.sin(i * 0.5) * 0.25, 0.35 + i * 0.62, 0);
+      segmento.rotation.z = -Math.sin(i * 0.5) * 0.25;
+      this.haste.add(segmento);
+      if (i % 2 === 0) {
+        const bolinha = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 6), ventosa);
+        bolinha.position.set(segmento.position.x + raio, segmento.position.y, 0.1);
+        this.haste.add(bolinha);
+      }
+    }
+    this.corpo.add(this.haste);
+  }
+
+  protected animarVivo(estado: string): void {
+    if (estado === 'preparando') {
+      // Ergue-se e treme: é o aviso da batida.
+      this.haste.rotation.z = -0.25;
+      this.haste.scale.y = 1.15;
+      this.haste.position.x = Math.sin(this.tempo * 40) * 0.04;
+      this.avisar(0xff2020, 0.5);
+    } else {
+      this.haste.rotation.z = Math.sin(this.tempo * 1.2 + this.haste.id) * 0.12;
+      this.haste.scale.y = 1;
+      this.haste.position.x = 0;
+    }
+  }
+}
+
 class AguaViva extends Criatura {
   readonly alturaDaBarra = 1.6;
 
@@ -498,7 +576,12 @@ class AguaViva extends Criatura {
 }
 
 /** Mini-chefes são o bicho comum em tamanho grande. */
-const ESCALA_DE_CHEFE: Readonly<Record<string, number>> = { mb1: 2.4, mb2: 2.2, boss1: 1 };
+const ESCALA_DE_CHEFE: Readonly<Record<string, number>> = {
+  mb1: 2.4,
+  mb2: 2.2,
+  boss1: 1.4,
+  tentaculo: 1,
+};
 
 function criarCriatura(tipo: string): Criatura {
   switch (tipo) {
@@ -506,6 +589,10 @@ function criarCriatura(tipo: string): Criatura {
       return new Caranguejo(false);
     case 'mb2':
       return new Sapo();
+    case 'boss1':
+      return new Nucleo();
+    case 'tentaculo':
+      return new Tentaculo();
     case 'e03':
       return new Mosquito();
     case 'e04':

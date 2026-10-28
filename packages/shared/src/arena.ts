@@ -246,6 +246,12 @@ export function zonasAbertas(
     const status = book[missao]?.status;
     if (status === 'active' || status === 'done') abertas.add(zona.id);
   }
+  // Travas de sistema (salas internas da caverna, sala do chefe) abrem quando a
+  // missão que as libera termina.
+  for (const quest of content.quests) {
+    if (book[quest.id]?.status !== 'done') continue;
+    for (const liberado of quest.libera) abertas.add(liberado);
+  }
   return abertas;
 }
 

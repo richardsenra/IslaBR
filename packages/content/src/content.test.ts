@@ -42,6 +42,8 @@ describe('números da ilha (SPEC §1 e §7)', () => {
     expect(porTipo('comum')).toBe(5);
     expect(porTipo('mini_chefe')).toBe(2);
     expect(porTipo('chefe')).toBe(1);
+    // Os tentáculos do chefe: parte da luta, fora da contagem da spec.
+    expect(porTipo('parte_de_chefe')).toBe(1);
   });
 
   it('as missões vão de m01 a m14, em ordem', () => {

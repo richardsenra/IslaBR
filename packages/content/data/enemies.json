@@ -282,5 +282,15 @@
         "descricao": "Fim da corda: mais rápido, combina as fases anteriores. Atacar o olho central encerra a luta"
       }
     ]
+  },
+  {
+    "id": "tentaculo",
+    "nome": "Tentáculo do Guardião",
+    "tipo": "parte_de_chefe",
+    "zonas": ["z6"],
+    "hp": 3,
+    "dano": 1,
+    "comportamento": "Bate no chão onde está um jogador, depois de avisar; cortado, abre uma janela no núcleo",
+    "drops": []
   }
 ]

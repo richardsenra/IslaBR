@@ -132,7 +132,8 @@ export const scatterSchema = z.strictObject({
 /** Parede invisível que fecha uma zona até a missão que a libera ser aceita. */
 export const gateSchema = z.strictObject({
   id: z.string().min(1),
-  zona: zonaId,
+  /** Zona ou trava de sistema (salas_internas, sala_chefe) que abre este portão. */
+  zona: z.string().regex(/^(z[1-6]|salas_internas|sala_chefe)$/),
   x: z.number(),
   y: z.number(),
   z: z.number(),
@@ -140,6 +141,26 @@ export const gateSchema = z.strictObject({
   sizeY: z.number().positive(),
   sizeZ: z.number().positive(),
 });
+
+/**
+ * A luta do Tentáculo-Guardião (SPEC §7.6): onde fica o núcleo, onde nascem os
+ * tentáculos e que parte do mapa é a sala do chefe (para saber quem está nela).
+ */
+export const bossSchema = z.strictObject({
+  nucleo: z.strictObject({ x: z.number(), z: z.number() }),
+  tentaculos: z.array(z.strictObject({ x: z.number(), z: z.number() })).length(4),
+  sala: z.strictObject({
+    minX: z.number(),
+    maxX: z.number(),
+    minZ: z.number(),
+    maxZ: z.number(),
+  }),
+  /** Altura a que a água chega no fim da fase 2, em metros. */
+  agua_max: z.number().positive(),
+});
+
+/** Trajeto do tentáculo gigante (m12): pontos do chão por onde ele passou. */
+export const tentacleRouteSchema = z.array(z.strictObject({ x: z.number(), z: z.number() })).min(2);
 
 export const worldSchema = z.strictObject({
   /** A ilha vai de -limite a +limite em x e z. */
@@ -151,6 +172,8 @@ export const worldSchema = z.strictObject({
   arvores: z.array(treeSpawnSchema),
   inimigos: z.array(enemySpawnSchema),
   portoes: z.array(gateSchema),
+  guardiao: bossSchema,
+  trajeto_tentaculo: tentacleRouteSchema,
   gatilhos: z.array(triggerSchema),
   moedas: z.array(looseCoinSchema),
   decoracao: z.array(decorationSchema),
@@ -162,6 +185,7 @@ export type WorldArea = z.infer<typeof areaSchema>;
 export type WorldPiece = z.infer<typeof pieceSchema>;
 export type WorldTrigger = z.infer<typeof triggerSchema>;
 export type WorldCoin = z.infer<typeof looseCoinSchema>;
+export type WorldBoss = z.infer<typeof bossSchema>;
 export type WorldGate = z.infer<typeof gateSchema>;
 export type WorldDecoration = z.infer<typeof decorationSchema>;
 export type WorldScatter = z.infer<typeof scatterSchema>;

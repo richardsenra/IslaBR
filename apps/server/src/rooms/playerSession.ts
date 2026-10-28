@@ -473,6 +473,28 @@ export class PlayerSession {
     return { atualizacoes, insignias: [...new Set(insignias)], moedas };
   }
 
+  /**
+   * O chefe caiu e este jogador estava na sala. Conta para a missão, guarda a
+   * vitória no livro (é o que abre o c10) e dá a insígnia b08 a quem não tomou
+   * dano nenhum (SPEC §7.5).
+   */
+  derrotarChefe(
+    chefe: string,
+    semDano: boolean,
+  ): { atualizacoes: QuestUpdatePayload[]; insignias: string[] } {
+    const atualizacoes = this.evento({ tipo: 'defeat_boss', chefe });
+    this.book = { ...this.book, [chefe]: { status: 'done', stepIndex: 0, counters: {} } };
+    const insignias: string[] = [];
+    if (semDano) {
+      for (const badge of content.badges) {
+        if (badge.condicao.tipo !== 'chefe_sem_dano' || badge.condicao.chefe !== chefe) continue;
+        if (this.darInsignia(badge.id)) insignias.push(badge.id);
+      }
+    }
+    this.sujo = true;
+    return { atualizacoes, insignias };
+  }
+
   /** A loja do Seu Bento abre quando a m03 termina (SPEC §7.7). */
   get lojaAberta(): boolean {
     return this.book['m03']?.status === 'done';

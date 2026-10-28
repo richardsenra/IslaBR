@@ -237,7 +237,7 @@ export type Ia = z.infer<typeof iaSchema>;
 export const enemySchema = z.strictObject({
   id: enemyId,
   nome: z.string().min(1),
-  tipo: z.enum(['comum', 'mini_chefe', 'chefe']),
+  tipo: z.enum(['comum', 'mini_chefe', 'chefe', 'parte_de_chefe']),
   zonas: z.array(zonaId).min(1),
   /** HP em golpes do Graveto Reforçado (1 de dano por golpe). */
   hp: z.number().int().min(1),
