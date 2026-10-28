@@ -15,3 +15,14 @@ export function definirKitDeTeste(itens: readonly string[]): void {
 export function kitDeTeste(): readonly string[] {
   return kit;
 }
+
+let zonasAbertas = false;
+
+/** Abre todas as zonas para todo mundo (ISLABR_ZONAS_ABERTAS), para testar sem cumprir missão. */
+export function definirZonasAbertas(abertas: boolean): void {
+  zonasAbertas = abertas;
+}
+
+export function todasAsZonasAbertas(): boolean {
+  return zonasAbertas;
+}

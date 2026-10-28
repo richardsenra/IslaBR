@@ -101,6 +101,18 @@ export const scatterSchema = z.strictObject({
   folga: z.number().min(0).default(0.6),
 });
 
+/** Parede invisível que fecha uma zona até a missão que a libera ser aceita. */
+export const gateSchema = z.strictObject({
+  id: z.string().min(1),
+  zona: zonaId,
+  x: z.number(),
+  y: z.number(),
+  z: z.number(),
+  sizeX: z.number().positive(),
+  sizeY: z.number().positive(),
+  sizeZ: z.number().positive(),
+});
+
 export const worldSchema = z.strictObject({
   /** A ilha vai de -limite a +limite em x e z. */
   limite: z.number().positive(),
@@ -110,6 +122,7 @@ export const worldSchema = z.strictObject({
   alvos: z.array(spotSchema),
   arvores: z.array(treeSpawnSchema),
   inimigos: z.array(enemySpawnSchema),
+  portoes: z.array(gateSchema),
   decoracao: z.array(decorationSchema),
   dispersoes: z.array(scatterSchema),
 });
@@ -117,6 +130,7 @@ export const worldSchema = z.strictObject({
 export type World = z.infer<typeof worldSchema>;
 export type WorldArea = z.infer<typeof areaSchema>;
 export type WorldPiece = z.infer<typeof pieceSchema>;
+export type WorldGate = z.infer<typeof gateSchema>;
 export type WorldDecoration = z.infer<typeof decorationSchema>;
 export type WorldScatter = z.infer<typeof scatterSchema>;
 export type WorldSpot = z.infer<typeof spotSchema>;

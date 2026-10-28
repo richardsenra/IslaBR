@@ -39,7 +39,7 @@ import {
   type Acao,
 } from './enemyAI.js';
 import { IslandState, PlayerState } from './IslandState.js';
-import { kitDeTeste } from './kitDeTeste.js';
+import { kitDeTeste, todasAsZonasAbertas } from './kitDeTeste.js';
 import { PlayerSession } from './playerSession.js';
 import { obterStore, type JogadorSalvo } from '../store/index.js';
 
@@ -228,6 +228,7 @@ export class IslandRoom extends Room<{ state: IslandState }> {
     const session = this.sessions.get(client.sessionId);
     if (!session) return;
     client.send(MSG.inventoryUpdate, session.inventario);
+    client.send(MSG.zones, { zonas: [...session.zonas] });
     const ativa = session.missaoAtiva;
     if (ativa) client.send(MSG.questUpdate, ativa);
   }
@@ -263,6 +264,7 @@ export class IslandRoom extends Room<{ state: IslandState }> {
 
     const session = new PlayerSession(aceito, salvo);
     session.darKitDeTeste(kitDeTeste());
+    session.atualizarZonas(todasAsZonasAbertas());
     this.sessions.set(client.sessionId, session);
     const estado = this.state.players.get(client.sessionId);
     if (estado) estado.arma = session.arma ?? '';
@@ -304,7 +306,7 @@ export class IslandRoom extends Room<{ state: IslandState }> {
 
     const now = this.now();
 
-    const check = checkMove(session.aceito, claim, now, ARENA_COLLIDERS);
+    const check = checkMove(session.aceito, claim, now, session.colisores);
     if (!check.ok) {
       const correction: MoveCorrectionPayload = {
         seq: session.aceito.seq,
@@ -374,6 +376,10 @@ export class IslandRoom extends Room<{ state: IslandState }> {
       });
     }
     if (result.inventario) client.send(MSG.inventoryUpdate, result.inventario);
+    // Aceitar uma missão pode abrir uma zona: o portão some para quem aceitou.
+    if (session.atualizarZonas(todasAsZonasAbertas())) {
+      client.send(MSG.zones, { zonas: [...session.zonas] });
+    }
 
     // Missão e baú mudam pouco e valem muito: grava assim que muda.
     void this.salvar(session);
@@ -410,7 +416,13 @@ export class IslandRoom extends Room<{ state: IslandState }> {
       // O carregado e o mergulho jogam para longe quem sobreviveu a eles.
       const forca = empurraoDoGolpe(payload.golpe);
       if (forca > 0 && acerto.dano > 0 && !acerto.morreu) {
-        const novo = empurrar(session.aceito, payload.yaw, acerto.inimigo, ARENA_COLLIDERS, forca);
+        const novo = empurrar(
+          session.aceito,
+          payload.yaw,
+          acerto.inimigo,
+          session.colisores,
+          forca,
+        );
         acerto.inimigo.x = novo.x;
         acerto.inimigo.z = novo.z;
       }

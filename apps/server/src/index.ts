@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { DEFAULT_SERVER_PORT } from '@islabr/shared';
 import { createGameServer } from './app.js';
 import { itemsById } from '@islabr/content';
-import { definirKitDeTeste } from './rooms/kitDeTeste.js';
+import { definirKitDeTeste, definirZonasAbertas } from './rooms/kitDeTeste.js';
 import { inicializarStore } from './store/index.js';
 
 // `apps/server/.env` é o jeito de apontar o banco sem exportar variável a cada
@@ -22,6 +22,10 @@ const pedidos = (process.env['ISLABR_KIT_DE_TESTE'] ?? '')
 const kit = pedidos.filter((id) => itemsById.has(id));
 for (const id of pedidos) {
   if (!itemsById.has(id)) console.warn(`ISLABR_KIT_DE_TESTE: item desconhecido, ignorado: ${id}`);
+}
+if (process.env['ISLABR_ZONAS_ABERTAS'] === '1') {
+  definirZonasAbertas(true);
+  console.log('Todas as zonas abertas (ISLABR_ZONAS_ABERTAS=1).');
 }
 if (kit.length > 0) {
   definirKitDeTeste(kit);

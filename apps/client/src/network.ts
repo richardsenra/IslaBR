@@ -9,6 +9,7 @@ import {
   type DamagePayload,
   type DialoguePayload,
   type InventoryUpdatePayload,
+  type ZonesPayload,
   type LootPayload,
   type MoveCorrectionPayload,
   type MovePayload,
@@ -115,6 +116,7 @@ export interface IslandHandlers {
   onQuestUpdate(update: QuestUpdatePayload): void;
   onInventory(inventory: InventoryUpdatePayload): void;
   onLoot(loot: LootPayload): void;
+  onZones(zonas: readonly string[]): void;
   onStatus(status: StatusPayload): void;
   onNotice(notice: NoticePayload): void;
   onRespawn(volta: RespawnPayload): void;
@@ -280,6 +282,12 @@ export async function joinIsland(handlers: IslandHandlers): Promise<IslandConnec
   room.onMessage(MSG.loot, (loot: LootPayload) => {
     afterLag(() => {
       handlers.onLoot(loot);
+    });
+  });
+
+  room.onMessage(MSG.zones, (payload: ZonesPayload) => {
+    afterLag(() => {
+      handlers.onZones(payload.zonas);
     });
   });
 

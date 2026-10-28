@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import {
   ARENA_COLLIDERS,
+  colisoresPara,
+  type Box,
   ARENA_SPAWN,
   PLUNGE_MIN_HEIGHT,
   CLIENT_STEP_MS,
@@ -45,6 +47,7 @@ import { createStage } from './scene.js';
 import { carregarConfiguracoes, pixelRatioDa, type Configuracoes } from './settings.js';
 import { MODELOS_DAS_ARVORES } from './trees.js';
 import { criarCenario, carregarModelosDoCenario, modelosDoMapa } from './cenario.js';
+import { Portoes } from './portoes.js';
 import { Spots } from './spots.js';
 import { Trees } from './trees.js';
 import { createArena } from './world.js';
@@ -199,9 +202,15 @@ const input = new InputReader(canvas);
 aplicarConfiguracoes(config);
 const follow = new ThirdPersonCamera(camera, ARENA_SPAWN.yaw);
 
+/** Colisores do jogador: o mundo e os portões das zonas ainda fechadas. */
+const colisores: Box[] = colisoresPara(new Set());
+const portoes = new Portoes();
+portoes.definirAbertas(new Set());
+scene.add(portoes.group);
+
 const local = new PredictedPlayer(
   spawnPhysics(ARENA_SPAWN.x, ARENA_SPAWN.y, ARENA_SPAWN.z, ARENA_SPAWN.yaw),
-  ARENA_COLLIDERS,
+  colisores,
 );
 const localAvatar = new Avatar({ modelo: modeloDoJogador(0), cor: playerColor(0) });
 scene.add(localAvatar.root);
@@ -419,6 +428,12 @@ joinIsland({
   onLoot: (loot) => {
     hud.mostrarLoot(loot);
     if (alvo?.tipo === 'bau') spots.esconder(alvo.id);
+  },
+  onZones: (zonas) => {
+    const abertas = new Set(zonas);
+    colisores.length = 0;
+    colisores.push(...colisoresPara(abertas));
+    portoes.definirAbertas(abertas);
   },
   onDisconnect: () => {
     hud.setStatus(ui.disconnected);
@@ -701,7 +716,7 @@ renderer.setAnimationLoop((now) => {
   );
   golpeAnimado = gatilhoVisual;
 
-  follow.update(player.x, player.y, player.z, ARENA_COLLIDERS, dt);
+  follow.update(player.x, player.y, player.z, colisores, dt);
   efeitos.tremerCamera(camera, dt);
   spots.update(dtAnim, player, alvo);
   enemies.update(now, dtAnim);

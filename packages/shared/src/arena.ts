@@ -198,3 +198,58 @@ export const ARENA_ENEMIES: readonly EnemySpawn[] = WORLD.inimigos;
 
 /** Quanto tempo um inimigo derrotado leva para voltar. */
 export const ENEMY_RESPAWN_SECONDS = 8;
+
+/** Parede que fecha uma zona enquanto a missão que a libera não foi aceita. */
+export interface ArenaGate {
+  readonly id: string;
+  readonly zona: string;
+  readonly box: Box;
+  readonly x: number;
+  readonly y: number;
+  readonly z: number;
+  readonly sizeX: number;
+  readonly sizeY: number;
+  readonly sizeZ: number;
+}
+
+export const ARENA_GATES: readonly ArenaGate[] = WORLD.portoes.map((gate) => ({
+  id: gate.id,
+  zona: gate.zona,
+  x: gate.x,
+  y: gate.y,
+  z: gate.z,
+  sizeX: gate.sizeX,
+  sizeY: gate.sizeY,
+  sizeZ: gate.sizeZ,
+  box: boxFromCenter(gate.x, gate.y, gate.z, gate.sizeX, gate.sizeY, gate.sizeZ),
+}));
+
+/**
+ * Zonas abertas para quem tem este livro de missões (SPEC §7.1): a zona abre
+ * quando a missão que a libera é **aceita**, ou seja, está em andamento ou
+ * concluída. `liberada_por: null` é aberta desde o início.
+ */
+export function zonasAbertas(
+  book: Readonly<Record<string, { readonly status: string }>>,
+  todasAbertas = false,
+): ReadonlySet<string> {
+  const abertas = new Set<string>();
+  for (const zona of content.zones) {
+    const missao = zona.liberada_por;
+    if (todasAbertas || missao === null) {
+      abertas.add(zona.id);
+      continue;
+    }
+    const status = book[missao]?.status;
+    if (status === 'active' || status === 'done') abertas.add(zona.id);
+  }
+  return abertas;
+}
+
+/** Colisores que valem para quem tem estas zonas abertas: o mundo e os portões fechados. */
+export function colisoresPara(abertas: ReadonlySet<string>): Box[] {
+  return [
+    ...ARENA_COLLIDERS,
+    ...ARENA_GATES.filter((gate) => !abertas.has(gate.zona)).map((gate) => gate.box),
+  ];
+}

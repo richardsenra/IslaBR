@@ -1,3 +1,4 @@
+import { definirZonasAbertas } from './kitDeTeste.js';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { boot, type ColyseusTestServer } from '@colyseus/testing';
 import { getEnemy, getResource } from '@islabr/content';
@@ -19,10 +20,13 @@ describe('inimigos na sala', () => {
   let colyseus: ColyseusTestServer;
 
   beforeAll(async () => {
+    // Estes testes cruzam zonas sem cumprir as missões que as abrem.
+    definirZonasAbertas(true);
     colyseus = await boot(createGameServer());
   });
 
   afterAll(async () => {
+    definirZonasAbertas(false);
     await colyseus.shutdown();
   });
 

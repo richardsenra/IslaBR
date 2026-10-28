@@ -38,6 +38,10 @@ import {
   type AttackKind,
   type NoticeCode,
   type Saque,
+  type Box,
+  ARENA_COLLIDERS,
+  colisoresPara,
+  zonasAbertas,
 } from '@islabr/shared';
 import { danoRecebido } from './combate.js';
 
@@ -72,6 +76,13 @@ export class PlayerSession {
   readonly playerId: string;
   /** Vira `true` quando há mudança por salvar. */
   sujo = false;
+  /** Zonas que este jogador já pode pisar (SPEC §7.1). */
+  zonas: ReadonlySet<string> = new Set();
+  /**
+   * Colisores que valem para ele: o mundo mais os portões das zonas fechadas.
+   * É a mesma lista de sempre, mexida no lugar, para quem guardou a referência.
+   */
+  readonly colisores: Box[] = [...ARENA_COLLIDERS];
 
   /** Enquanto maior que zero, o jogador não leva dano (SPEC §6). */
   private invulneravelAte = 0;
@@ -113,6 +124,21 @@ export class PlayerSession {
       this.progress = addItem(this.progress, item, 1);
       this.sujo = true;
     }
+  }
+
+  /**
+   * Recalcula as zonas abertas a partir das missões. Devolve `true` quando
+   * mudou, para o servidor avisar o cliente.
+   */
+  atualizarZonas(todasAbertas: boolean): boolean {
+    const novas = zonasAbertas(this.book, todasAbertas);
+    const igual =
+      novas.size === this.zonas.size && [...novas].every((zona) => this.zonas.has(zona));
+    if (igual) return false;
+    this.zonas = novas;
+    this.colisores.length = 0;
+    this.colisores.push(...colisoresPara(novas));
+    return true;
   }
 
   get temArmadura(): boolean {

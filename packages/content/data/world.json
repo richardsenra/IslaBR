@@ -1877,5 +1877,147 @@
       "escala": [0.4, 0.8],
       "folga": 0.6
     }
+  ],
+  "portoes": [
+    {
+      "id": "portao_area_2_n",
+      "zona": "z2",
+      "x": 32,
+      "y": 3,
+      "z": -15.7,
+      "sizeX": 32,
+      "sizeY": 6,
+      "sizeZ": 0.6
+    },
+    {
+      "id": "portao_area_2_s",
+      "zona": "z2",
+      "x": 32,
+      "y": 3,
+      "z": 15.7,
+      "sizeX": 32,
+      "sizeY": 6,
+      "sizeZ": 0.6
+    },
+    {
+      "id": "portao_area_2_o",
+      "zona": "z2",
+      "x": 16.3,
+      "y": 3,
+      "z": 0,
+      "sizeX": 0.6,
+      "sizeY": 6,
+      "sizeZ": 32
+    },
+    {
+      "id": "portao_area_3_n",
+      "zona": "z3",
+      "x": 0,
+      "y": 3,
+      "z": 16.3,
+      "sizeX": 32,
+      "sizeY": 6,
+      "sizeZ": 0.6
+    },
+    {
+      "id": "portao_area_3_o",
+      "zona": "z3",
+      "x": -15.7,
+      "y": 3,
+      "z": 32,
+      "sizeX": 0.6,
+      "sizeY": 6,
+      "sizeZ": 32
+    },
+    {
+      "id": "portao_area_4_n",
+      "zona": "z3",
+      "x": 32,
+      "y": 3,
+      "z": 16.3,
+      "sizeX": 32,
+      "sizeY": 6,
+      "sizeZ": 0.6
+    },
+    {
+      "id": "portao_area_5_n",
+      "zona": "z4",
+      "x": -32,
+      "y": 3,
+      "z": -15.7,
+      "sizeX": 32,
+      "sizeY": 6,
+      "sizeZ": 0.6
+    },
+    {
+      "id": "portao_area_5_l",
+      "zona": "z4",
+      "x": -16.3,
+      "y": 3,
+      "z": 0,
+      "sizeX": 0.6,
+      "sizeY": 6,
+      "sizeZ": 32
+    },
+    {
+      "id": "portao_area_6_l",
+      "zona": "z4",
+      "x": -16.3,
+      "y": 3,
+      "z": 32,
+      "sizeX": 0.6,
+      "sizeY": 6,
+      "sizeZ": 32
+    },
+    {
+      "id": "portao_area_7_s",
+      "zona": "z5",
+      "x": 0,
+      "y": 3,
+      "z": -16.3,
+      "sizeX": 32,
+      "sizeY": 6,
+      "sizeZ": 0.6
+    },
+    {
+      "id": "portao_area_7_o",
+      "zona": "z5",
+      "x": -15.7,
+      "y": 3,
+      "z": -32,
+      "sizeX": 0.6,
+      "sizeY": 6,
+      "sizeZ": 32
+    },
+    {
+      "id": "portao_area_8_s",
+      "zona": "z5",
+      "x": 32,
+      "y": 3,
+      "z": -16.3,
+      "sizeX": 32,
+      "sizeY": 6,
+      "sizeZ": 0.6
+    },
+    {
+      "id": "portao_area_9_s",
+      "zona": "z6",
+      "x": -32,
+      "y": 3,
+      "z": -16.3,
+      "sizeX": 32,
+      "sizeY": 6,
+      "sizeZ": 0.6
+    },
+    {
+      "id": "portao_area_9_l",
+      "zona": "z6",
+      "x": -16.3,
+      "y": 3,
+      "z": -32,
+      "sizeX": 0.6,
+      "sizeY": 6,
+      "sizeZ": 32
+    }
   ]
 }

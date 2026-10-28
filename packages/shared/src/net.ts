@@ -68,7 +68,13 @@ export const MSG = {
   questUpdate: 'quest_update',
   inventoryUpdate: 'inventory_update',
   loot: 'loot',
+  /** S→C: zonas que o jogador já pode pisar; os portões das outras ficam fechados. */
+  zones: 'zones',
 } as const;
+
+export interface ZonesPayload {
+  readonly zonas: readonly string[];
+}
 
 /** C→S: posição, velocidade, yaw e número de sequência (SPEC §4). */
 export interface MovePayload {
