@@ -1,4 +1,5 @@
 export * from './arena.js';
+export * from './cenario.js';
 export * from './character.js';
 export * from './collision.js';
 export * from './combat.js';

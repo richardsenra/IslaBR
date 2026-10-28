@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { getResource } from '@islabr/content';
 import { TREE_TRUNK_WIDTH } from '@islabr/shared';
+import { alturaDoModelo, criarModeloDoCenario, modeloDoCenarioPronto } from './cenario.js';
 import type { NetTree } from './network.js';
 
 /**
@@ -15,6 +16,11 @@ import type { NetTree } from './network.js';
  * desenho para todos. O toco fica sempre no lugar, e é dele que a árvore volta
  * a crescer.
  */
+
+/** Modelos que desenham as árvores cortáveis (Stylized Nature MegaKit). */
+const MODELOS_COQUEIRO = ['CommonTree_1', 'CommonTree_2', 'CommonTree_3'] as const;
+const MODELOS_SECA = ['DeadTree_1', 'DeadTree_2', 'DeadTree_3'] as const;
+export const MODELOS_DAS_ARVORES: readonly string[] = [...MODELOS_COQUEIRO, ...MODELOS_SECA];
 
 /** Quanto tempo o tombo da árvore leva na tela. */
 const TOMBO_SEGUNDOS = 0.9;
@@ -117,9 +123,24 @@ function geometriaDo(tipo: string): THREE.BufferGeometry {
   return nova;
 }
 
+/**
+ * A árvore em pé: o modelo do pacote, na altura do recurso, e um de três
+ * modelos por árvore para o mato não sair repetido. Sem o modelo, cai de volta
+ * na árvore de primitivas.
+ */
+function criarMalha(tipo: string, x: number, z: number): THREE.Object3D {
+  const lista = tipo === 'r02' ? MODELOS_SECA : MODELOS_COQUEIRO;
+  const nome = lista[Math.abs(Math.floor(x * 7 + z * 13)) % lista.length];
+  if (nome && modeloDoCenarioPronto(nome)) {
+    const escala = getResource(tipo).altura / alturaDoModelo(nome);
+    return criarModeloDoCenario(nome, escala);
+  }
+  return new THREE.Mesh(geometriaDo(tipo), materialDaArvore);
+}
+
 /** Uma árvore na tela: em pé, tombando, no chão ou crescendo de novo. */
 class Arvore {
-  readonly malha: THREE.Mesh;
+  readonly malha: THREE.Object3D;
   /** Golpes que faltavam no último pacote, para saber quando ela levou uma. */
   private golpes: number;
   private tombo = 0;
@@ -135,7 +156,7 @@ class Arvore {
     z: number,
     golpes: number,
   ) {
-    this.malha = new THREE.Mesh(geometriaDo(tipo), materialDaArvore);
+    this.malha = criarMalha(tipo, x, z);
     this.malha.position.set(x, 0, z);
     this.malha.rotation.y = (x * 7919 + z * 104729) % Math.PI;
     this.golpes = golpes;

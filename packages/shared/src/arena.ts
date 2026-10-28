@@ -25,6 +25,8 @@ export interface ArenaPiece {
   readonly sizeY: number;
   readonly sizeZ: number;
   readonly color: string;
+  /** `false` quando um modelo do cenário desenha no lugar da caixa. */
+  readonly visivel: boolean;
 }
 
 const WORLD = content.world;
@@ -46,6 +48,7 @@ const ARENA_GROUND: readonly ArenaPiece[] = WORLD.areas.map((area) => ({
   sizeY: 1,
   sizeZ: area.maxZ - area.minZ,
   color: area.cor,
+  visivel: true,
 }));
 
 export const ARENA_PIECES: readonly ArenaPiece[] = [
@@ -61,6 +64,7 @@ export const ARENA_PIECES: readonly ArenaPiece[] = [
     sizeY: piece.sizeY,
     sizeZ: piece.sizeZ,
     color: piece.cor,
+    visivel: piece.visivel ?? true,
   })),
 ];
 

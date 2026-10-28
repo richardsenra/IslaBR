@@ -36,7 +36,7 @@ Atualizado em 2026-10-28. A spec e os critérios de aceite estão em [SPEC.md](S
 
 ## Pendências conhecidas
 
-- O mapa é greybox (caixas coloridas), sem água nem arte; a ilhota do c05 ainda não tem água.
+- Z3, z4 e z5 são greybox (caixas coloridas); o encaixe das paredes modulares (qual lado é a frente) foi um palpite a conferir olhando; a ilhota do c05 ainda não tem água.
 - Zé Calango e Tito ainda não aparecem no mundo.
 - Faltam loja, bancada de fabricação, mini-chefes mb1 e mb2, insígnias no mundo,
   moedas soltas e a maior parte dos baús no mundo (o código de abrir baú existe, falta
@@ -54,9 +54,12 @@ Feito:
    peças de colisão, alvos, árvores e bichos), validado por zod e por referências cruzadas.
    Zona z6 reservada. O `arena.ts` em `shared` só traduz o JSON.
 2. Baús c01–c08 colocados no mundo (c02 no telhado, c03 na gruta, c07 em plataformas, c06 no cume).
+3. Cenário com modelos CC0 (Quaternius) no Porto e na Vila: farol, casas, loja, cerca, mato, flores,
+   mata em volta da ilha e as árvores cortáveis. Z3, z4 e z5 ainda são caixas coloridas.
 
 Falta, nesta ordem:
 
+3b. Cenário em modelos nas zonas z3, z4 e z5.
 3. Travar as zonas até a missão que as libera ser aceita (SPEC seção 13, item 3).
 4. Insígnias (b02, b03, b04, b06, b07) e moedas soltas.
 5. Loja do Seu Bento e bancada de fabricação do Zé Calango.

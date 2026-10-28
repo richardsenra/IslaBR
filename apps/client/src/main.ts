@@ -43,6 +43,8 @@ import { CASAS_DA_BARRA, Hotbar } from './hotbar.js';
 import { PauseMenu } from './menu.js';
 import { createStage } from './scene.js';
 import { carregarConfiguracoes, pixelRatioDa, type Configuracoes } from './settings.js';
+import { MODELOS_DAS_ARVORES } from './trees.js';
+import { criarCenario, carregarModelosDoCenario, modelosDoMapa } from './cenario.js';
 import { Spots } from './spots.js';
 import { Trees } from './trees.js';
 import { createArena } from './world.js';
@@ -169,6 +171,12 @@ window.addEventListener('keydown', (event) => {
 scene.add(createArena());
 
 hud.setStatus(ui.loading);
+try {
+  await carregarModelosDoCenario([...modelosDoMapa(), ...MODELOS_DAS_ARVORES]);
+  scene.add(criarCenario());
+} catch (erro) {
+  console.error('cenário não carregou, ficam as caixas', erro);
+}
 try {
   await carregarModelos();
 } catch (erro) {

@@ -35,6 +35,8 @@ export const pieceSchema = z.strictObject({
   sizeY: z.number().positive(),
   sizeZ: z.number().positive(),
   cor: hexColor,
+  /** `false` quando um modelo (decoracao) desenha no lugar; a colisão continua. */
+  visivel: z.boolean().optional(),
 });
 
 export const spotKind = z.enum(['npc', 'objeto', 'bau', 'coletavel']);
@@ -67,6 +69,38 @@ export const enemySpawnSchema = z.strictObject({
   z: z.number(),
 });
 
+/** Um modelo do cenário em um lugar. Só desenho: não colide. */
+export const decorationSchema = z.strictObject({
+  /** Nome do arquivo em public/models/cenario, sem extensão. */
+  modelo: z.string().regex(/^[A-Za-z0-9_]+$/),
+  x: z.number(),
+  y: z.number().default(0),
+  z: z.number(),
+  /** Giro em torno do eixo vertical, em radianos. */
+  giro: z.number().default(0),
+  escala: z.number().positive().default(1),
+  /** Escala só na altura, para ajustar a peça à colisão. */
+  escalaY: z.number().positive().optional(),
+});
+
+/**
+ * Um punhado de modelos espalhado por um retângulo, sorteado com semente fixa
+ * para sair igual em todo cliente. Só desenho: não colide.
+ */
+export const scatterSchema = z.strictObject({
+  id: z.string().min(1),
+  minX: z.number(),
+  maxX: z.number(),
+  minZ: z.number(),
+  maxZ: z.number(),
+  modelos: z.array(z.string().regex(/^[A-Za-z0-9_]+$/)).min(1),
+  quantidade: z.number().int().min(1),
+  semente: z.number().int(),
+  escala: z.tuple([z.number().positive(), z.number().positive()]),
+  /** Folga, em metros, até colisores, alvos e árvores. */
+  folga: z.number().min(0).default(0.6),
+});
+
 export const worldSchema = z.strictObject({
   /** A ilha vai de -limite a +limite em x e z. */
   limite: z.number().positive(),
@@ -76,9 +110,13 @@ export const worldSchema = z.strictObject({
   alvos: z.array(spotSchema),
   arvores: z.array(treeSpawnSchema),
   inimigos: z.array(enemySpawnSchema),
+  decoracao: z.array(decorationSchema),
+  dispersoes: z.array(scatterSchema),
 });
 
 export type World = z.infer<typeof worldSchema>;
 export type WorldArea = z.infer<typeof areaSchema>;
 export type WorldPiece = z.infer<typeof pieceSchema>;
+export type WorldDecoration = z.infer<typeof decorationSchema>;
+export type WorldScatter = z.infer<typeof scatterSchema>;
 export type WorldSpot = z.infer<typeof spotSchema>;

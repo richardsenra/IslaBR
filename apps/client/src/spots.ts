@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { ARENA_SPOTS, type InteractSpot } from '@islabr/shared';
 import { Avatar } from './avatar.js';
 import { NPC_MODELS } from './models.js';
+import { criarModeloDoCenario, modeloDoCenarioPronto } from './cenario.js';
 
 /**
  * Alvos de interação desenhados: NPC vira boneco, objeto e baú viram caixa.
@@ -62,6 +63,16 @@ export class Spots {
         avatar.place(spot.x, spot.y, spot.z, Math.PI);
         this.group.add(avatar.root);
         this.desenhados.push({ spot, raiz: avatar.root, avatar });
+        continue;
+      }
+
+      // A caixa do cais é o modelo da caixa de madeira, quando carregou.
+      if (spot.alvo === 'caixa_quebravel' && modeloDoCenarioPronto('Prop_Crate')) {
+        const caixa = criarModeloDoCenario('Prop_Crate', 0.85);
+        caixa.position.set(spot.x, spot.y, spot.z);
+        caixa.name = spot.id;
+        this.group.add(caixa);
+        this.desenhados.push({ spot, raiz: caixa });
         continue;
       }
 

@@ -99,7 +99,8 @@
       "sizeX": 98,
       "sizeY": 4,
       "sizeZ": 1,
-      "cor": "#6ea8d8"
+      "cor": "#6ea8d8",
+      "visivel": false
     },
     {
       "id": "muro_s",
@@ -111,7 +112,8 @@
       "sizeX": 98,
       "sizeY": 4,
       "sizeZ": 1,
-      "cor": "#6ea8d8"
+      "cor": "#6ea8d8",
+      "visivel": false
     },
     {
       "id": "muro_l",
@@ -123,7 +125,8 @@
       "sizeX": 1,
       "sizeY": 4,
       "sizeZ": 98,
-      "cor": "#6ea8d8"
+      "cor": "#6ea8d8",
+      "visivel": false
     },
     {
       "id": "muro_o",
@@ -135,31 +138,34 @@
       "sizeX": 1,
       "sizeY": 4,
       "sizeZ": 98,
-      "cor": "#6ea8d8"
+      "cor": "#6ea8d8",
+      "visivel": false
     },
     {
       "id": "farol",
       "kind": "wall",
       "zona": "z1",
       "x": 10,
-      "y": 5,
+      "y": 4.7,
       "z": -9,
-      "sizeX": 3,
-      "sizeY": 10,
-      "sizeZ": 3,
-      "cor": "#f4f1ea"
+      "sizeX": 2.6,
+      "sizeY": 9.4,
+      "sizeZ": 2.6,
+      "cor": "#f4f1ea",
+      "visivel": false
     },
     {
-      "id": "cais_pilar",
+      "id": "cais_caixas",
       "kind": "wall",
       "zona": "z1",
       "x": -10,
-      "y": 0.75,
+      "y": 0.55,
       "z": -10,
-      "sizeX": 1,
-      "sizeY": 1.5,
-      "sizeZ": 1,
-      "cor": "#8a5a3c"
+      "sizeX": 1.1,
+      "sizeY": 1.1,
+      "sizeZ": 1.1,
+      "cor": "#8a5a3c",
+      "visivel": false
     },
     {
       "id": "loja",
@@ -171,7 +177,8 @@
       "sizeX": 8,
       "sizeY": 3.6,
       "sizeZ": 6,
-      "cor": "#e07a5f"
+      "cor": "#e07a5f",
+      "visivel": false
     },
     {
       "id": "loja_caixa_1",
@@ -183,7 +190,8 @@
       "sizeX": 1.6,
       "sizeY": 1.2,
       "sizeZ": 1.6,
-      "cor": "#d98b45"
+      "cor": "#d98b45",
+      "visivel": false
     },
     {
       "id": "loja_caixa_2",
@@ -195,7 +203,8 @@
       "sizeX": 1.6,
       "sizeY": 2.4,
       "sizeZ": 1.6,
-      "cor": "#c97a36"
+      "cor": "#c97a36",
+      "visivel": false
     },
     {
       "id": "loja_caixa_3",
@@ -207,19 +216,21 @@
       "sizeX": 1.6,
       "sizeY": 3.6,
       "sizeZ": 1.6,
-      "cor": "#b96b2c"
+      "cor": "#b96b2c",
+      "visivel": false
     },
     {
       "id": "casa_1",
       "kind": "wall",
       "zona": "z2",
       "x": 22,
-      "y": 1.5,
+      "y": 1.55,
       "z": -8,
-      "sizeX": 5,
-      "sizeY": 3,
-      "sizeZ": 5,
-      "cor": "#f2cc8f"
+      "sizeX": 6,
+      "sizeY": 3.1,
+      "sizeZ": 6,
+      "cor": "#f2cc8f",
+      "visivel": false
     },
     {
       "id": "gruta_laje",
@@ -472,6 +483,19 @@
       "sizeY": 0.4,
       "sizeZ": 8,
       "cor": "#dda15e"
+    },
+    {
+      "id": "carroca",
+      "kind": "wall",
+      "zona": "z1",
+      "x": -10,
+      "y": 0.76,
+      "z": -13.14,
+      "sizeX": 1.95,
+      "sizeY": 1.53,
+      "sizeZ": 4.02,
+      "cor": "#8a5a3c",
+      "visivel": false
     }
   ],
   "alvos": [
@@ -854,6 +878,1004 @@
       "tipo": "e04",
       "x": -34,
       "z": 22
+    }
+  ],
+  "decoracao": [
+    {
+      "modelo": "Wall_UnevenBrick_Straight",
+      "x": 10,
+      "y": 0,
+      "z": -7.9,
+      "giro": 3.1416,
+      "escala": 1.2,
+      "escalaY": 1
+    },
+    {
+      "modelo": "Wall_UnevenBrick_Straight",
+      "x": 10,
+      "y": 0,
+      "z": -10.1,
+      "giro": 0,
+      "escala": 1.2,
+      "escalaY": 1
+    },
+    {
+      "modelo": "Wall_UnevenBrick_Straight",
+      "x": 11.1,
+      "y": 0,
+      "z": -9,
+      "giro": -1.5708,
+      "escala": 1.2,
+      "escalaY": 1
+    },
+    {
+      "modelo": "Wall_UnevenBrick_Straight",
+      "x": 8.9,
+      "y": 0,
+      "z": -9,
+      "giro": 1.5708,
+      "escala": 1.2,
+      "escalaY": 1
+    },
+    {
+      "modelo": "Corner_Exterior_Brick",
+      "x": 8.8,
+      "y": 0,
+      "z": -10.2,
+      "giro": 0,
+      "escala": 1
+    },
+    {
+      "modelo": "Corner_Exterior_Brick",
+      "x": 11.2,
+      "y": 0,
+      "z": -10.2,
+      "giro": 0,
+      "escala": 1
+    },
+    {
+      "modelo": "Corner_Exterior_Brick",
+      "x": 8.8,
+      "y": 0,
+      "z": -7.8,
+      "giro": 0,
+      "escala": 1
+    },
+    {
+      "modelo": "Corner_Exterior_Brick",
+      "x": 11.2,
+      "y": 0,
+      "z": -7.8,
+      "giro": 0,
+      "escala": 1
+    },
+    {
+      "modelo": "Wall_UnevenBrick_Straight",
+      "x": 10,
+      "y": 3.12,
+      "z": -7.9,
+      "giro": 3.1416,
+      "escala": 1.2,
+      "escalaY": 1
+    },
+    {
+      "modelo": "Wall_UnevenBrick_Straight",
+      "x": 10,
+      "y": 3.12,
+      "z": -10.1,
+      "giro": 0,
+      "escala": 1.2,
+      "escalaY": 1
+    },
+    {
+      "modelo": "Wall_UnevenBrick_Straight",
+      "x": 11.1,
+      "y": 3.12,
+      "z": -9,
+      "giro": -1.5708,
+      "escala": 1.2,
+      "escalaY": 1
+    },
+    {
+      "modelo": "Wall_UnevenBrick_Straight",
+      "x": 8.9,
+      "y": 3.12,
+      "z": -9,
+      "giro": 1.5708,
+      "escala": 1.2,
+      "escalaY": 1
+    },
+    {
+      "modelo": "Corner_Exterior_Brick",
+      "x": 8.8,
+      "y": 3.12,
+      "z": -10.2,
+      "giro": 0,
+      "escala": 1
+    },
+    {
+      "modelo": "Corner_Exterior_Brick",
+      "x": 11.2,
+      "y": 3.12,
+      "z": -10.2,
+      "giro": 0,
+      "escala": 1
+    },
+    {
+      "modelo": "Corner_Exterior_Brick",
+      "x": 8.8,
+      "y": 3.12,
+      "z": -7.8,
+      "giro": 0,
+      "escala": 1
+    },
+    {
+      "modelo": "Corner_Exterior_Brick",
+      "x": 11.2,
+      "y": 3.12,
+      "z": -7.8,
+      "giro": 0,
+      "escala": 1
+    },
+    {
+      "modelo": "Wall_UnevenBrick_Straight",
+      "x": 10,
+      "y": 6.24,
+      "z": -7.9,
+      "giro": 3.1416,
+      "escala": 1.2,
+      "escalaY": 1
+    },
+    {
+      "modelo": "Wall_UnevenBrick_Straight",
+      "x": 10,
+      "y": 6.24,
+      "z": -10.1,
+      "giro": 0,
+      "escala": 1.2,
+      "escalaY": 1
+    },
+    {
+      "modelo": "Wall_UnevenBrick_Straight",
+      "x": 11.1,
+      "y": 6.24,
+      "z": -9,
+      "giro": -1.5708,
+      "escala": 1.2,
+      "escalaY": 1
+    },
+    {
+      "modelo": "Wall_UnevenBrick_Straight",
+      "x": 8.9,
+      "y": 6.24,
+      "z": -9,
+      "giro": 1.5708,
+      "escala": 1.2,
+      "escalaY": 1
+    },
+    {
+      "modelo": "Corner_Exterior_Brick",
+      "x": 8.8,
+      "y": 6.24,
+      "z": -10.2,
+      "giro": 0,
+      "escala": 1
+    },
+    {
+      "modelo": "Corner_Exterior_Brick",
+      "x": 11.2,
+      "y": 6.24,
+      "z": -10.2,
+      "giro": 0,
+      "escala": 1
+    },
+    {
+      "modelo": "Corner_Exterior_Brick",
+      "x": 8.8,
+      "y": 6.24,
+      "z": -7.8,
+      "giro": 0,
+      "escala": 1
+    },
+    {
+      "modelo": "Corner_Exterior_Brick",
+      "x": 11.2,
+      "y": 6.24,
+      "z": -7.8,
+      "giro": 0,
+      "escala": 1
+    },
+    {
+      "modelo": "Roof_Tower_RoundTiles",
+      "x": 10,
+      "y": 9.64,
+      "z": -9,
+      "giro": 0,
+      "escala": 0.5
+    },
+    {
+      "modelo": "Prop_Crate",
+      "x": -10,
+      "y": 0,
+      "z": -10,
+      "giro": 0.3,
+      "escala": 1.02
+    },
+    {
+      "modelo": "Prop_Wagon",
+      "x": -10,
+      "y": 0,
+      "z": -12,
+      "giro": 0,
+      "escala": 1
+    },
+    {
+      "modelo": "Wall_Plaster_Straight",
+      "x": 37,
+      "y": 0,
+      "z": -6.1,
+      "giro": 3.1416,
+      "escala": 1,
+      "escalaY": 1.1538461538461537
+    },
+    {
+      "modelo": "Wall_Plaster_Door_Round",
+      "x": 39,
+      "y": 0,
+      "z": -6.1,
+      "giro": 3.1416,
+      "escala": 1,
+      "escalaY": 1.1538461538461537
+    },
+    {
+      "modelo": "Wall_Plaster_Straight",
+      "x": 41,
+      "y": 0,
+      "z": -6.1,
+      "giro": 3.1416,
+      "escala": 1,
+      "escalaY": 1.1538461538461537
+    },
+    {
+      "modelo": "Wall_Plaster_Straight",
+      "x": 43,
+      "y": 0,
+      "z": -6.1,
+      "giro": 3.1416,
+      "escala": 1,
+      "escalaY": 1.1538461538461537
+    },
+    {
+      "modelo": "Wall_Plaster_Straight",
+      "x": 37,
+      "y": 0,
+      "z": -11.9,
+      "giro": 0,
+      "escala": 1,
+      "escalaY": 1.1538461538461537
+    },
+    {
+      "modelo": "Wall_Plaster_Straight",
+      "x": 39,
+      "y": 0,
+      "z": -11.9,
+      "giro": 0,
+      "escala": 1,
+      "escalaY": 1.1538461538461537
+    },
+    {
+      "modelo": "Wall_Plaster_Window_Wide_Round",
+      "x": 41,
+      "y": 0,
+      "z": -11.9,
+      "giro": 0,
+      "escala": 1,
+      "escalaY": 1.1538461538461537
+    },
+    {
+      "modelo": "Wall_Plaster_Straight",
+      "x": 43,
+      "y": 0,
+      "z": -11.9,
+      "giro": 0,
+      "escala": 1,
+      "escalaY": 1.1538461538461537
+    },
+    {
+      "modelo": "Wall_Plaster_Straight",
+      "x": 43.9,
+      "y": 0,
+      "z": -11,
+      "giro": -1.5708,
+      "escala": 1,
+      "escalaY": 1.1538461538461537
+    },
+    {
+      "modelo": "Wall_Plaster_Window_Wide_Round",
+      "x": 43.9,
+      "y": 0,
+      "z": -9,
+      "giro": -1.5708,
+      "escala": 1,
+      "escalaY": 1.1538461538461537
+    },
+    {
+      "modelo": "Wall_Plaster_Straight",
+      "x": 43.9,
+      "y": 0,
+      "z": -7,
+      "giro": -1.5708,
+      "escala": 1,
+      "escalaY": 1.1538461538461537
+    },
+    {
+      "modelo": "Wall_Plaster_Straight",
+      "x": 36.1,
+      "y": 0,
+      "z": -11,
+      "giro": 1.5708,
+      "escala": 1,
+      "escalaY": 1.1538461538461537
+    },
+    {
+      "modelo": "Wall_Plaster_Window_Wide_Round",
+      "x": 36.1,
+      "y": 0,
+      "z": -9,
+      "giro": 1.5708,
+      "escala": 1,
+      "escalaY": 1.1538461538461537
+    },
+    {
+      "modelo": "Wall_Plaster_Straight",
+      "x": 36.1,
+      "y": 0,
+      "z": -7,
+      "giro": 1.5708,
+      "escala": 1,
+      "escalaY": 1.1538461538461537
+    },
+    {
+      "modelo": "Corner_Exterior_Wood",
+      "x": 36,
+      "y": 0,
+      "z": -12,
+      "giro": 0,
+      "escala": 1,
+      "escalaY": 1.1538461538461537
+    },
+    {
+      "modelo": "Corner_Exterior_Wood",
+      "x": 44,
+      "y": 0,
+      "z": -12,
+      "giro": 0,
+      "escala": 1,
+      "escalaY": 1.1538461538461537
+    },
+    {
+      "modelo": "Corner_Exterior_Wood",
+      "x": 36,
+      "y": 0,
+      "z": -6,
+      "giro": 0,
+      "escala": 1,
+      "escalaY": 1.1538461538461537
+    },
+    {
+      "modelo": "Corner_Exterior_Wood",
+      "x": 44,
+      "y": 0,
+      "z": -6,
+      "giro": 0,
+      "escala": 1,
+      "escalaY": 1.1538461538461537
+    },
+    {
+      "modelo": "Floor_WoodLight",
+      "x": 37,
+      "y": 3.62,
+      "z": -11,
+      "giro": 0,
+      "escala": 1
+    },
+    {
+      "modelo": "Floor_WoodLight",
+      "x": 37,
+      "y": 3.62,
+      "z": -9,
+      "giro": 0,
+      "escala": 1
+    },
+    {
+      "modelo": "Floor_WoodLight",
+      "x": 37,
+      "y": 3.62,
+      "z": -7,
+      "giro": 0,
+      "escala": 1
+    },
+    {
+      "modelo": "Floor_WoodLight",
+      "x": 39,
+      "y": 3.62,
+      "z": -11,
+      "giro": 0,
+      "escala": 1
+    },
+    {
+      "modelo": "Floor_WoodLight",
+      "x": 39,
+      "y": 3.62,
+      "z": -9,
+      "giro": 0,
+      "escala": 1
+    },
+    {
+      "modelo": "Floor_WoodLight",
+      "x": 39,
+      "y": 3.62,
+      "z": -7,
+      "giro": 0,
+      "escala": 1
+    },
+    {
+      "modelo": "Floor_WoodLight",
+      "x": 41,
+      "y": 3.62,
+      "z": -11,
+      "giro": 0,
+      "escala": 1
+    },
+    {
+      "modelo": "Floor_WoodLight",
+      "x": 41,
+      "y": 3.62,
+      "z": -9,
+      "giro": 0,
+      "escala": 1
+    },
+    {
+      "modelo": "Floor_WoodLight",
+      "x": 41,
+      "y": 3.62,
+      "z": -7,
+      "giro": 0,
+      "escala": 1
+    },
+    {
+      "modelo": "Floor_WoodLight",
+      "x": 43,
+      "y": 3.62,
+      "z": -11,
+      "giro": 0,
+      "escala": 1
+    },
+    {
+      "modelo": "Floor_WoodLight",
+      "x": 43,
+      "y": 3.62,
+      "z": -9,
+      "giro": 0,
+      "escala": 1
+    },
+    {
+      "modelo": "Floor_WoodLight",
+      "x": 43,
+      "y": 3.62,
+      "z": -7,
+      "giro": 0,
+      "escala": 1
+    },
+    {
+      "modelo": "Wall_Plaster_Straight",
+      "x": 20,
+      "y": 0,
+      "z": -5.1,
+      "giro": 3.1416,
+      "escala": 1,
+      "escalaY": 1
+    },
+    {
+      "modelo": "Wall_Plaster_Door_Round",
+      "x": 22,
+      "y": 0,
+      "z": -5.1,
+      "giro": 3.1416,
+      "escala": 1,
+      "escalaY": 1
+    },
+    {
+      "modelo": "Wall_Plaster_Straight",
+      "x": 24,
+      "y": 0,
+      "z": -5.1,
+      "giro": 3.1416,
+      "escala": 1,
+      "escalaY": 1
+    },
+    {
+      "modelo": "Wall_Plaster_Straight",
+      "x": 20,
+      "y": 0,
+      "z": -10.9,
+      "giro": 0,
+      "escala": 1,
+      "escalaY": 1
+    },
+    {
+      "modelo": "Wall_Plaster_Window_Wide_Round",
+      "x": 22,
+      "y": 0,
+      "z": -10.9,
+      "giro": 0,
+      "escala": 1,
+      "escalaY": 1
+    },
+    {
+      "modelo": "Wall_Plaster_Straight",
+      "x": 24,
+      "y": 0,
+      "z": -10.9,
+      "giro": 0,
+      "escala": 1,
+      "escalaY": 1
+    },
+    {
+      "modelo": "Wall_Plaster_Straight",
+      "x": 24.9,
+      "y": 0,
+      "z": -10,
+      "giro": -1.5708,
+      "escala": 1,
+      "escalaY": 1
+    },
+    {
+      "modelo": "Wall_Plaster_Window_Wide_Round",
+      "x": 24.9,
+      "y": 0,
+      "z": -8,
+      "giro": -1.5708,
+      "escala": 1,
+      "escalaY": 1
+    },
+    {
+      "modelo": "Wall_Plaster_Straight",
+      "x": 24.9,
+      "y": 0,
+      "z": -6,
+      "giro": -1.5708,
+      "escala": 1,
+      "escalaY": 1
+    },
+    {
+      "modelo": "Wall_Plaster_Straight",
+      "x": 19.1,
+      "y": 0,
+      "z": -10,
+      "giro": 1.5708,
+      "escala": 1,
+      "escalaY": 1
+    },
+    {
+      "modelo": "Wall_Plaster_Window_Wide_Round",
+      "x": 19.1,
+      "y": 0,
+      "z": -8,
+      "giro": 1.5708,
+      "escala": 1,
+      "escalaY": 1
+    },
+    {
+      "modelo": "Wall_Plaster_Straight",
+      "x": 19.1,
+      "y": 0,
+      "z": -6,
+      "giro": 1.5708,
+      "escala": 1,
+      "escalaY": 1
+    },
+    {
+      "modelo": "Corner_Exterior_Wood",
+      "x": 19,
+      "y": 0,
+      "z": -11,
+      "giro": 0,
+      "escala": 1,
+      "escalaY": 1
+    },
+    {
+      "modelo": "Corner_Exterior_Wood",
+      "x": 25,
+      "y": 0,
+      "z": -11,
+      "giro": 0,
+      "escala": 1,
+      "escalaY": 1
+    },
+    {
+      "modelo": "Corner_Exterior_Wood",
+      "x": 19,
+      "y": 0,
+      "z": -5,
+      "giro": 0,
+      "escala": 1,
+      "escalaY": 1
+    },
+    {
+      "modelo": "Corner_Exterior_Wood",
+      "x": 25,
+      "y": 0,
+      "z": -5,
+      "giro": 0,
+      "escala": 1,
+      "escalaY": 1
+    },
+    {
+      "modelo": "Roof_RoundTiles_6x6",
+      "x": 22,
+      "y": 3.12,
+      "z": -8,
+      "giro": 0,
+      "escala": 1
+    },
+    {
+      "modelo": "Prop_Chimney",
+      "x": 24,
+      "y": 2.2,
+      "z": -9.5,
+      "giro": 0,
+      "escala": 1
+    },
+    {
+      "modelo": "Prop_Crate",
+      "x": 31.2,
+      "y": 0,
+      "z": -9,
+      "giro": 0,
+      "escala": 1.48,
+      "escalaY": 1.13
+    },
+    {
+      "modelo": "Prop_Crate",
+      "x": 33,
+      "y": 0,
+      "z": -9,
+      "giro": 0,
+      "escala": 1.48,
+      "escalaY": 1.13
+    },
+    {
+      "modelo": "Prop_Crate",
+      "x": 33,
+      "y": 1.2,
+      "z": -9,
+      "giro": 0.2,
+      "escala": 1.48,
+      "escalaY": 1.13
+    },
+    {
+      "modelo": "Prop_Crate",
+      "x": 34.8,
+      "y": 0,
+      "z": -9,
+      "giro": 0,
+      "escala": 1.48,
+      "escalaY": 1.13
+    },
+    {
+      "modelo": "Prop_Crate",
+      "x": 34.8,
+      "y": 1.2,
+      "z": -9,
+      "giro": 0.2,
+      "escala": 1.48,
+      "escalaY": 1.13
+    },
+    {
+      "modelo": "Prop_Crate",
+      "x": 34.8,
+      "y": 2.4,
+      "z": -9,
+      "giro": 0.4,
+      "escala": 1.48,
+      "escalaY": 1.13
+    },
+    {
+      "modelo": "Prop_WoodenFence_Single",
+      "x": 18.7,
+      "y": 0,
+      "z": 8.8,
+      "giro": 0,
+      "escala": 1
+    },
+    {
+      "modelo": "Prop_WoodenFence_Single",
+      "x": 18.7,
+      "y": 0,
+      "z": 13.4,
+      "giro": 0,
+      "escala": 1
+    },
+    {
+      "modelo": "Prop_WoodenFence_Single",
+      "x": 20.8,
+      "y": 0,
+      "z": 8.8,
+      "giro": 0,
+      "escala": 1
+    },
+    {
+      "modelo": "Prop_WoodenFence_Single",
+      "x": 20.8,
+      "y": 0,
+      "z": 13.4,
+      "giro": 0,
+      "escala": 1
+    },
+    {
+      "modelo": "Prop_WoodenFence_Single",
+      "x": 22.9,
+      "y": 0,
+      "z": 8.8,
+      "giro": 0,
+      "escala": 1
+    },
+    {
+      "modelo": "Prop_WoodenFence_Single",
+      "x": 22.9,
+      "y": 0,
+      "z": 13.4,
+      "giro": 0,
+      "escala": 1
+    },
+    {
+      "modelo": "Prop_WoodenFence_Single",
+      "x": 17.6,
+      "y": 0,
+      "z": 10.2,
+      "giro": 1.5708,
+      "escala": 1
+    },
+    {
+      "modelo": "Prop_WoodenFence_Single",
+      "x": 17.6,
+      "y": 0,
+      "z": 12.3,
+      "giro": 1.5708,
+      "escala": 1
+    }
+  ],
+  "dispersoes": [
+    {
+      "id": "porto_mato",
+      "minX": -15,
+      "maxX": 15,
+      "minZ": -15,
+      "maxZ": 15,
+      "modelos": [
+        "Grass_Common_Tall",
+        "Grass_Common_Short",
+        "Grass_Common_Short",
+        "Grass_Common_Tall"
+      ],
+      "quantidade": 40,
+      "semente": 101,
+      "escala": [0.7, 1.1],
+      "folga": 0.6
+    },
+    {
+      "id": "porto_flores",
+      "minX": -15,
+      "maxX": 15,
+      "minZ": -15,
+      "maxZ": 15,
+      "modelos": ["Flower_3_Group", "Flower_4_Group"],
+      "quantidade": 8,
+      "semente": 102,
+      "escala": [0.6, 0.9],
+      "folga": 0.6
+    },
+    {
+      "id": "porto_arbustos",
+      "minX": -15,
+      "maxX": 15,
+      "minZ": -15,
+      "maxZ": 15,
+      "modelos": ["Bush_Common", "Bush_Common_Flowers"],
+      "quantidade": 6,
+      "semente": 103,
+      "escala": [0.8, 1.2],
+      "folga": 1.5
+    },
+    {
+      "id": "vila_mato",
+      "minX": 17,
+      "maxX": 47,
+      "minZ": -15,
+      "maxZ": 15,
+      "modelos": [
+        "Grass_Common_Tall",
+        "Grass_Common_Short",
+        "Grass_Common_Short",
+        "Grass_Common_Tall"
+      ],
+      "quantidade": 110,
+      "semente": 201,
+      "escala": [0.7, 1.2],
+      "folga": 0.6
+    },
+    {
+      "id": "vila_flores",
+      "minX": 17,
+      "maxX": 47,
+      "minZ": -15,
+      "maxZ": 15,
+      "modelos": ["Flower_3_Group", "Flower_4_Group"],
+      "quantidade": 28,
+      "semente": 202,
+      "escala": [0.6, 1],
+      "folga": 0.6
+    },
+    {
+      "id": "vila_arbustos",
+      "minX": 17,
+      "maxX": 47,
+      "minZ": -15,
+      "maxZ": 15,
+      "modelos": ["Bush_Common", "Bush_Common_Flowers"],
+      "quantidade": 14,
+      "semente": 203,
+      "escala": [0.8, 1.3],
+      "folga": 1.5
+    },
+    {
+      "id": "vila_samambaias",
+      "minX": 17,
+      "maxX": 47,
+      "minZ": -15,
+      "maxZ": 15,
+      "modelos": ["Fern_1", "Plant_1_Big"],
+      "quantidade": 8,
+      "semente": 204,
+      "escala": [0.12, 0.2],
+      "folga": 1
+    },
+    {
+      "id": "vila_cogumelos",
+      "minX": 17,
+      "maxX": 47,
+      "minZ": -15,
+      "maxZ": 15,
+      "modelos": ["Mushroom_Common"],
+      "quantidade": 6,
+      "semente": 205,
+      "escala": [0.8, 1.4],
+      "folga": 0.6
+    },
+    {
+      "id": "mata_n",
+      "minX": -56,
+      "maxX": 56,
+      "minZ": -58,
+      "maxZ": -50,
+      "modelos": [
+        "CommonTree_1",
+        "CommonTree_2",
+        "CommonTree_3",
+        "Pine_1",
+        "CommonTree_2",
+        "TwistedTree_1"
+      ],
+      "quantidade": 24,
+      "semente": 301,
+      "escala": [0.9, 1.5],
+      "folga": 0
+    },
+    {
+      "id": "mata_s",
+      "minX": -56,
+      "maxX": 56,
+      "minZ": 50,
+      "maxZ": 58,
+      "modelos": [
+        "CommonTree_1",
+        "CommonTree_2",
+        "CommonTree_3",
+        "Pine_1",
+        "CommonTree_2",
+        "TwistedTree_1"
+      ],
+      "quantidade": 24,
+      "semente": 302,
+      "escala": [0.9, 1.5],
+      "folga": 0
+    },
+    {
+      "id": "mata_l",
+      "minX": 50,
+      "maxX": 58,
+      "minZ": -50,
+      "maxZ": 50,
+      "modelos": [
+        "CommonTree_1",
+        "CommonTree_2",
+        "CommonTree_3",
+        "Pine_1",
+        "CommonTree_2",
+        "TwistedTree_1"
+      ],
+      "quantidade": 20,
+      "semente": 303,
+      "escala": [0.9, 1.5],
+      "folga": 0
+    },
+    {
+      "id": "mata_o",
+      "minX": -58,
+      "maxX": -50,
+      "minZ": -50,
+      "maxZ": 50,
+      "modelos": [
+        "CommonTree_1",
+        "CommonTree_2",
+        "CommonTree_3",
+        "Pine_1",
+        "CommonTree_2",
+        "TwistedTree_1"
+      ],
+      "quantidade": 20,
+      "semente": 304,
+      "escala": [0.9, 1.5],
+      "folga": 0
+    },
+    {
+      "id": "pedras_n",
+      "minX": -46,
+      "maxX": 46,
+      "minZ": -48,
+      "maxZ": -46,
+      "modelos": ["Rock_Medium_1", "Rock_Medium_2", "Rock_Medium_3"],
+      "quantidade": 8,
+      "semente": 311,
+      "escala": [0.4, 0.8],
+      "folga": 0.6
+    },
+    {
+      "id": "pedras_s",
+      "minX": -46,
+      "maxX": 46,
+      "minZ": 46,
+      "maxZ": 48,
+      "modelos": ["Rock_Medium_1", "Rock_Medium_2", "Rock_Medium_3"],
+      "quantidade": 8,
+      "semente": 312,
+      "escala": [0.4, 0.8],
+      "folga": 0.6
+    },
+    {
+      "id": "pedras_l",
+      "minX": 46,
+      "maxX": 48,
+      "minZ": -46,
+      "maxZ": 46,
+      "modelos": ["Rock_Medium_1", "Rock_Medium_2", "Rock_Medium_3"],
+      "quantidade": 8,
+      "semente": 313,
+      "escala": [0.4, 0.8],
+      "folga": 0.6
+    },
+    {
+      "id": "pedras_o",
+      "minX": -48,
+      "maxX": -46,
+      "minZ": -46,
+      "maxZ": 46,
+      "modelos": ["Rock_Medium_1", "Rock_Medium_2", "Rock_Medium_3"],
+      "quantidade": 8,
+      "semente": 314,
+      "escala": [0.4, 0.8],
+      "folga": 0.6
     }
   ]
 }
